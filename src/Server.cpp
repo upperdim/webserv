@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/20 17:42:58 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/20 18:24:10 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ void	Server::srv_listen(void)
 void	Server::srv_respond(int cli_socket, std::string msg)
 {
 	// respond
-	std::string response = std::string("HTTP/1.0 200 OK\r\n\r\n__GELL__") + msg;
+	std::string response = std::string("HTTP/1.0 200 OK\r\n\r\n<MESSAGE>\n") + msg + "</MESSAGE>\0";
 	send(cli_socket, response.c_str(), response.length(), 0);
 }
 
