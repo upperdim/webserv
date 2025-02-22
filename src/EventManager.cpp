@@ -1,23 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   EventLoop.cpp                                      :+:      :+:    :+:   */
+/*   EventManager.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/22 11:39:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/22 14:37:59 by nmihaile         ###   ########.fr       */
+/*   Created: 2025/02/22 19:30:12 by nmihaile          #+#    #+#             */
+/*   Updated: 2025/02/22 19:30:18 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "EventLoop.hpp"
+#include "EventManager.hpp"
 
-EventLoop::EventLoop(bool& _running)
+EventManager::EventManager(bool& _running)
 	:	m_running(_running)
 {
 }
 
-EventLoop::~EventLoop()
+EventManager::~EventManager()
 {
 }
 
@@ -26,24 +26,22 @@ EventLoop::~EventLoop()
 /* ************************************************************************** */
 
 
-void	EventLoop::run(void)
+void	EventManager::run(void)
 {
-	int	num_fd;
-
 	if (m_running == false)
 		return ;
 
 	Log::msg("running Webserv: ", "serving the world wide web", LIGHTGREEN, GREEN);
-
 	while (m_running)
 	{
 		Log::info("polling");
-		num_fd = poll(m_pollfds.data(), m_pollfds.size(), 0);
+		int	num_fd = poll(m_pollfds.data(), m_pollfds.size(), 0);
+		(void) num_fd;
 		sleep(1);
 	}
 }
 
-void	EventLoop::registerFd(Server* _server)
+void	EventManager::registerFd(Server* _server)
 {
 	if (_server == nullptr)
 		return ;
@@ -56,7 +54,7 @@ void	EventLoop::registerFd(Server* _server)
 	m_fd_to_server[_server->srv_socket] = _server;
 }
 
-void	EventLoop::unregisterFd(const int _fd)
+void	EventManager::unregisterFd(const int _fd)
 {
 	(void)_fd;
 }

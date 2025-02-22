@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   EventLoop.hpp                                      :+:      :+:    :+:   */
+/*   EventManager.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 11:39:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/22 12:50:33 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/22 19:23:34 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef EVENTLOOP_HPP
-#define EVENTLOOP_HPP
+#ifndef EVENTMANAGER_HPP
+#define EVENTMANAGER_HPP
 
 #include <vector>
 #include <map>
@@ -20,20 +20,27 @@
 #include "Server.hpp"
 #include "webserv.h"
 
-class EventLoop
+// EventLoop class could also be named:
+//	-	EventManager
+// 	-	WebServ
+//	-	ServerHub
+//	-	ServerManager
+//	-	ServerController
+
+class EventManager
 {
 public:
-	EventLoop(bool& _running);
-	~EventLoop();
+	EventManager(bool& _running);
+	~EventManager();
 
 	void	run(void);
 	void	registerFd(Server* _server);
 	void	unregisterFd(const int _fd);
 
 private:
-	EventLoop();
-	EventLoop(const EventLoop& other);
-	EventLoop&	operator=(const EventLoop& rhs);
+	EventManager();
+	EventManager(const EventManager& other);
+	EventManager&	operator=(const EventManager& rhs);
 
 	bool&						m_running;
 	std::vector<struct pollfd>	m_pollfds;
