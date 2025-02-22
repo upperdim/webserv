@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 13:26:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/22 14:12:57 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/22 19:27:05 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 # include <iostream>
 # include <csignal>
 # include <unistd.h>
-# include "EventLoop.hpp"
+# include "EventManager.hpp"
 # include "Server.hpp"
 # include "Log.hpp"
 
