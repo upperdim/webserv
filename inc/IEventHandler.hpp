@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 19:42:07 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/22 19:46:00 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/22 19:56:16 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 class IEventHandler
 {
 public:
+	int	socket_fd;
+	
 	virtual ~IEventHandler() {};
 
 	virtual void handleReadEvent()	=0;

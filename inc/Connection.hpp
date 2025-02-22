@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:36 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/22 19:49:39 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/22 20:42:51 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@ class Connection : public IEventHandler
 {
 public:
 
-	int			cli_socket;
 	std::string	request;
 	std::string	response;
 
@@ -36,6 +35,7 @@ public:
 	void	recieve(void);
 	void	create_response(void);
 	void	respond(void);
+	bool	isDone() const;
 
 	virtual void handleReadEvent();
 	virtual void handleWriteEvent();
