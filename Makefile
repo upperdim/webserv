@@ -5,7 +5,7 @@ CPPFLAGS	=	-Wall -Wextra -Werror -std=c++11
 
 VPATH		=	src/
 
-SRCS		=	main.cpp EventLoop.cpp Server.cpp Connection.cpp signal.cpp
+SRCS		=	main.cpp EventLoop.cpp Server.cpp Connection.cpp signal.cpp Log.cpp
 OBJS		=	$(SRCS:.cpp=.o)
 
 all: $(NAME)
