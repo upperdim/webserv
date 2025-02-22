@@ -27,6 +27,7 @@ public:
 	static void	warning(const std::string msg);
 	static void	error(const std::string msg);
 	static void	success(const std::string msg);
+	static void	msg(const std::string label, const std::string msg, const std::string col1, const std::string col2);
 
 	typedef struct s_type
 	{

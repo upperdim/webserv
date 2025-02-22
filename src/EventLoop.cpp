@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 11:39:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/22 13:50:38 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/22 14:37:59 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,10 +33,8 @@ void	EventLoop::run(void)
 	if (m_running == false)
 		return ;
 
-	std::cout	<< LIGHTGREEN
-				<< BOLD << "running Webserv: "
-				<< REGULAR << GREEN << "serving the world wide web"
-				<< RESET << std::endl;
+	Log::msg("running Webserv: ", "serving the world wide web", LIGHTGREEN, GREEN);
+
 	while (m_running)
 	{
 		Log::info("polling");

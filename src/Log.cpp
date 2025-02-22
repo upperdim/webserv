@@ -54,6 +54,13 @@ void	Log::success(const std::string msg)
 	print(LOG_TYPES[SUCCESS], msg);
 }
 
+void	Log::msg(const std::string label, const std::string msg, const std::string col1, const std::string col2)
+{
+	std::cerr	<< col1 << BOLD << label 
+				<< col2 << REGULAR << msg
+				<< RESET << std::endl;
+}
+
 void	Log::print(const t_type type, const std::string msg)
 {
 	std::cerr	<< type.col1 << BOLD << "[" << type.name << "] "
