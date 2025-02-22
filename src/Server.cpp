@@ -6,11 +6,11 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/20 18:24:10 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/20 20:11:21 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/Server.hpp"
+#include "Server.hpp"
 
 Server::Server()
 {
@@ -44,24 +44,12 @@ void	Server::srv_listen(void)
 	// accept
 	int	cli_socket;
 	cli_socket = accept(srv_socket, NULL, NULL);
+	if (cli_socket == -1)
+		return ;
+	
+	Connection connection(cli_socket);
 
-	// recive
-	char		buf[2048];
-	recv(cli_socket, &buf, sizeof(buf), 0);
-	std::string msg(buf);
-
-	srv_respond(cli_socket, msg);
-	close(cli_socket);
-}
-
-void	Server::srv_respond(int cli_socket, std::string msg)
-{
-	// respond
-	std::string response = std::string("HTTP/1.0 200 OK\r\n\r\n<MESSAGE>\n") + msg + "</MESSAGE>\0";
-	send(cli_socket, response.c_str(), response.length(), 0);
-}
-
-void	Server::srv_close(int cli_socket)
-{
-	close(cli_socket);
+	connection.recieve();
+	connection.create_response();
+	connection.respond();
 }

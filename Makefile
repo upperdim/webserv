@@ -5,17 +5,17 @@ CPPFLAGS	=	-Wall -Wextra -Werror -std=c++11
 
 VPATH		=	src/
 
-SRCS		=	main.cpp Server.cpp
+SRCS		=	main.cpp Server.cpp Connection.cpp signal.cpp
 OBJS		=	$(SRCS:.cpp=.o)
 
 all: $(NAME)
 	@echo "\033[92mexecute with: \033[1;92m"./$(NAME)"\033[0m"
 
 $(NAME): $(OBJS)
-	$(CPP) $(CPPFLAGS) $(OBJS) -o $(NAME)
+	$(CPP) $(CPPFLAGS) -Iinc $(OBJS) -o $(NAME)
 
 %.o: %.cpp
-	$(CPP) $(CPPFLAGS) -c $< -o $@
+	$(CPP) $(CPPFLAGS) -Iinc -c $< -o $@
 
 clean:
 	rm -f $(OBJS)
