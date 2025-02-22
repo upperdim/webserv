@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:36 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/21 12:59:12 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/22 19:49:39 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,11 @@
 #include <sys/socket.h>
 #include <string>
 #include <sstream>
+#include "IEventHandler.hpp"
 
 #include <iostream>
 
-class Connection
+class Connection : public IEventHandler
 {
 public:
 
@@ -35,6 +36,10 @@ public:
 	void	recieve(void);
 	void	create_response(void);
 	void	respond(void);
+
+	virtual void handleReadEvent();
+	virtual void handleWriteEvent();
+	virtual void handleErrorEvent();
 
 private:
 	Connection();

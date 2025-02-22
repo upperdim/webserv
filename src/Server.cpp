@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/20 20:11:21 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/22 19:48:49 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,4 +52,16 @@ void	Server::srv_listen(void)
 	connection.recieve();
 	connection.create_response();
 	connection.respond();
+}
+
+void Server::handleReadEvent()
+{
+}
+
+void Server::handleWriteEvent()
+{
+}
+
+void Server::handleErrorEvent()
+{
 }

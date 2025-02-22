@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/21 13:22:18 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/22 19:50:00 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,3 +64,16 @@ void	Connection::respond(void)
 {
 	send(cli_socket, response.c_str(), response.length(), 0);
 }
+
+void Connection::handleReadEvent()
+{
+}
+
+void Connection::handleWriteEvent()
+{
+}
+
+void Connection::handleErrorEvent()
+{
+}
+
