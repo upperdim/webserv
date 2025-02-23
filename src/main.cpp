@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/22 19:57:32 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/23 15:15:34 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,27 +16,26 @@ bool	g_running = true;
 
 int	main(void)
 {
-
 	std::signal(SIGINT, handleAbort);
 	std::signal(SIGQUIT, handleAbort);
 
-	EventManager event_manager(g_running);
-
-	Server server;
-
 	try
 	{
-		event_manager.registerFd(&server);
+		EventManager event_manager(g_running);
+		Server server;
+
+		event_manager.registerFd(&server, POLLIN | POLLOUT | POLLERR | POLL_HUP);
+		event_manager.processPendingRegistrations();
+
+		event_manager.run();
+
+		event_manager.unregisterFd(server.socket_fd);
 	}
 	catch(const std::exception& e)
 	{
 		Log::error(e.what());
 		g_running = false;
 	}
-	
-	event_manager.run();
-
-	event_manager.unregisterFd(server.socket_fd);
 
 	std::signal(SIGINT, SIG_DFL);
 	std::signal(SIGQUIT, SIG_DFL);
