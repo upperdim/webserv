@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 19:30:12 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/23 13:35:14 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/23 15:32:36 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,17 +53,13 @@ void	EventManager::processPendingRegistrations(void)
 
 	for (std::vector<std::pair<IEventHandler*, short>>::iterator it = m_register_queue.begin(); it < m_register_queue.end(); ++it)
 	{
-
-		Log::debug(std::string("searching fd: ") + std::to_string(it->first->socket_fd));
-
 		auto found = m_fd_to_EventHandler.find(it->first->socket_fd);
 		if (found != m_fd_to_EventHandler.end())
 		{
 			Log::error("Omitting EventHandler with fd: " + std::to_string(it->first->socket_fd));
 			continue ;
 		}
-		Log::debug(std::string("---------------------"));
-
+		
 		m_pollfds.emplace_back( (pollfd){it->first->socket_fd, it->second, 0} );
 		m_fd_to_EventHandler[it->first->socket_fd] = it->first;
 	}
