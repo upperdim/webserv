@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/22 19:56:26 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/23 12:08:42 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string>
+#include "EventManager.hpp"
 #include "IEventHandler.hpp"
 #include "Connection.hpp"
+#include "Log.hpp"
 
 
 class Server : public IEventHandler
@@ -30,11 +32,12 @@ public:
 
 	struct sockaddr_in	srv_addr;
 
-	void	srv_listen(void);
+	void	accept_connection(EventManager& event_manager);
 
-	virtual void handleReadEvent();
-	virtual void handleWriteEvent();
-	virtual void handleErrorEvent();
+	virtual void handleReadEvent(EventManager& event_manager);
+	virtual void handleWriteEvent(EventManager& event_manager);
+	virtual void handleErrorEvent(EventManager& event_manager);
+	virtual void handleDisConnectEvent(EventManager& event_manager);
 
 private:
 	Server(const Server& other);

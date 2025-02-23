@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:36 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/22 20:42:51 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/23 12:08:51 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,9 @@
 #include <sys/socket.h>
 #include <string>
 #include <sstream>
+#include "EventManager.hpp"
 #include "IEventHandler.hpp"
+#include "Log.hpp"
 
 #include <iostream>
 
@@ -37,9 +39,10 @@ public:
 	void	respond(void);
 	bool	isDone() const;
 
-	virtual void handleReadEvent();
-	virtual void handleWriteEvent();
-	virtual void handleErrorEvent();
+	virtual void handleReadEvent(EventManager& event_manager);
+	virtual void handleWriteEvent(EventManager& event_manager);
+	virtual void handleErrorEvent(EventManager& event_manager);
+	virtual void handleDisConnectEvent(EventManager& event_manager);
 
 private:
 	Connection();

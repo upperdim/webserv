@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/22 20:42:28 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/23 12:11:58 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,14 +70,26 @@ bool	Connection::isDone() const
 	return (m_done);
 }
 
-void Connection::handleReadEvent()
+void Connection::handleReadEvent(EventManager& event_manager)
 {
+	Log::msg("[handleReadEvent | Connection] ", std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	(void)event_manager;
 }
 
-void Connection::handleWriteEvent()
+void Connection::handleWriteEvent(EventManager& event_manager)
 {
+	Log::msg("[handleWriteEvent | Connection] ", std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	(void)event_manager;
 }
 
-void Connection::handleErrorEvent()
+void Connection::handleErrorEvent(EventManager& event_manager)
 {
+	Log::msg("[handleErrorEvent | Connection] ", std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	(void)event_manager;
+}
+
+void Connection::handleDisConnectEvent(EventManager& event_manager)
+{
+	Log::msg("[handleDisConnectEvent | Connection] ", std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	(void)event_manager;
 }
