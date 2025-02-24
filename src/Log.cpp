@@ -31,27 +31,47 @@ const Log::t_type Log::LOG_TYPES[5] = {
 
 void	Log::debug(const std::string msg)
 {
-	print(LOG_TYPES[DEBUG], msg);
+	print(LOG_TYPES[DEBUG], LOG_TYPES[DEBUG].name, msg);
 }
 
 void	Log::info(const std::string msg)
 {
-	print(LOG_TYPES[INFO], msg);
+	print(LOG_TYPES[INFO], LOG_TYPES[INFO].name, msg);
+}
+
+void	Log::info(const std::string label, const std::string msg)
+{
+	print(LOG_TYPES[INFO], label, msg);
 }
 
 void	Log::warning(const std::string msg)
 {
-	print(LOG_TYPES[WARNING], msg);
+	print(LOG_TYPES[WARNING], LOG_TYPES[WARNING].name, msg);
+}
+
+void	Log::warning(const std::string label, const std::string msg)
+{
+	print(LOG_TYPES[WARNING], label, msg);
 }
 
 void	Log::error(const std::string msg)
 {
-	print(LOG_TYPES[ERROR], msg);
+	print(LOG_TYPES[ERROR], LOG_TYPES[ERROR].name, msg);
+}
+
+void	Log::error(const std::string label, const std::string msg)
+{
+	print(LOG_TYPES[ERROR], label, msg);
 }
 
 void	Log::success(const std::string msg)
 {
-	print(LOG_TYPES[SUCCESS], msg);
+	print(LOG_TYPES[SUCCESS], LOG_TYPES[SUCCESS].name, msg);
+}
+
+void	Log::success(const std::string label, const std::string msg)
+{
+	print(LOG_TYPES[SUCCESS], label, msg);
 }
 
 void	Log::msg(const std::string label, const std::string msg, const std::string col1, const std::string col2)
@@ -61,9 +81,9 @@ void	Log::msg(const std::string label, const std::string msg, const std::string 
 				<< RESET << std::endl;
 }
 
-void	Log::print(const t_type type, const std::string msg)
+void	Log::print(const t_type type, const std::string label, const std::string msg)
 {
-	std::cerr	<< type.col1 << BOLD << "[" << type.name << "] "
+	std::cerr	<< type.col1 << BOLD << "[" << label << "] "
 				<< type.col2 << REGULAR << msg
 				<< RESET << std::endl;
 }

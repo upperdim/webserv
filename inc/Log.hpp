@@ -24,9 +24,13 @@ public:
 
 	static void	debug(const std::string msg);
 	static void	info(const std::string msg);
+	static void	info(const std::string label, const std::string msg);
 	static void	warning(const std::string msg);
+	static void	warning(const std::string label, const std::string msg);
 	static void	error(const std::string msg);
+	static void	error(const std::string label, const std::string msg);
 	static void	success(const std::string msg);
+	static void	success(const std::string label, const std::string msg);
 	static void	msg(const std::string label, const std::string msg, const std::string col1, const std::string col2);
 
 	typedef struct s_type
@@ -49,7 +53,7 @@ private:
 
 	static const t_type LOG_TYPES[5];
 
-	static void	print(const t_type type, const std::string msg);
+	static void	print(const t_type type, const std::string label, const std::string msg);
 };
 
 #endif
