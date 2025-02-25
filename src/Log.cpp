@@ -86,6 +86,23 @@ void	Log::msg(const std::string label, const std::string msg, const std::string 
 				<< RESET << std::endl;
 }
 
+void	Log::raw(const std::string msg)
+{
+	std::cerr	<< DEFAULT << BOLD << "[RAW]";
+	std::cerr	<< std::hex << std::setfill('0');
+
+	size_t c = 0;
+
+	for (auto it = msg.begin(); it < msg.end(); ++it)
+	{
+		std::isprint(*it)	? std::cerr << DEFAULT	: std::cerr << LIGHTMAGENTA;
+		(c == 0)			? std::cerr << "\n"		: std::cerr << " ";
+		std::cerr << std::setw(2) << static_cast<unsigned int>(*it);
+		(*it == '\n') ? c = 0 : ++c;
+	}
+	std::cerr << std::endl;
+}
+
 void	Log::print(const t_type type, const std::string label, const std::string msg)
 {
 	std::cerr	<< type.col1 << BOLD << "[" << label << "] "

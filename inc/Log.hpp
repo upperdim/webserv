@@ -15,6 +15,7 @@
 
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include "webserv.h"
 
 class Log
@@ -33,6 +34,7 @@ public:
 	static void	success(const std::string msg);
 	static void	success(const std::string label, const std::string msg);
 	static void	msg(const std::string label, const std::string msg, const std::string col1, const std::string col2);
+	static void	raw(const std::string msg);
 
 	typedef struct s_type
 	{
