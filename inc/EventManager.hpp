@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 11:39:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/23 13:02:40 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/24 20:10:49 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 #include <stdexcept>
 #include <poll.h>
 #include <utility>
@@ -36,9 +37,12 @@ public:
 	EventManager(bool& _running);
 	~EventManager();
 
-	void	registerFd(IEventHandler* _handler, short events);
+	void	registerFd(IEventHandler* _handler, const short events);
 	void	unregisterFd(const int _fd);
+	void	setFdEvents(const int _fd, const short _events);
 	void	processPendingRegistrations(void);
+	void	processClosingConnections(void);
+
 	void	handleFdEvents(int max_events);
 	void	run(void);
 
@@ -52,6 +56,12 @@ private:
 	std::vector<struct pollfd>						m_pollfds;
 	std::map<int, IEventHandler*>					m_fd_to_EventHandler;
 	std::vector<std::pair<IEventHandler*, short>>	m_register_queue;
+	std::set<int>									m_unregister_queue;
+
+	void	cleanupFinishedConnections(void);
+	void	closeAllServers(void);
+	void	closeAllConnections(void);
+	void	delete_pollfd(const int _fd);
 };
 
 #endif

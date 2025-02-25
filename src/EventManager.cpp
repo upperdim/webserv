@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 19:30:12 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/23 15:32:36 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/25 14:48:58 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,9 @@ EventManager::EventManager(bool& _running)
 
 EventManager::~EventManager()
 {
+	closeAllServers();
+	closeAllConnections();
+	processClosingConnections();
 }
 
 
@@ -26,7 +29,7 @@ EventManager::~EventManager()
 /* ************************************************************************** */
 
 
-void	EventManager::registerFd(IEventHandler* _handler, short events)
+void	EventManager::registerFd(IEventHandler* _handler, const short events)
 {
 	if (_handler == nullptr)
 		return ;
@@ -36,14 +39,21 @@ void	EventManager::registerFd(IEventHandler* _handler, short events)
 		throw ( std::runtime_error("socket_fd is already registered in the event manager") );
 
 	m_register_queue.push_back( std::pair<IEventHandler*, short>(_handler, events) );
-	// m_pollfds.emplace_back( (pollfd){_handler->socket_fd, events, 0} );
-	// m_fd_to_EventHandler[_handler->socket_fd] = _handler;
+}
+
+void	EventManager::setFdEvents(const int _fd, const short _events)
+{
+	for (auto it = m_pollfds.begin(); it < m_pollfds.end(); ++it)
+		if (it->fd == _fd)
+		{
+			it->events = _events;
+			break ;
+		}
 }
 
 void	EventManager::unregisterFd(const int _fd)
 {
-	// TODO: still not implemented
-	(void)_fd;
+	m_unregister_queue.insert(_fd);
 }
 
 void	EventManager::processPendingRegistrations(void)
@@ -65,6 +75,28 @@ void	EventManager::processPendingRegistrations(void)
 	}
 	
 	m_register_queue.clear();
+}
+
+void	EventManager::processClosingConnections(void)
+{
+	if (m_unregister_queue.empty())
+		return ;
+
+	// remove queued Connections
+	for (auto it = m_unregister_queue.begin(); it != m_unregister_queue.end(); ++it)
+	{
+		std::map<int, IEventHandler*>::iterator found = m_fd_to_EventHandler.find(*it);
+		if (found != m_fd_to_EventHandler.end())
+		{
+			delete(found->second);
+			m_fd_to_EventHandler.erase(*it);
+			delete_pollfd(*it);
+
+			Log::error("CLOSED", std::string("Connection fd: ") + std::to_string(*it));
+		}
+	}
+
+	m_unregister_queue.clear();
 }
 
 void	EventManager::handleFdEvents(int max_events)
@@ -99,8 +131,8 @@ void	EventManager::handleFdEvents(int max_events)
 		
 		if (count_me)
 			++counted;
-		// if (counted >= max_events)
-		// 	break ;
+		if (counted >= max_events)
+			break ;
 		(void)max_events;
 	}
 }
@@ -113,7 +145,7 @@ void	EventManager::run(void)
 	Log::msg("running Webserv: ", "serving the world wide web", LIGHTGREEN, GREEN);
 	while (m_running)
 	{
-		Log::info("polling fds");
+		// Log::info("polling fds");
 		int	fd_count = poll(m_pollfds.data(), m_pollfds.size(), 3000);	// TODO: is 1000 a good value for timeout
 		if (fd_count < 0 && g_running)
 			throw ( std::runtime_error("an error occured while polling") );
@@ -121,5 +153,69 @@ void	EventManager::run(void)
 		handleFdEvents(fd_count);
 
 		processPendingRegistrations();
+
+		cleanupFinishedConnections();
+		processClosingConnections();
 	}
+}
+
+
+/* ************************************************************************** */
+/* ************************************************************************** */
+
+
+void	EventManager::cleanupFinishedConnections(void)
+{
+	if (m_pollfds.size() == 0)
+		return ;
+
+	// find Connections FDs to clear and queue them
+	for (std::vector<struct pollfd>::iterator it = m_pollfds.begin(); it < m_pollfds.end(); ++it)
+	{
+		auto found = m_fd_to_EventHandler.find(it->fd);
+		auto* conn = dynamic_cast<Connection*>(found->second);
+		if (found == m_fd_to_EventHandler.end() || conn == nullptr || conn->isDone() == false)
+			continue ;
+		unregisterFd(it->fd);
+	}
+}
+
+void	EventManager::closeAllServers(void)
+{
+	if (m_pollfds.size() == 0)
+		return ;
+
+	// find Connections FDs and unregisterFd() them
+	for (std::vector<struct pollfd>::iterator it = m_pollfds.begin(); it < m_pollfds.end(); ++it)
+	{
+		auto found = m_fd_to_EventHandler.find(it->fd);
+		auto* srv = dynamic_cast<Server*>(found->second);
+		if (found != m_fd_to_EventHandler.end() && srv != nullptr)
+			unregisterFd(it->fd);
+	}	
+}
+
+void	EventManager::closeAllConnections(void)
+{
+	if (m_pollfds.size() == 0)
+		return ;
+
+	// find Connections FDs and unregisterFd() them
+	for (std::vector<struct pollfd>::iterator it = m_pollfds.begin(); it < m_pollfds.end(); ++it)
+	{
+		auto found = m_fd_to_EventHandler.find(it->fd);
+		auto* conn = dynamic_cast<Connection*>(found->second);
+		if (found != m_fd_to_EventHandler.end() && conn != nullptr)
+			unregisterFd(it->fd);
+	}	
+}
+
+void	EventManager::delete_pollfd(const int _fd)
+{
+	for (auto it = m_pollfds.begin(); it < m_pollfds.end(); ++it)
+		if (it->fd == _fd)
+		{
+			m_pollfds.erase(it);
+			break ;
+		}
 }
