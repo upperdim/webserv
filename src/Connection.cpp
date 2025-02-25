@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/25 15:38:10 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/25 15:46:38 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,33 +30,6 @@ Connection::~Connection()
 /* ************************************************************************** */
 
 
-void	Connection::recieve(void)
-{
-	char		request_buf[4096];
-	std::string	request_line;
-	std::string	request_header_fields;
-	std::string	message_body;
-
-	recv(socket_fd, &request_buf, sizeof(request_buf), 0);
-
-	std::string			line;
-	std::stringstream	ss(request_buf);
-
-	std::getline(ss, request_line);
-	
-	while (std::getline(ss, line) && !line.empty())
-		request_header_fields += line + "\n";
-
-	while (std::getline(ss, line) && !line.empty())
-		message_body += line + "\n";
-
-	// request = request_line;
-	request = request_header_fields;
-	// if (request_header_fields.empty())
-	// 	std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
-	// request = message_body;
-}
-
 void	Connection::create_response(void)
 {
 	std::string			line;
@@ -75,11 +48,6 @@ void	Connection::create_response(void)
 		message_body += line + "\n";
 
 	response = std::string("HTTP/1.0 200 OK\r\n\r\n<MESSAGE>\n") + request_line + "</MESSAGE>\0";
-}
-
-void	Connection::respond(void)
-{
-	send(socket_fd, response.c_str(), response.length(), 0);
 }
 
 bool	Connection::isDone() const
@@ -116,8 +84,8 @@ void Connection::handleWriteEvent(EventManager& event_manager)
 	send(socket_fd, response.c_str(), response.length(), 0);
 	m_done = true;
 
-	// Log::msg("REQUEST\n", request, LIGHTCYAN, LIGHTCYAN);
-	Log::raw(request);
+	Log::msg("REQUEST\n", request, LIGHTCYAN, LIGHTCYAN);
+	// Log::raw(request);
 }
 
 void Connection::handleErrorEvent(EventManager& event_manager)
