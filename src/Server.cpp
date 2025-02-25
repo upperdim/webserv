@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/23 13:43:26 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/24 17:45:50 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ Server::Server()
 
 Server::~Server()
 {
+	Log::warning("CLOSING", std::string("server socket fd: ") + std::to_string(socket_fd));
 	close(socket_fd);
 }
 
@@ -56,7 +57,7 @@ void	Server::accept_connection(EventManager& event_manager)
 
 	Connection* connection = new Connection(cli_socket);
 
-	event_manager.registerFd(connection, POLLIN | POLLOUT | POLLERR | POLL_HUP);
+	event_manager.registerFd(connection, POLLIN | POLLERR | POLLHUP);
 
 	// connection.recieve();
 	// connection.create_response();
