@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/23 15:15:34 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/25 10:06:03 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,17 +22,16 @@ int	main(void)
 	try
 	{
 		EventManager event_manager(g_running);
-		Server server;
+		Server* server = new Server();
 
-		event_manager.registerFd(&server, POLLIN | POLLOUT | POLLERR | POLL_HUP);
+		event_manager.registerFd(server, POLLIN | POLLERR | POLL_HUP);
 		event_manager.processPendingRegistrations();
 
 		event_manager.run();
-
-		event_manager.unregisterFd(server.socket_fd);
 	}
 	catch(const std::exception& e)
 	{
+		Log::error("Critical Exception caught","::");
 		Log::error(e.what());
 		g_running = false;
 	}
