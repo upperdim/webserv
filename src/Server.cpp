@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/24 17:45:50 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/25 14:41:47 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,24 +66,24 @@ void	Server::accept_connection(EventManager& event_manager)
 
 void Server::handleReadEvent(EventManager& event_manager)
 {
-	Log::msg("[handleReadEvent | Server] ", std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	Log::msg("[handleReadEvent] ", std::string("Server fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	accept_connection(event_manager);
 }
 
 void Server::handleWriteEvent(EventManager& event_manager)
 {
-	Log::msg("[handleWriteEvent | Server] ", std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	Log::msg("[handleWriteEvent] ", std::string("Server fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	(void)event_manager;
 }
 
 void Server::handleErrorEvent(EventManager& event_manager)
 {
-	Log::msg("[handleErrorEvent | Server] ", std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	Log::msg("[handleErrorEvent] ", std::string("Server fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	(void)event_manager;
 }
 
 void Server::handleDisConnectEvent(EventManager& event_manager)
 {
-	Log::msg("[handleDisConnectEvent | Server] ", std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	Log::msg("[handleDisConnectEvent] ", std::string("Server fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	(void)event_manager;
 }
