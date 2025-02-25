@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:36 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/25 15:45:51 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/25 20:02:20 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include <sstream>
 #include "EventManager.hpp"
 #include "IEventHandler.hpp"
+#include "Request.hpp"
 #include "Log.hpp"
 
 #include <iostream>
@@ -28,6 +29,7 @@ class Connection : public IEventHandler
 {
 public:
 	std::string	request;
+	// Request		c_request;
 	std::string	response;
 
 	Connection(const int _cli_socket);

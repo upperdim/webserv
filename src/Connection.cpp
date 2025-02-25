@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/25 16:45:19 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/25 18:46:33 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,10 +59,13 @@ void Connection::handleReadEvent(EventManager& event_manager)
 {
 	Log::msg("[handleReadEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 
-	char		request_buf[1024] = {0};
+	char		request_buf[REQUEST_BUFFER_SIZE] = {0};
 	size_t		byetes_read = recv(socket_fd, &request_buf, sizeof(request_buf), 0);
 	if (byetes_read > 0)
+	{
 		request.append(request_buf, byetes_read);
+		// c_request.append(request_buf, byetes_read);
+	}
 	
 	Log::debug("READING: ", byetes_read);
 
@@ -84,8 +87,8 @@ void Connection::handleWriteEvent(EventManager& event_manager)
 	send(socket_fd, response.c_str(), response.length(), 0);
 	m_done = true;
 
-	// Log::msg("REQUEST\n", request, LIGHTCYAN, LIGHTCYAN);
-	Log::raw(request, 16);
+	Log::msg("REQUEST\n", request, LIGHTCYAN, LIGHTCYAN);
+	// Log::raw(request, 16);
 }
 
 void Connection::handleErrorEvent(EventManager& event_manager)

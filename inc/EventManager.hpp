@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 11:39:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/24 20:10:49 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/25 20:03:37 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@
 #include "IEventHandler.hpp"
 #include "Server.hpp"
 #include "Connection.hpp"
-#include "webserv.h"
 
 // EventLoop class could also be named:
 //	-	EventManager
