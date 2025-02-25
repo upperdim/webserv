@@ -34,6 +34,11 @@ void	Log::debug(const std::string msg)
 	print(LOG_TYPES[DEBUG], LOG_TYPES[DEBUG].name, msg);
 }
 
+void	Log::debug(const std::string msg, const size_t val)
+{
+	print(LOG_TYPES[DEBUG], LOG_TYPES[DEBUG].name, msg + std::to_string(val));
+}
+
 void	Log::info(const std::string msg)
 {
 	print(LOG_TYPES[INFO], LOG_TYPES[INFO].name, msg);

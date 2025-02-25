@@ -23,6 +23,7 @@ public:
 	~Log();
 
 	static void	debug(const std::string msg);
+	static void	debug(const std::string msg, const size_t val);
 	static void	info(const std::string msg);
 	static void	info(const std::string label, const std::string msg);
 	static void	warning(const std::string msg);
