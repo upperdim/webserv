@@ -86,7 +86,7 @@ void	Log::msg(const std::string label, const std::string msg, const std::string 
 				<< RESET << std::endl;
 }
 
-void	Log::raw(const std::string msg)
+void	Log::raw(const std::string msg, size_t split)
 {
 	std::cerr	<< DEFAULT << BOLD << "[RAW]";
 	std::cerr	<< std::hex << std::setfill('0');
@@ -98,7 +98,10 @@ void	Log::raw(const std::string msg)
 		std::isprint(*it)	? std::cerr << DEFAULT	: std::cerr << LIGHTMAGENTA;
 		(c == 0)			? std::cerr << "\n"		: std::cerr << " ";
 		std::cerr << std::setw(2) << static_cast<unsigned int>(*it);
-		(*it == '\n') ? c = 0 : ++c;
+		if (split == 0)
+			(*it == '\n') ? c = 0 : ++c;
+		else
+			(*it == '\n' || c == split - 1) ? c = 0 : ++c;
 	}
 	std::cerr << std::endl;
 }

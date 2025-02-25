@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/25 15:46:38 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/25 16:45:19 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,8 +84,8 @@ void Connection::handleWriteEvent(EventManager& event_manager)
 	send(socket_fd, response.c_str(), response.length(), 0);
 	m_done = true;
 
-	Log::msg("REQUEST\n", request, LIGHTCYAN, LIGHTCYAN);
-	// Log::raw(request);
+	// Log::msg("REQUEST\n", request, LIGHTCYAN, LIGHTCYAN);
+	Log::raw(request, 16);
 }
 
 void Connection::handleErrorEvent(EventManager& event_manager)
