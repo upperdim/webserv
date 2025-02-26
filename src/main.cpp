@@ -6,11 +6,13 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/25 19:25:14 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/26 13:33:01 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.h"
+#include "EventManager.hpp"
+#include "Server.hpp"
 
 bool	g_running = true;
 
@@ -19,8 +21,8 @@ int	main(void)
 	std::signal(SIGINT, handleAbort);
 	std::signal(SIGQUIT, handleAbort);
 
-	Request rq;
-	Log::debug("State: ", static_cast<size_t>(rq.state));
+	// Request rq;
+	// Log::debug("State: ", static_cast<size_t>(rq.state));
 
 	try
 	{

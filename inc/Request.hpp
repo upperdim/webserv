@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/25 18:55:29 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/26 16:36:33 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,8 @@
 #define REQUEST_HPP
 
 #include <string>
-#include "webserv.h"
+#include <sstream>
+#include "Log.hpp"
 
 class Request
 {
@@ -38,8 +39,15 @@ public:
 private:
 	std::string	m_raw_request;
 
+	std::string	m_method;
+	std::string	m_request_target;
+	std::string	m_HTTP_version;
+
 	Request(const Request& other);
 	Request&	operator=(const Request& rhs);
+
+	void	parseNext(void);
+	void	parseRequestLine(void);
 };
 
 #endif

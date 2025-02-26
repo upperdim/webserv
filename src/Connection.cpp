@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/25 18:46:33 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/02/26 15:09:45 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ void Connection::handleReadEvent(EventManager& event_manager)
 	if (byetes_read > 0)
 	{
 		request.append(request_buf, byetes_read);
-		// c_request.append(request_buf, byetes_read);
+		new_request.append(request_buf, byetes_read);
 	}
 	
 	Log::debug("READING: ", byetes_read);
