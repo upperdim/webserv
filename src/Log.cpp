@@ -31,56 +31,67 @@ const Log::t_type Log::LOG_TYPES[5] = {
 
 void	Log::debug(const std::string msg)
 {
+	if (!ENABLE_LOG || !PRINT_DEBUG) return ;
 	print(LOG_TYPES[DEBUG], LOG_TYPES[DEBUG].name, msg);
 }
 
 void	Log::debug(const std::string msg, const size_t val)
 {
+	if (!ENABLE_LOG || !PRINT_DEBUG) return ;
 	print(LOG_TYPES[DEBUG], LOG_TYPES[DEBUG].name, msg + std::to_string(val));
 }
 
 void	Log::info(const std::string msg)
 {
+	if (!ENABLE_LOG || !PRINT_INFO) return ;
 	print(LOG_TYPES[INFO], LOG_TYPES[INFO].name, msg);
 }
 
 void	Log::info(const std::string label, const std::string msg)
 {
+	if (!ENABLE_LOG || !PRINT_INFO) return ;
 	print(LOG_TYPES[INFO], label, msg);
 }
 
 void	Log::warning(const std::string msg)
 {
+	if (!ENABLE_LOG || !PRINT_WARNING) return ;
 	print(LOG_TYPES[WARNING], LOG_TYPES[WARNING].name, msg);
 }
 
 void	Log::warning(const std::string label, const std::string msg)
 {
+	if (!ENABLE_LOG || !PRINT_WARNING) return ;
 	print(LOG_TYPES[WARNING], label, msg);
 }
 
 void	Log::error(const std::string msg)
 {
+	if (!ENABLE_LOG || !PRINT_ERROR) return ;
 	print(LOG_TYPES[ERROR], LOG_TYPES[ERROR].name, msg);
 }
 
 void	Log::error(const std::string label, const std::string msg)
 {
+	if (!ENABLE_LOG || !PRINT_ERROR) return ;
 	print(LOG_TYPES[ERROR], label, msg);
 }
 
 void	Log::success(const std::string msg)
 {
+	if (!ENABLE_LOG || !PRINT_SUCCESS) return ;
 	print(LOG_TYPES[SUCCESS], LOG_TYPES[SUCCESS].name, msg);
 }
 
 void	Log::success(const std::string label, const std::string msg)
 {
+	if (!ENABLE_LOG || !PRINT_SUCCESS) return ;
 	print(LOG_TYPES[SUCCESS], label, msg);
 }
 
 void	Log::msg(const std::string label, const std::string msg, const std::string col1, const std::string col2)
 {
+	if (!ENABLE_LOG || !PRINT_MSG) return ;
 	std::cerr	<< col1 << BOLD << label 
 				<< col2 << REGULAR << msg
 				<< RESET << std::endl;
@@ -88,6 +99,7 @@ void	Log::msg(const std::string label, const std::string msg, const std::string 
 
 void	Log::raw(const std::string msg, size_t split)
 {
+	if (!ENABLE_LOG || !PRINT_RAW) return ;
 	std::cerr	<< DEFAULT << BOLD << "[RAW]";
 	std::cerr	<< std::hex << std::setfill('0');
 

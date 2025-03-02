@@ -6,14 +6,23 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 13:26:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/02 14:19:57 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/02 18:05:25 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef WEBSERV_H
 # define WEBSERV_H
 
-# define REQUEST_BUFFER_SIZE 2
+# define REQUEST_BUFFER_SIZE 1024
+
+# define ENABLE_LOG		true
+# define PRINT_DEBUG	false
+# define PRINT_INFO		true
+# define PRINT_WARNING	true
+# define PRINT_ERROR	true
+# define PRINT_SUCCESS 	true
+# define PRINT_MSG		true
+# define PRINT_RAW		true
 
 # include <iostream>
 # include <csignal>
