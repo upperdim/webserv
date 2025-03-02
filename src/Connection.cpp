@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/02 14:51:26 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/02 18:38:09 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ Connection::~Connection()
 
 void	Connection::create_response(void)
 {
-	response = std::string("HTTP/1.0 200 OK\r\n\r\n<MESSAGE>\n") + request.getRequestLine() + "\n</MESSAGE>\0";
+	response = std::string("HTTP/1.0 200 OK\r\n\r\n<MESSAGE>\n") + request.getRequest() + "\n</MESSAGE>\0";
 }
 
 bool	Connection::isDone() const
@@ -46,21 +46,18 @@ void Connection::handleReadEvent(EventManager& event_manager)
 	char		request_buf[REQUEST_BUFFER_SIZE] = {0};
 	size_t		byetes_read = recv(socket_fd, &request_buf, sizeof(request_buf), 0);
 
-	Log::debug("READING: ", byetes_read);
+	Log::debug("RECIEVED BYTES: ", byetes_read);
 
 	if (byetes_read > 0)
-	{
-		// request.append(request_buf, byetes_read);
 		request.append(request_buf, byetes_read);
-	}
 	
-
-	// I have to split up the request in its propper stuff, and user athe proper stuff to create a goof response msg
+	// I have to split up the request in its propper stuff, and use the proper stuff to create a good response msg
 
 	// if (request.find("\r\n\r\n") != std::string::npos)
 	if (request.complete())
 	{
 		Log::debug("DONE READING");
+		// Log::msg("", request.getRequest(), LIGHTMAGENTA, LIGHTMAGENTA);
 		create_response();
 		event_manager.setFdEvents(socket_fd, POLLOUT | POLLERR | POLLHUP);
 	}
