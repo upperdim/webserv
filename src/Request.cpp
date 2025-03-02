@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:49 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/02 19:00:18 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/02 19:19:53 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,7 +110,7 @@ void	Request::parseRequestLine(void)
 	if (ss.fail())
 		state = State::ERROR;
 
-	Log::debug(std::string("parseRequestLine: ") + LIGHTRED + m_method + " " + LIGHTGREEN + m_request_target + " " + LIGHTYELLOW + m_HTTP_version);
+	Log::debug(std::string("parseRequestLine: ") + LIGHTRED + m_method + " " + LIGHTGREEN + m_request_target + " " + LIGHTBLUE + m_HTTP_version);
 
 	m_raw_request.erase(0, pos + 2);
 	state = State::READING_HEADERS;

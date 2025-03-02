@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/02 18:26:31 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/02 19:09:35 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 #include <string>
 #include <sstream>
-#include <map>
+#include <unordered_map>
 #include <utility>
 #include <stdexcept>
 #include "Log.hpp"
@@ -23,6 +23,7 @@
 class Request
 {
 public:
+	typedef std::unordered_map<std::string, std::string> HeaderMap;
 	enum class State
 	{
 		READING_REQUEST_LINE,
@@ -48,11 +49,11 @@ private:
 	std::string	m_raw_request;
 	int			m_error_code;
 
-	std::string							m_method;
-	std::string							m_request_target;
-	std::string							m_HTTP_version;
-	std::map<std::string, std::string>	m_headers;
-	std::string							m_body;
+	std::string	m_method;
+	std::string	m_request_target;
+	std::string	m_HTTP_version;
+	HeaderMap	m_headers;
+	std::string	m_body;
 
 	Request(const Request& other);
 	Request&	operator=(const Request& rhs);
