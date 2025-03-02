@@ -6,11 +6,11 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/26 13:33:01 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/02 12:19:33 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "webserv.h"
+#include "webserv.hpp"
 #include "EventManager.hpp"
 #include "Server.hpp"
 
@@ -20,9 +20,6 @@ int	main(void)
 {
 	std::signal(SIGINT, handleAbort);
 	std::signal(SIGQUIT, handleAbort);
-
-	// Request rq;
-	// Log::debug("State: ", static_cast<size_t>(rq.state));
 
 	try
 	{

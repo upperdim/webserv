@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 13:26:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/26 16:15:47 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/02 12:05:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 
 # include <iostream>
 # include <csignal>
+# include <string>
 
 # define BOLD			"\033[1m"
 # define REGULAR		"\033[22m"
@@ -37,6 +38,7 @@
 
 extern bool	g_running;
 
-void handleAbort(int signum);
+void	handleAbort(int signum);
+void	trimWhitespaces(std::string& str);
 
 #endif
