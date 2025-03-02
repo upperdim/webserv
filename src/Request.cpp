@@ -6,15 +6,15 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:49 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/02 14:49:03 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/02 18:33:46 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
 Request::Request()
-	:	state(State::READING_REQUEST_LINE),
-		m_error_code(0)
+	: state(State::READING_REQUEST_LINE),
+	  m_error_code(0)
 {
 }
 
@@ -33,38 +33,31 @@ void	Request::append(char buf[REQUEST_BUFFER_SIZE], size_t bytes_read)
 	parseNext();
 }
 
-bool	Request::complete(void)
+bool	Request::complete(void) const
 {
 	if (state == State::COMPLETE)
 		return (true);
 	return (false);
 }
 
-int		Request::error(void)
+int	Request::error(void) const
 {
 	if (state == State::ERROR)
 		return (m_error_code);
 	return (0);
 }
 
-std::string	Request::getRequest(void)
+std::string	Request::getRequest(void) const
 {
-	std::string req = getRequestLine() + "\n";
-
+	std::string req = getRequestLine();
 	for (auto it = m_headers.begin(); it != m_headers.end(); ++it)
-		req += it->first + ": " + it->second + "\n";
-
+		req += "\n" + it->first + ": " + it->second ;
 	return (req);
 }
 
-std::string	Request::getRequestLine(void)
+std::string	Request::getRequestLine(void) const
 {
-	std::string req;
-	
-	req += m_method	+ " ";
-	req += m_request_target + " ";
-	req += m_HTTP_version;
-
+	std::string	req = m_method + " " + m_request_target + " " + m_HTTP_version;
 	return (req);
 }
 
@@ -122,67 +115,56 @@ void	Request::parseRequestLine(void)
 	m_raw_request.erase(0, pos + 2);
 	state = State::READING_HEADERS;
 
-	Log::msg("CAPED REQUEST:\n", m_raw_request, LIGHTYELLOW, LIGHTCYAN);
+	// Log::msg("CAPPED REQUEST aka HEADERS:\n", m_raw_request, LIGHTYELLOW, LIGHTCYAN);
 }
 
 void	Request::parseHeader(void)
 {
-	size_t start = 0;
-	size_t pos;
-	size_t header_end = m_raw_request.find("\r\n\r\n");
-
-	if (header_end != std::string::npos)
-	{
-		Log::success("----------- HEADER LOEDED COMPLETELY ----------------");
-		Log::msg("",m_raw_request, YELLOW, YELLOW);
-	}
+	size_t	start = 0;
+	size_t	pos, last_pos;
+	size_t	header_end = m_raw_request.find("\r\n\r\n");
 
 	pos = m_raw_request.find_first_of('\n');
+	last_pos = pos;
 	while (pos != std::string::npos)
 	{
-		std::string line;
-		std::pair<std::string, std::string>	headerField;
-		line = m_raw_request.substr(start, pos - start);
+		std::string line = m_raw_request.substr(start, pos - start);
 		trimWhitespaces(line);
-		Log::msg("-----LINE------\n", std::string(line) + "\033[0m|<<<<<<<", RED, BLUE);
 
-
-		// if (line.find("\r\n\r\n") != std::string::npos)
-		// {
-		// 	Log::msg("Ups", std::string("[") + m_raw_request + "]", DEFAULT, YELLOW);
-		// 	return ;
-		// }
-
-		if (splitLine(line, headerField))
-			throw ( std::runtime_error("Upsi: split header line went wrong") );	// TODO: better error handling
-
+		std::pair<std::string, std::string> headerField;
+		if (splitLine(line, ':', headerField))
+			throw( std::runtime_error("Error: Request::splitLine() could not find delimiter ':'") ); // TODO: better error handling
+			
+		m_headers[headerField.first] = headerField.second;
+			
 		if (pos >= header_end)
 		{
-			Log::msg("DONE\n", "[--------------------------------------------------------------------]", LIGHTRED, RED);
-			// Log::msg("Ups\n", std::string("[") + m_raw_request + "]", LIGHTRED, RED);
-			pos = m_raw_request.length() - 1;
+			Log::msg("DONE\n", "[------------------------------------------------------------------------------]", LIGHTRED, RED);
+			last_pos = m_raw_request.length() - 1;
+			// TODO: set STATE to rading body and read body
 			state = State::COMPLETE;
-			break ;
+			break;
 		}
 
+		last_pos = pos;
 		start = pos + 1;
 		pos = m_raw_request.find_first_of("\n", start);
 	}
-	m_raw_request.erase(0, pos + 1);
+	if (last_pos != std::string::npos)
+		m_raw_request.erase(0, last_pos + 1);
 }
 
-bool	Request::splitLine(std::string& line, std::pair<std::string, std::string>& headerField)
+bool	Request::splitLine(std::string &line, char del, std::pair<std::string, std::string> &headerField)
 {
-	size_t pos = line.find(':');
+	size_t	pos = line.find(del);
 	if (pos == std::string::npos)
 		return (true);
 
-	headerField.first	= line.substr(0, pos) ;
-	headerField.second	= line.substr(pos + 1);
-	trimWhitespaces(headerField.first) ;
+	headerField.first = line.substr(0, pos);
+	headerField.second = line.substr(pos + 1);
+	trimWhitespaces(headerField.first);
 	trimWhitespaces(headerField.second);
-	
-	Log::msg("headerField [key|value] => ", "[" + headerField.first + "|" + headerField.second + "]", LIGHTCYAN, DEFAULT);
 
+	// Log::msg("headerField [key|value] => ", "[" + headerField.first + "|" + headerField.second + "]", LIGHTCYAN, DEFAULT);
 	return (false);
 }

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/02 14:47:19 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/02 18:26:31 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,11 +38,11 @@ public:
 	~Request();
 
 	void		append(char buf[REQUEST_BUFFER_SIZE], size_t bytes_read);
-	bool		complete(void);
-	int			error(void);
+	bool		complete(void) const;
+	int			error(void) const;
 
-	std::string	getRequest(void);
-	std::string	getRequestLine(void);
+	std::string	getRequest(void) const;
+	std::string	getRequestLine(void) const;
 	
 private:
 	std::string	m_raw_request;
@@ -61,7 +61,7 @@ private:
 	void	parseRequestLine(void);
 	void	parseHeader(void);
 
-	bool	splitLine(std::string& line, std::pair<std::string, std::string>& headerField);
+	bool	splitLine(std::string& line, char del, std::pair<std::string, std::string>& headerField);
 };
 
 #endif
