@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:49 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/02 19:19:53 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/02 21:03:13 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 Request::Request()
 	: state(State::READING_REQUEST_LINE),
-	  m_error_code(0)
+	  m_status_code(0)
 {
 }
 
@@ -43,7 +43,7 @@ bool	Request::complete(void) const
 int	Request::error(void) const
 {
 	if (state == State::ERROR)
-		return (m_error_code);
+		return (m_status_code);
 	return (0);
 }
 
@@ -99,15 +99,15 @@ void	Request::parseRequestLine(void)
 	std::stringstream ss(m_raw_request);
 
 	ss >> m_method;
-	if (ss.fail())
+	if (Validate::sstream(ss.fail(), m_status_code) || Validate::method(m_method, m_status_code))
 		state = State::ERROR;
 
 	ss >> m_request_target;
-	if (ss.fail())
+	if (Validate::sstream(ss.fail(), m_status_code))
 		state = State::ERROR;
 
 	ss >> m_HTTP_version;
-	if (ss.fail())
+	if (Validate::sstream(ss.fail(), m_status_code))
 		state = State::ERROR;
 
 	Log::debug(std::string("parseRequestLine: ") + LIGHTRED + m_method + " " + LIGHTGREEN + m_request_target + " " + LIGHTBLUE + m_HTTP_version);

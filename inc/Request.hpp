@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/02 19:09:35 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/02 20:27:56 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <unordered_map>
 #include <utility>
 #include <stdexcept>
+#include "Validate.hpp"
 #include "Log.hpp"
 
 class Request
@@ -47,7 +48,7 @@ public:
 	
 private:
 	std::string	m_raw_request;
-	int			m_error_code;
+	int			m_status_code;
 
 	std::string	m_method;
 	std::string	m_request_target;

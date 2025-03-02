@@ -5,7 +5,7 @@ CPPFLAGS	=	-Wall -Wextra -Werror -std=c++11 #-g -fsanitize=address
 
 VPATH		=	src/
 
-SRCS		=	main.cpp EventManager.cpp Server.cpp Connection.cpp Request.cpp signal.cpp trimWhitespaces.cpp Log.cpp
+SRCS		=	main.cpp EventManager.cpp Server.cpp Connection.cpp Request.cpp Validate.cpp signal.cpp trimWhitespaces.cpp Log.cpp
 OBJS		=	$(SRCS:.cpp=.o)
 
 all: $(NAME)
