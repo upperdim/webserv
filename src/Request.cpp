@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:49 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/02 18:33:46 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/02 19:00:18 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,7 +122,6 @@ void	Request::parseHeader(void)
 {
 	size_t	start = 0;
 	size_t	pos, last_pos;
-	size_t	header_end = m_raw_request.find("\r\n\r\n");
 
 	pos = m_raw_request.find_first_of('\n');
 	last_pos = pos;
@@ -131,20 +130,18 @@ void	Request::parseHeader(void)
 		std::string line = m_raw_request.substr(start, pos - start);
 		trimWhitespaces(line);
 
+		if (line.empty())
+		{
+			// TODO: set STATE to rading body and read body
+			state = State::COMPLETE;
+			m_raw_request.clear();
+			return;
+		}
+
 		std::pair<std::string, std::string> headerField;
 		if (splitLine(line, ':', headerField))
 			throw( std::runtime_error("Error: Request::splitLine() could not find delimiter ':'") ); // TODO: better error handling
-			
 		m_headers[headerField.first] = headerField.second;
-			
-		if (pos >= header_end)
-		{
-			Log::msg("DONE\n", "[------------------------------------------------------------------------------]", LIGHTRED, RED);
-			last_pos = m_raw_request.length() - 1;
-			// TODO: set STATE to rading body and read body
-			state = State::COMPLETE;
-			break;
-		}
 
 		last_pos = pos;
 		start = pos + 1;
