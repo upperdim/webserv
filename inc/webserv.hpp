@@ -1,19 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   webserv.h                                          :+:      :+:    :+:   */
+/*   webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 13:26:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/02 12:05:55 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/02 14:19:57 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef WEBSERV_H
 # define WEBSERV_H
 
-# define REQUEST_BUFFER_SIZE 1024
+# define REQUEST_BUFFER_SIZE 2
 
 # include <iostream>
 # include <csignal>

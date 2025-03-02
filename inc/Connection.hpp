@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:36 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/26 13:34:34 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/02 14:45:05 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,8 @@
 class Connection : public IEventHandler
 {
 public:
-	std::string	request;
-	Request		new_request;
+	// std::string	request;
+	Request		request;
 	std::string	response;
 
 	Connection(const int _cli_socket);

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/26 16:36:33 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/02 14:47:19 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,9 @@
 
 #include <string>
 #include <sstream>
+#include <map>
+#include <utility>
+#include <stdexcept>
 #include "Log.hpp"
 
 class Request
@@ -34,20 +37,31 @@ public:
 	Request();
 	~Request();
 
-	void	append(char buf[REQUEST_BUFFER_SIZE], size_t bytes_read);
+	void		append(char buf[REQUEST_BUFFER_SIZE], size_t bytes_read);
+	bool		complete(void);
+	int			error(void);
+
+	std::string	getRequest(void);
+	std::string	getRequestLine(void);
 	
 private:
 	std::string	m_raw_request;
+	int			m_error_code;
 
-	std::string	m_method;
-	std::string	m_request_target;
-	std::string	m_HTTP_version;
+	std::string							m_method;
+	std::string							m_request_target;
+	std::string							m_HTTP_version;
+	std::map<std::string, std::string>	m_headers;
+	std::string							m_body;
 
 	Request(const Request& other);
 	Request&	operator=(const Request& rhs);
 
 	void	parseNext(void);
 	void	parseRequestLine(void);
+	void	parseHeader(void);
+
+	bool	splitLine(std::string& line, std::pair<std::string, std::string>& headerField);
 };
 
 #endif
