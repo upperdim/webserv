@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:09:01 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/02 20:31:13 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/03 13:06:23 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,5 +78,20 @@
 #define	WBSC_LOOP_DETECTED						508
 #define	WBSC_NOT_EXTENDED						510
 #define	WBSC_NETWORK_AUTHENTICATION_REQUIRED	511
+
+#include <string>
+#include <map>
+
+class HTTP
+{
+public:
+	~HTTP();
+	static const std::map<int, std::string>	status_code;
+
+private:
+	HTTP();
+	HTTP(const HTTP& other);
+	HTTP&	operator=(const HTTP& rhs);
+};
 
 #endif
