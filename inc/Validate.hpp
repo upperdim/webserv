@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:00:17 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/02 21:00:36 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/03 10:56:01 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,13 +22,15 @@ class Validate
 public:
 	~Validate();
 
-	static bool	sstream(bool failed, int& _error_code);
-	static bool	method(std::string& str, int& _error_code);
+	static bool	sstream(bool failed, int& status_code);
+	static bool	method(std::string& str, int& status_code);
 	
 private:
 	Validate();
 	Validate(const Validate& other);
 	Validate&	operator=(const Validate& rhs);
+
+	static void	setStatusCode(int& _status_code, int _new_status);
 };
 
 #endif
