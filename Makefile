@@ -27,3 +27,5 @@ re: fclean all
 
 t: $(NAME)
 	@./$(NAME)
+
+ret: re t
