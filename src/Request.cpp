@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:49 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/02 21:03:13 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/04 12:47:22 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 Request::Request()
 	: state(State::READING_REQUEST_LINE),
-	  m_status_code(0)
+	  m_status_code(200)
 {
 }
 
@@ -61,6 +61,11 @@ std::string	Request::getRequestLine(void) const
 	return (req);
 }
 
+int	Request::getStatusCode(void) const
+{
+	return (m_status_code);
+}
+
 
 /* ************************************************************************** */
 /* ************************************************************************** */
@@ -70,18 +75,18 @@ void	Request::parseNext(void)
 {
 	Log::debug("Request::parseNext");
 	if (state == State::READING_REQUEST_LINE) {
-		Log::debug("===> READING_REQUEST_LINE");
+		Log::debug("===> REQUEST READING_REQUEST_LINE");
 		parseRequestLine();
 	}
 	if (state == State::READING_HEADERS) {
-		Log::debug("===> READING_HEADERS");
+		Log::debug("===> REQUEST READING_HEADERS");
 		parseHeader();
 	}
 	if (state == State::READING_BODY) {
-		Log::debug("===> READING_BODY");
+		Log::debug("===> REQUEST READING_BODY");
 	}
 	if (state == State::COMPLETE) {
-		Log::debug("===> COMPLETE");
+		Log::debug("===> REQUEST COMPLETE");
 	}
 	if (state == State::ERROR) {
 		Log::debug("===> ERROR");

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 19:30:12 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/25 14:48:58 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/04 13:06:35 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@ void	EventManager::processClosingConnections(void)
 			m_fd_to_EventHandler.erase(*it);
 			delete_pollfd(*it);
 
-			Log::error("CLOSED", std::string("Connection fd: ") + std::to_string(*it));
+			Log::error("CLOSED", std::string("IEventHandler fd: ") + std::to_string(*it));
 		}
 	}
 

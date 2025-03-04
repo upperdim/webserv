@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/02 20:27:56 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/04 12:30:50 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ public:
 
 	std::string	getRequest(void) const;
 	std::string	getRequestLine(void) const;
+	int			getStatusCode(void) const;
 	
 private:
 	std::string	m_raw_request;

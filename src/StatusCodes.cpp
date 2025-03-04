@@ -6,13 +6,13 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/03 13:04:46 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/03 13:23:45 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/04 12:38:28 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "StatusCodes.hpp"
 
-const std::map<int, std::string>	HTTP::status_code = {
+const std::map<int, std::string>	HTTP::reason_phrase = {
 	{100,	"Continue"},
 	{101,	"Wwitching Protocols"},
 	{102,	"Processing"},
@@ -79,3 +79,7 @@ const std::map<int, std::string>	HTTP::status_code = {
 	{510,	"not_extended"},
 	{511,	"network_authentication_required"}
 };
+
+HTTP::~HTTP()
+{
+}
