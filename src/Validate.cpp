@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:00:15 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/03 11:35:41 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/05 12:03:23 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ bool	Validate::sstream(bool failed, int& _status_code)
 {
 	if (failed == false)
 		return (true);
-	setStatusCode(_status_code, WBSC_INTERNAL_SERVER_ERROR);
+	setStatusCode(_status_code, WSSC_INTERNAL_SERVER_ERROR);
 	return (false);
 }
 
@@ -40,11 +40,11 @@ bool	Validate::method(std::string& str, int& _status_code)
 	});
 
 	if (ustr == "GET\0" || ustr == "POST\0" || ustr == "DELETE\0") {
-		setStatusCode(_status_code, WBSC_BAD_REQUEST);
+		setStatusCode(_status_code, WSSC_BAD_REQUEST);
 		return (true);
 	}
 		
-	setStatusCode(_status_code, WBSC_METHOD_NOT_ALLOWED);
+	setStatusCode(_status_code, WSSC_METHOD_NOT_ALLOWED);
 	return (true);
 }
 
