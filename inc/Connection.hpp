@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:36 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/04 11:34:23 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/05 13:17:29 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@ public:
 	Connection(const int _cli_socket);
 	~Connection();
 
-	// void	create_response(void);
 	bool	isDone() const;
 
 	virtual void handleReadEvent(EventManager& event_manager);

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/04 12:30:50 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/05 12:09:39 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ public:
 	};
 
 	State	state;
+	int		status_code;
 
 	Request();
 	~Request();
@@ -45,11 +46,11 @@ public:
 
 	std::string	getRequest(void) const;
 	std::string	getRequestLine(void) const;
-	int			getStatusCode(void) const;
+	void		setComplete();
+	void		setError(State _state, int _status_code);
 	
 private:
 	std::string	m_raw_request;
-	int			m_status_code;
 
 	std::string	m_method;
 	std::string	m_request_target;

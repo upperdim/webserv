@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:49 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/04 12:47:22 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/05 12:10:37 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 Request::Request()
 	: state(State::READING_REQUEST_LINE),
-	  m_status_code(200)
+	  status_code(200)
 {
 }
 
@@ -43,7 +43,7 @@ bool	Request::complete(void) const
 int	Request::error(void) const
 {
 	if (state == State::ERROR)
-		return (m_status_code);
+		return (status_code);
 	return (0);
 }
 
@@ -61,9 +61,16 @@ std::string	Request::getRequestLine(void) const
 	return (req);
 }
 
-int	Request::getStatusCode(void) const
+void	Request::setComplete()
 {
-	return (m_status_code);
+	if (state < State::COMPLETE)
+		state = State::COMPLETE;
+}
+
+void	Request::setError(State _state, int _status_code)
+{
+	state = _state;
+	status_code = _status_code;
 }
 
 
@@ -104,15 +111,15 @@ void	Request::parseRequestLine(void)
 	std::stringstream ss(m_raw_request);
 
 	ss >> m_method;
-	if (Validate::sstream(ss.fail(), m_status_code) || Validate::method(m_method, m_status_code))
+	if (Validate::sstream(ss.fail(), status_code) || Validate::method(m_method, status_code))
 		state = State::ERROR;
 
 	ss >> m_request_target;
-	if (Validate::sstream(ss.fail(), m_status_code))
+	if (Validate::sstream(ss.fail(), status_code))
 		state = State::ERROR;
 
 	ss >> m_HTTP_version;
-	if (Validate::sstream(ss.fail(), m_status_code))
+	if (Validate::sstream(ss.fail(), status_code))
 		state = State::ERROR;
 
 	Log::debug(std::string("parseRequestLine: ") + LIGHTRED + m_method + " " + LIGHTGREEN + m_request_target + " " + LIGHTBLUE + m_HTTP_version);
