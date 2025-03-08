@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:09:01 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/05 11:42:40 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/08 14:28:41 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,9 +86,12 @@ class HTTP
 {
 public:
 	~HTTP();
-	static const std::map<int, std::string>	reason_phrase;
+
+	static std::string getStatusMessage(int _status_code);
 
 private:
+	static const std::map<int, std::string>	status_messages;
+
 	HTTP();
 	HTTP(const HTTP& other);
 	HTTP&	operator=(const HTTP& rhs);

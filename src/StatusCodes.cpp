@@ -6,13 +6,13 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/03 13:04:46 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/04 12:38:28 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/08 14:29:12 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "StatusCodes.hpp"
 
-const std::map<int, std::string>	HTTP::reason_phrase = {
+const std::map<int, std::string>	HTTP::status_messages = {
 	{100,	"Continue"},
 	{101,	"Wwitching Protocols"},
 	{102,	"Processing"},
@@ -82,4 +82,17 @@ const std::map<int, std::string>	HTTP::reason_phrase = {
 
 HTTP::~HTTP()
 {
+}
+
+
+/* ************************************************************************** */
+/* ************************************************************************** */
+
+
+std::string HTTP::getStatusMessage(int _status_code)
+{
+	auto it = status_messages.find(_status_code);
+	if (it != status_messages.end())
+		return (it->second);
+	return (std::string("Unknown"));
 }
