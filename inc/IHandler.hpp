@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:36:57 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/05 14:39:07 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/08 13:21:56 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,18 +14,14 @@
 #define IHANDLER_HPP
 
 #include "Request.hpp"
+#include "Response.hpp"
 
 class IHandler
 {
 public:
-	IHandler();
-	virtual	~IHandler();
+	virtual	~IHandler() {}
 
-	virtual void	handle(const Request& request) =0;
-
-private:
-	IHandler(const IHandler& other);
-	IHandler&	operator=(const IHandler& rhs);
+	virtual Response	handle(const Request& request) =0;
 };
 
 #endif

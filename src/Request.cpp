@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:49 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/05 12:10:37 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/08 12:20:59 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,11 @@ std::string	Request::getRequestLine(void) const
 {
 	std::string	req = m_method + " " + m_request_target + " " + m_HTTP_version;
 	return (req);
+}
+
+std::string	Request::getMethod(void) const
+{
+	return (m_method);
 }
 
 void	Request::setComplete()

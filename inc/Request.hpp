@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/05 12:09:39 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/08 12:20:28 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@ public:
 
 	std::string	getRequest(void) const;
 	std::string	getRequestLine(void) const;
+	std::string	getMethod(void) const;
 	void		setComplete();
 	void		setError(State _state, int _status_code);
 	

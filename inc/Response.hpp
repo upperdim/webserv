@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 11:29:40 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/05 10:19:17 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/08 14:16:09 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,18 +21,14 @@
 class Response
 {
 public:
-	Response();
-	~Response();
-
 	std::string	data;
 
-	void	create(const Request& request);
-
-private:
+	Response();
 	Response(const Response& other);
-	Response&	operator=(const Response& rhs);
+	~Response();
 
-	std::string	statusLine(const Request& request);
+	Response&	operator=(const Response& rhs);
+private:
 };
 
 #endif

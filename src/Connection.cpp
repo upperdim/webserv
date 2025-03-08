@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/05 13:23:56 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/08 14:26:19 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ void Connection::handleReadEvent(EventManager& event_manager)
 
 	char		request_buf[REQUEST_BUFFER_SIZE] = {0};
 	ssize_t		byetes_read = recv(socket_fd, &request_buf, sizeof(request_buf), 0);
-	Log::debug("RECIEVED BYTES: ", byetes_read);
+	Log::info("RECIEVED BYTES: " + std::to_string(byetes_read));
 
 	if (byetes_read == -1)
 		request.setError(Request::State::ERROR, WSSC_INTERNAL_SERVER_ERROR);
@@ -52,7 +52,13 @@ void Connection::handleReadEvent(EventManager& event_manager)
 	if (request.complete() || request.error())
 	{
 		Log::success("DONE READING **********************************************************");
-		response.create(request);
+		
+		// response.create(request);
+		Router router;
+		IHandler* handler = router.route(request);
+		response = handler->handle(request);
+		delete (handler);
+
 		event_manager.setFdEvents(socket_fd, POLLOUT | POLLERR | POLLHUP);
 	}
 }
@@ -62,7 +68,7 @@ void Connection::handleWriteEvent(EventManager& event_manager)
 	Log::msg("[handleWriteEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	(void)event_manager;
 
-	Log::debug("SENDING BYTES: " + std::to_string(response.data.length()));
+	Log::info("SENDING BYTES: " + std::to_string(response.data.length()));
 
 	send(socket_fd, response.data.c_str(), response.data.length(), 0);
 	m_done = true;
