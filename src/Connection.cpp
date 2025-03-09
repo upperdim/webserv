@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/08 14:26:19 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/09 18:02:43 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,8 +40,8 @@ void Connection::handleReadEvent(EventManager& event_manager)
 
 	char		request_buf[REQUEST_BUFFER_SIZE] = {0};
 	ssize_t		byetes_read = recv(socket_fd, &request_buf, sizeof(request_buf), 0);
-	Log::info("RECIEVED BYTES: " + std::to_string(byetes_read));
 
+	Log::info("RECIEVED BYTES: " + std::to_string(byetes_read));
 	if (byetes_read == -1)
 		request.setError(Request::State::ERROR, WSSC_INTERNAL_SERVER_ERROR);
 	else if (byetes_read == 0)
@@ -55,7 +55,7 @@ void Connection::handleReadEvent(EventManager& event_manager)
 		
 		// response.create(request);
 		Router router;
-		IHandler* handler = router.route(request);
+		AHandler* handler = router.route(request);
 		response = handler->handle(request);
 		delete (handler);
 

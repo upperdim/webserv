@@ -6,17 +6,18 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:05 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/08 14:14:51 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/09 18:01:51 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef GETHANDLER_HPP
 #define GETHANDLER_HPP
 
-#include "IHandler.hpp"
+#include <fstream>
+#include "AHandler.hpp"
 #include "StatusCodes.hpp"
 
-class GetHandler : public IHandler
+class GetHandler : public AHandler
 {
 public:
 	GetHandler();
