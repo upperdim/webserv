@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/03 13:04:46 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/08 14:29:12 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/10 16:58:15 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,5 @@ HTTP::~HTTP()
 std::string HTTP::getStatusMessage(int _status_code)
 {
 	auto it = status_messages.find(_status_code);
-	if (it != status_messages.end())
-		return (it->second);
-	return (std::string("Unknown"));
+	return ( it != status_messages.end() ? it->second : std::string("Unknown"));
 }
