@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:26:26 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/09 18:26:12 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/10 11:20:07 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,7 @@ AHandler*	Router::route(const Request& request)
 	auto it = m_handlers.find(request.getMethod());
 	if (it != m_handlers.end())
 		return ( it->second() );
-	auto errorHandlerFunc = m_handlers.at("ERROR");
-	return ( errorHandlerFunc() );
+	return ( createErrorHandler() );
 }
 
 
