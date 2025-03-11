@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/03 13:04:46 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/10 16:58:15 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/11 11:55:33 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,16 @@ const std::map<int, std::string>	HTTP::status_messages = {
 	{511,	"network_authentication_required"}
 };
 
+const std::map<std::string, std::string>	HTTP::mime_types = {
+	{".txt", "text/plain"},
+	{".html", "text/html"},
+	{".html", "text/html"},
+	{".jpg", "image/jpeg"},
+	{".jpeg", "image/jpeg"},
+	{".png", "image/png"},
+	{".json", "application/json"}
+};
+
 HTTP::~HTTP()
 {
 }
@@ -93,4 +103,15 @@ std::string HTTP::getStatusMessage(int _status_code)
 {
 	auto it = status_messages.find(_status_code);
 	return ( it != status_messages.end() ? it->second : std::string("Unknown"));
+}
+
+std::string	HTTP::getMimeType(const std::string& path)
+{
+	size_t	pos = path.find_last_of(".");
+	if (pos == std::string::npos)
+		return ("application/octet-stream");
+		
+	std::string ext = path.substr(pos);
+	auto it = mime_types.find(ext);
+	return ( it != mime_types.end() ? it->second : std::string("application/octet-stream") );
 }

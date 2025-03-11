@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:09:01 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/08 14:28:41 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/11 11:54:23 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,10 +87,13 @@ class HTTP
 public:
 	~HTTP();
 
-	static std::string getStatusMessage(int _status_code);
+	static std::string	getStatusMessage(int _status_code);
+	static std::string	getMimeType(const std::string& path);
 
 private:
 	static const std::map<int, std::string>	status_messages;
+	static const std::map<std::string, std::string>	mime_types;
+
 
 	HTTP();
 	HTTP(const HTTP& other);
