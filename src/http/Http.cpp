@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   StatusCodes.cpp                                    :+:      :+:    :+:   */
+/*   Http.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/03 13:04:46 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/11 11:55:33 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/11 12:00:24 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "StatusCodes.hpp"
+#include "Http.hpp"
 
 const std::map<int, std::string>	HTTP::status_messages = {
 	{100,	"Continue"},
