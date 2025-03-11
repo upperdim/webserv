@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/08 12:20:28 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/10 16:50:53 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,13 @@ public:
 	State	state;
 	int		status_code;
 
+	std::string	raw_request;
+	std::string	method;
+	std::string	request_target;
+	std::string	HTTP_version;
+	HeaderMap	headers;
+	std::string	body;
+
 	Request();
 	~Request();
 
@@ -46,18 +53,12 @@ public:
 
 	std::string	getRequest(void) const;
 	std::string	getRequestLine(void) const;
-	std::string	getMethod(void) const;
+	// std::string	getMethod(void) const;
+	// std::string	getRequestTarget(void) const;
 	void		setComplete();
 	void		setError(State _state, int _status_code);
-	
-private:
-	std::string	m_raw_request;
 
-	std::string	m_method;
-	std::string	m_request_target;
-	std::string	m_HTTP_version;
-	HeaderMap	m_headers;
-	std::string	m_body;
+private:
 
 	Request(const Request& other);
 	Request&	operator=(const Request& rhs);
