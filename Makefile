@@ -11,7 +11,7 @@ SRCS		=	main.cpp \
 				Connection.cpp Request.cpp Router.cpp Response.cpp Validate.cpp \
 				AHandler.cpp ErrorHandler.cpp GetHandler.cpp \
 				signal.cpp Http.cpp Log.cpp \
-				endsWith.cpp trimWhitespaces.cpp
+				startsEndsWith.cpp trimWhitespaces.cpp
 OBJS		=	$(SRCS:.cpp=.o)
 
 all: $(NAME)

@@ -1,16 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   endsWith.cpp                                       :+:      :+:    :+:   */
+/*   startsEndsWith.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/10 13:21:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/10 13:24:50 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/11 13:11:04 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
+
+bool	startsWith(const std::string& str, const std::string& prefix)
+{
+	if (str.size() < prefix.size())
+		return (false);
+	return ( std::equal(prefix.begin(), prefix.end(), str.begin()) );
+}
 
 bool	endsWith(const std::string& str, const std::string& suffix)
 {
