@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:05 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/11 12:27:00 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/11 13:06:14 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ private:
 	void		createResponseData(std::string& _data, const Request& request);
 	std::string	statusLine(const Request& request);
 	std::string	headers(const Request& request);
+	std::string	sanitizePath(const std::string& request_target);
 };
 
 #endif

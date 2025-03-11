@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:03 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/11 13:00:54 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/11 14:16:14 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ Response	GetHandler::handle(const Request& request)
 
 	// TODO: restructure:
 	// sanitize path
+	std::string path = sanitizePath(request.request_target);
+	Log::debug("PATH ----> " + path);
 	// does the path resource exist
 	// fetch content
 	// set headers: Content-Type Content-Length (Http::getMimeType)
@@ -104,4 +106,16 @@ std::string	GetHandler::headers(const Request& request)
 	}
 
 	return (headers.str());
+}
+
+std::string	GetHandler::sanitizePath(const std::string& request_target)
+{
+	std::string	path = request_target;
+	if (path == "/")
+		path += "index.html";
+	while (startsWith(path, "../"))
+		path.erase(0, 3);
+	while (startsWith(path, "/"))
+		path.erase(0, 1);
+	return (path);
 }
