@@ -10,7 +10,7 @@ SRCS		=	main.cpp \
 				Server.cpp \
 				Connection.cpp Request.cpp Router.cpp Response.cpp Validate.cpp \
 				AHandler.cpp ErrorHandler.cpp GetHandler.cpp \
-				signal.cpp StatusCodes.cpp Log.cpp \
+				signal.cpp Http.cpp Log.cpp \
 				endsWith.cpp trimWhitespaces.cpp
 OBJS		=	$(SRCS:.cpp=.o)
 
