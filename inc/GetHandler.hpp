@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:05 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/09 18:01:51 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/11 12:27:00 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 #include <fstream>
 #include "AHandler.hpp"
-#include "StatusCodes.hpp"
+#include "Http.hpp"
 
 class GetHandler : public AHandler
 {
@@ -31,6 +31,7 @@ private:
 
 	void		createResponseData(std::string& _data, const Request& request);
 	std::string	statusLine(const Request& request);
+	std::string	headers(const Request& request);
 };
 
 #endif
