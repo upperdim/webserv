@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 13:26:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/04 12:09:01 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/11 12:17:41 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,5 +49,6 @@ extern bool	g_running;
 
 void	handleAbort(int signum);
 void	trimWhitespaces(std::string& str);
+bool	endsWith(const std::string& str, const std::string& suffix);
 
 #endif
