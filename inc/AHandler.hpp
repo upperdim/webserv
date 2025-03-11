@@ -6,14 +6,14 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:36:57 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/09 18:08:44 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/11 12:01:35 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef AHANDLER_HPP
 #define AHANDLER_HPP
 
-#include "StatusCodes.hpp"
+#include "Http.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 
