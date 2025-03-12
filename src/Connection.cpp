@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/09 18:02:43 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/12 13:44:57 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,9 +68,12 @@ void Connection::handleWriteEvent(EventManager& event_manager)
 	Log::msg("[handleWriteEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	(void)event_manager;
 
-	Log::info("SENDING BYTES: " + std::to_string(response.data.length()));
+	std::string	final_response = response.to_string();
 
-	send(socket_fd, response.data.c_str(), response.data.length(), 0);
+	Log::info("SENDING BYTES: " + std::to_string(final_response.length()));
+	// Log::msg("RESPONSE:\n", final_response, LIGHTRED, LIGHTCYAN);
+
+	send(socket_fd, final_response.c_str(), final_response.length(), 0);
 	m_done = true;
 
 	Log::success("DONE SENDING **********************************************************");
