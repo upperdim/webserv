@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 11:29:40 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/11 12:01:43 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/12 11:49:24 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,21 +14,31 @@
 #define RESPONSE_HPP
 
 #include <string>
-#include <regex>
+#include <map>
 #include "Request.hpp"
 #include "Http.hpp"
 
 class Response
 {
 public:
-	std::string	data;
 
 	Response();
 	Response(const Response& other);
 	~Response();
 
 	Response&	operator=(const Response& rhs);
+	void		setProtokoll(const std::string& _protokoll);
+	void		setStatus(const int& _status_code, const std::string& _status_msg);
+	void		addHeader(const std::string& key, const std::string& value);
+	void		setBody(const std::string& _body);
+	std::string	to_string(void) const;
+
 private:
+	std::string							m_protokoll;
+	int									m_status_code;
+	std::string							m_status_msg;
+	std::map<std::string, std::string>	m_headers;
+	std::string							m_body;
 };
 
 #endif
