@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/09 17:47:24 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/09 18:40:05 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/12 11:46:49 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,17 +21,9 @@ AHandler::~AHandler()
 /* ************************************************************************** */
 
 
-bool	AHandler::createErrorResponse(Response& response, int _status_code)
+void	AHandler::createErrorResponse(Response& response, int _status_code)
 {
-	if (_status_code >= 400)
-	{
-		response.data += "HTTP/1.1 ";
-		response.data += std::to_string(_status_code);
-		response.data += " ";
-		response.data += HTTP::getStatusMessage(_status_code);
-		response.data += "\r\n";
-		return (true);
-	}
-
-	return (false);
+	response.setProtokoll("HTTP/1.1");
+	response.setStatus(_status_code, HTTP::getStatusMessage(_status_code));
+	response.setBody(HTTP::getStatusMessage(_status_code)); // TODO load an ERROR_PAGE
 }

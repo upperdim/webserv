@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:36:57 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/11 12:01:35 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/12 11:46:54 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ public:
 	virtual	~AHandler();
 
 	virtual Response	handle(const Request& request) =0;
-	virtual	bool		createErrorResponse(Response& response, int _status_code);
+	virtual	void		createErrorResponse(Response& response, int _status_code);
 };
 
 #endif
