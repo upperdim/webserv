@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/12 14:43:49 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/12 15:31:16 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,16 +33,6 @@ public:
 		ERROR
 	};
 
-	State	state;
-	int		status_code;
-
-	std::string	raw_request;
-	std::string	method;
-	std::string	request_target;
-	std::string	HTTP_version;
-	HeaderMap	headers;
-	std::string	body;
-
 	Request();
 	~Request();
 
@@ -50,14 +40,25 @@ public:
 	bool		complete(void) const;
 	int			error(void) const;
 
-	std::string	getRequest(void) const;
-	std::string	getRequestLine(void) const;
-	// std::string	getMethod(void) const;
-	// std::string	getRequestTarget(void) const;
+	std::string	getRequest(void) const;			// TODO: delete because just used for debugging
+	std::string	getRequestLine(void) const;		// TODO: delete because just used for debugging
+
+	int			getStatusCode(void) const;
+	std::string	getMethod(void) const;
+	std::string	getRequestTarget(void) const;
 	void		setComplete();
-	void		setError(State _state, int _status_code);
+	void		setError(int _status_code);
 
 private:
+	State		m_state;
+	int			m_status_code;
+
+	std::string	m_raw_request;
+	std::string	m_method;
+	std::string	m_request_target;
+	std::string	m_HTTP_version;
+	HeaderMap	m_headers;
+	std::string	m_body;
 
 	Request(const Request& other);
 	Request&	operator=(const Request& rhs);

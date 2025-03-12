@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:03 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/12 13:40:08 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/12 15:23:05 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,22 +29,21 @@ Response	GetHandler::handle(const Request& request)
 {
 	Response response;
 
-	if (request.error() >= 400)
+	if (request.error())
 	{
-		createErrorResponse(response, request.status_code);
+		createErrorResponse(response, request.getStatusCode());
 		return (response);
 	}
 
 	// TODO: restructure:
 	// sanitize path
-	std::string path = sanitizePath(request.request_target);
+	std::string path = sanitizePath(request.getRequestTarget());
 	Log::debug("PATH ----> " + path);
 
 	// does the path resource exist
 	if (resourceExist(path))
 	{
 		// fetch content
-		// set headers: Content-Type Content-Length (Http::getMimeType)	
 		response.addHeader("Content-Type", HTTP::getMimeType(path));
 		response.setBody(fetchContent(path));
 	}

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/12 13:44:57 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/12 14:51:45 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ void Connection::handleReadEvent(EventManager& event_manager)
 
 	Log::info("RECIEVED BYTES: " + std::to_string(byetes_read));
 	if (byetes_read == -1)
-		request.setError(Request::State::ERROR, WSSC_INTERNAL_SERVER_ERROR);
+		request.setError(WSSC_INTERNAL_SERVER_ERROR);
 	else if (byetes_read == 0)
 		request.setComplete();
 	else if (byetes_read > 0)
