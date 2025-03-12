@@ -6,13 +6,13 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/03 13:04:46 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/11 12:00:24 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/12 19:46:07 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Http.hpp"
 
-const std::map<int, std::string>	HTTP::status_messages = {
+const std::map<int, std::string>	HTTP::m_status_messages = {
 	{100,	"Continue"},
 	{101,	"Wwitching Protocols"},
 	{102,	"Processing"},
@@ -67,20 +67,20 @@ const std::map<int, std::string>	HTTP::status_messages = {
 	{431,	"Request Header Fields Too Large"},
 	{451,	"Unavailable For Legal Reasons"},
 
-	{500,	"internal_server_error"},
-	{501,	"not_implemented"},
-	{502,	"bad_gateway"},
-	{503,	"service_unavailable"},
-	{504,	"gateway_timeout"},
-	{505,	"http_version_not_supported"},
-	{506,	"variant_also_negotiates"},
-	{507,	"insufficient_storage"},
-	{508,	"loop_detected"},
-	{510,	"not_extended"},
-	{511,	"network_authentication_required"}
+	{500,	"Internal Server Error"},
+	{501,	"Not Implemented"},
+	{502,	"Bad Gateway"},
+	{503,	"Service Unavailable"},
+	{504,	"Gateway Timeout"},
+	{505,	"HTTP Version Not Supported"},
+	{506,	"Variant Also Negotiates"},
+	{507,	"Insufficient Storage"},
+	{508,	"Loop Detected"},
+	{510,	"Not Extended"},
+	{511,	"Network Authentication Required"}
 };
 
-const std::map<std::string, std::string>	HTTP::mime_types = {
+const std::map<std::string, std::string>	HTTP::m_mime_types = {
 	{".txt", "text/plain"},
 	{".html", "text/html"},
 	{".html", "text/html"},
@@ -88,6 +88,56 @@ const std::map<std::string, std::string>	HTTP::mime_types = {
 	{".jpeg", "image/jpeg"},
 	{".png", "image/png"},
 	{".json", "application/json"}
+};
+
+const std::string	HTTP::m_error_page_template = {
+"<!DOCTYPE html>"
+"<html lang=\"en\">"
+"<head>"
+"	<meta charset=\"UTF-8\">"
+"	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
+"	<title>{{STATUS_CODE}} - {{REASON_PHRASE}}</title>"
+"</head>"
+"<body style=\"background-color: oklch(0.145 0 0); font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; line-height: 100%;\">"
+"	<div style=\"display: flex; justify-content: center; align-items: center; width: 100%; height: 100vh;\">"
+"		<div>"
+"			<h2 style=\"display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0; padding: 0 1em; color: oklch(0.841 0.238 128.85); font-weight: 300; text-align: center;\">webserv</h2>"
+"			<div style=\"display: flex; flex-direction: column; justify-content: center; align-items: center;\">"
+"				<div style=\"display: block; margin: 1em 0; width:100%; height: 1px; border-top-style: solid; border-top-width: 1px; border-color: oklch(0.205 0 0);\"></div>"
+"				<div style=\"display: flex; flex-direction: row;\">"
+"					<div style=\"display: inline-block; padding: 0 0.35em; color: oklch(0.656 0.241 354.308); font-weight: 700;\">{{STATUS_CODE}}</div>"
+"					<div style=\"display: inline-block; padding: 0 0.35em; color: oklch(0.823 0.12 346.018); font-weight: 300;\">{{REASON_PHRASE}}</div>"
+"				</div>"
+"				{{TEAPOT}}"
+"			</div>"
+"		</div>"
+"	</div>"
+"</body>"
+"</html>"
+};
+
+const std::string	HTTP::m_teapot = {
+"<pre style=\"margin-top: 2rem; font-family: font-family: 'Courier New', Courier, monospace; font-size: .5em; color: oklch(0.269 0 0); user-select: none;\">"
+"                                                /<br>"
+"                                               /<br>"
+"                               xxX###xx       /<br>"
+"                                ::XXX        /<br>"
+"                         xxXX::::::###XXXXXx/#####<br>"
+"                    :::XXXXX::::::XXXXXXXXX/    ####<br>"
+"         xXXX//::::::://///////:::::::::::/#####    #         ##########<br>"
+"      XXXXXX//:::::://///xXXXXXXXXXXXXXXX/#    #######      ###   ###<br>"
+"     XXXX        :://///XXXXXXXXX######X/#######      #   ###    #<br>"
+"     XXXX        ::////XXXXXXXXX#######/ #     #      ####   #  #<br>"
+"      XXXX/:     ::////XXXXXXXXXX#####/  #     #########      ##<br>"
+"       \"\"XX//::::::////XXXXXXXXXXXXXX/###########     #       #<br>"
+"           \"::::::::////XXXXXXXXXXXX/    #     #     #      ##<br>"
+"                 ::::////XXXXXXXXXX/##################   ###<br>"
+"                     ::::://XXXXXX/#    #     #   #######<br>"
+"                         ::::::::/################<br>"
+"                                /<br>"
+"                               /<br>"
+"                              /"
+"</pre>"
 };
 
 HTTP::~HTTP()
@@ -101,8 +151,8 @@ HTTP::~HTTP()
 
 std::string HTTP::getStatusMessage(int _status_code)
 {
-	auto it = status_messages.find(_status_code);
-	return ( it != status_messages.end() ? it->second : std::string("Unknown"));
+	auto it = m_status_messages.find(_status_code);
+	return ( it != m_status_messages.end() ? it->second : std::string("Unknown"));
 }
 
 std::string	HTTP::getMimeType(const std::string& path)
@@ -112,6 +162,38 @@ std::string	HTTP::getMimeType(const std::string& path)
 		return ("application/octet-stream");
 		
 	std::string ext = path.substr(pos);
-	auto it = mime_types.find(ext);
-	return ( it != mime_types.end() ? it->second : std::string("application/octet-stream") );
+	auto it = m_mime_types.find(ext);
+	return ( it != m_mime_types.end() ? it->second : std::string("application/octet-stream") );
+}
+
+std::string	HTTP::getErrorPageTemplate(const int& status_code)
+{
+	std::string page = m_error_page_template;
+	size_t		pos  = 0;
+
+	std::string	needle = "{{STATUS_CODE}}";
+	std::string	replacement = std::to_string(status_code);
+	while ((pos = page.find(needle, pos)) != std::string::npos) {
+		page.replace(pos, needle.length(), replacement);
+		pos += replacement.length();
+	}
+
+	pos = 0;	
+	needle = "{{REASON_PHRASE}}";
+	replacement = getStatusMessage(status_code);
+	while ((pos = page.find(needle, pos)) != std::string::npos) {
+		page.replace(pos, needle.length(), replacement);
+		pos += replacement.length();
+	}
+
+	pos = 0;	
+	needle = "{{TEAPOT}}";
+	(status_code == WSSC_I_M_A_TEAPOT)	? replacement = m_teapot
+										: replacement = "";
+	while ((pos = page.find(needle, pos)) != std::string::npos) {
+		page.replace(pos, needle.length(), replacement);
+		pos += replacement.length();
+	}
+
+	return (page);
 }

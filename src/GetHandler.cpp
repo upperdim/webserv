@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:03 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/12 15:23:05 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/12 19:46:24 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ Response	GetHandler::handle(const Request& request)
 	}
 	else
 	{
-		response.setStatus(WSSC_NOT_FOUND, HTTP::getStatusMessage(WSSC_NOT_FOUND));
+		createErrorResponse(response, WSSC_NOT_FOUND);
 	}
 
 	return (response);

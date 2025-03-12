@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   StatusCodes.hpp                                    :+:      :+:    :+:   */
+/*   Http.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:09:01 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/11 11:54:23 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/12 19:09:36 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,11 +89,13 @@ public:
 
 	static std::string	getStatusMessage(int _status_code);
 	static std::string	getMimeType(const std::string& path);
+	static std::string	getErrorPageTemplate(const int& status_code);
 
 private:
-	static const std::map<int, std::string>	status_messages;
-	static const std::map<std::string, std::string>	mime_types;
-
+	static const std::map<int, std::string>			m_status_messages;
+	static const std::map<std::string, std::string>	m_mime_types;
+	static const std::string						m_error_page_template;
+	static const std::string						m_teapot;
 
 	HTTP();
 	HTTP(const HTTP& other);

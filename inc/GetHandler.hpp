@@ -6,14 +6,13 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:05 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/12 13:40:02 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/12 16:25:35 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef GETHANDLER_HPP
 #define GETHANDLER_HPP
 
-#include <fstream>
 #include "AHandler.hpp"
 #include "Http.hpp"
 
