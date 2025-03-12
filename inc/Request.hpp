@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/10 16:50:53 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/12 14:43:49 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,16 +15,15 @@
 
 #include <string>
 #include <sstream>
-#include <unordered_map>
 #include <utility>
 #include <stdexcept>
+#include "webserv.hpp"
 #include "Validate.hpp"
 #include "Log.hpp"
 
 class Request
 {
 public:
-	typedef std::unordered_map<std::string, std::string> HeaderMap;
 	enum class State
 	{
 		READING_REQUEST_LINE,

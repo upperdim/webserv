@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 13:26:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/11 13:09:50 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/12 14:42:17 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@
 # include <iostream>
 # include <csignal>
 # include <string>
+# include <unordered_map>
 
 # define BOLD			"\033[1m"
 # define REGULAR		"\033[22m"
@@ -44,6 +45,8 @@
 # define LIGHTCYAN		"\033[96m"
 # define RESET			"\033[0m"
 # define DEFAULT		"\033[0m"
+
+typedef std::unordered_map<std::string, std::string> HeaderMap;
 
 extern bool	g_running;
 

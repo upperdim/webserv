@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 11:29:40 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/12 11:49:24 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/12 14:43:12 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #define RESPONSE_HPP
 
 #include <string>
-#include <map>
+#include "webserv.hpp"
 #include "Request.hpp"
 #include "Http.hpp"
 
@@ -34,11 +34,11 @@ public:
 	std::string	to_string(void) const;
 
 private:
-	std::string							m_protokoll;
-	int									m_status_code;
-	std::string							m_status_msg;
-	std::map<std::string, std::string>	m_headers;
-	std::string							m_body;
+	std::string	m_protokoll;
+	int			m_status_code;
+	std::string	m_status_msg;
+	HeaderMap	m_headers;
+	std::string	m_body;
 };
 
 #endif
