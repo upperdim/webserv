@@ -31,21 +31,12 @@ const Log::t_type Log::LOG_TYPES[5] = {
 
 void	Log::debug(const std::string msg)
 {
-	#if ENABLE_LOG && PRINT_DEBUG
-		print(LOG_TYPES[DEBUG], LOG_TYPES[DEBUG].name, msg);
-	#else
-		(void)msg;
-	#endif
+	print(LOG_TYPES[DEBUG], LOG_TYPES[DEBUG].name, msg);
 }
 
 void	Log::debug(const std::string msg, const size_t val)
 {
-	#if ENABLE_LOG && PRINT_DEBUG
-		print(LOG_TYPES[DEBUG], LOG_TYPES[DEBUG].name, msg + std::to_string(val));
-	#else
-		(void)msg;
-		(void)val;
-	#endif
+	print(LOG_TYPES[DEBUG], LOG_TYPES[DEBUG].name, msg + std::to_string(val));
 }
 
 void	Log::info(const std::string msg)

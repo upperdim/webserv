@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:03 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/12 19:46:24 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/13 17:07:53 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ Response	GetHandler::handle(const Request& request)
 	// TODO: restructure:
 	// sanitize path
 	std::string path = sanitizePath(request.getRequestTarget());
-	Log::debug("PATH ----> " + path);
+	LOG_DEBUG("PATH ----> " + path);
 
 	// does the path resource exist
 	if (resourceExist(path))

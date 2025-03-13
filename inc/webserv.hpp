@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 13:26:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/12 14:42:17 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/13 17:07:02 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,14 @@
 # define PRINT_SUCCESS 	true
 # define PRINT_MSG		true
 # define PRINT_RAW		true
+
+# if ENABLE_LOG && PRINT_DEBUG
+#  define LOG_DEBUG(msg)			Log::debug(msg)
+#  define LOG_DEBUG_MV(msg, val)	Log::debug(msg, val)
+# else
+#  define LOG_DEBUG(msg)
+#  define LOG_DEBUG_MV(msg, val)
+# endif
 
 # include <iostream>
 # include <csignal>

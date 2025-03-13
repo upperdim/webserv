@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:49 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/12 14:59:32 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/13 17:08:37 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,29 +97,29 @@ void	Request::setError(int _status_code)
 
 void	Request::parseNext(void)
 {
-	Log::debug("Request::parseNext");
+	LOG_DEBUG("Request::parseNext");
 	if (m_state == State::READING_REQUEST_LINE) {
-		Log::debug("===> REQUEST READING_REQUEST_LINE");
+		LOG_DEBUG("===> REQUEST READING_REQUEST_LINE");
 		parseRequestLine();
 	}
 	if (m_state == State::READING_HEADERS) {
-		Log::debug("===> REQUEST READING_HEADERS");
+		LOG_DEBUG("===> REQUEST READING_HEADERS");
 		parseHeader();
 	}
 	if (m_state == State::READING_BODY) {
-		Log::debug("===> REQUEST READING_BODY");
+		LOG_DEBUG("===> REQUEST READING_BODY");
 	}
 	if (m_state == State::COMPLETE) {
-		Log::debug("===> REQUEST COMPLETE");
+		LOG_DEBUG("===> REQUEST COMPLETE");
 	}
 	if (m_state == State::ERROR) {
-		Log::debug("===> ERROR");
+		LOG_DEBUG("===> ERROR");
 	}
 }
 
 void	Request::parseRequestLine(void)
 {
-	Log::debug("Request::parseRequestLine");
+	LOG_DEBUG("Request::parseRequestLine");
 
 	size_t	pos = m_raw_request.find("\r\n");
 	if (pos == std::string::npos)
@@ -139,7 +139,7 @@ void	Request::parseRequestLine(void)
 	if (Validate::sstream(ss.fail(), m_status_code))
 		m_state = State::ERROR;
 
-	Log::debug(std::string("parseRequestLine: ") + LIGHTRED + m_method + " " + LIGHTGREEN + m_request_target + " " + LIGHTBLUE + m_HTTP_version);
+	LOG_DEBUG(std::string("parseRequestLine: ") + LIGHTRED + m_method + " " + LIGHTGREEN + m_request_target + " " + LIGHTBLUE + m_HTTP_version);
 
 	m_raw_request.erase(0, pos + 2);
 	m_state = State::READING_HEADERS;
