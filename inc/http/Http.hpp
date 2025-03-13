@@ -6,12 +6,12 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:09:01 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/12 19:09:36 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/13 16:56:25 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef STATUSCODES_HPP
-#define STATUSCODES_HPP
+#ifndef HTTP_HPP
+#define HTTP_HPP
 
 #define	WSSC_CONTINUE							100
 #define	WSSC_SWITCHING_PROTOCOLS				101
