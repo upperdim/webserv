@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/23 12:08:42 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/13 17:56:44 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string>
+#include "webserv.hpp"
 #include "EventManager.hpp"
 #include "IEventHandler.hpp"
 #include "Connection.hpp"

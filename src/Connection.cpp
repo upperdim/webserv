@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/12 14:51:45 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/13 18:41:02 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ Connection::Connection(const int _cli_socket)
 
 Connection::~Connection()
 {
-	Log::warning("CLOSING", std::string("Connection fd: ") + std::to_string(socket_fd));
+	LOG_WARNING_LM("CLOSING", std::string("Connection fd: ") + std::to_string(socket_fd));
 	close(socket_fd);
 }
 
@@ -36,12 +36,12 @@ bool	Connection::isDone() const
 
 void Connection::handleReadEvent(EventManager& event_manager)
 {
-	Log::msg("[handleReadEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	LOG_MSG("[handleReadEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 
 	char		request_buf[REQUEST_BUFFER_SIZE] = {0};
 	ssize_t		byetes_read = recv(socket_fd, &request_buf, sizeof(request_buf), 0);
 
-	Log::info("RECIEVED BYTES: " + std::to_string(byetes_read));
+	LOG_INFO_LM("RECIEVED BYTES: ", std::to_string(byetes_read));
 	if (byetes_read == -1)
 		request.setError(WSSC_INTERNAL_SERVER_ERROR);
 	else if (byetes_read == 0)
@@ -51,7 +51,7 @@ void Connection::handleReadEvent(EventManager& event_manager)
 
 	if (request.complete() || request.error())
 	{
-		Log::success("DONE READING **********************************************************");
+		LOG_SUCCESS("DONE READING **********************************************************");
 		
 		// response.create(request);
 		Router router;
@@ -65,31 +65,31 @@ void Connection::handleReadEvent(EventManager& event_manager)
 
 void Connection::handleWriteEvent(EventManager& event_manager)
 {
-	Log::msg("[handleWriteEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	LOG_MSG("[handleWriteEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	(void)event_manager;
 
 	std::string	final_response = response.to_string();
 
-	Log::info("SENDING BYTES: " + std::to_string(final_response.length()));
-	// Log::msg("RESPONSE:\n", final_response, LIGHTRED, LIGHTCYAN);
+	LOG_INFO_LM("SENDING BYTES: ", std::to_string(final_response.length()));
+	// LOG_MSG("RESPONSE:\n", final_response, LIGHTRED, LIGHTCYAN);
 
 	send(socket_fd, final_response.c_str(), final_response.length(), 0);
 	m_done = true;
 
-	Log::success("DONE SENDING **********************************************************");
+	LOG_SUCCESS("DONE SENDING **********************************************************");
 
-	// Log::msg("REQUEST\n", request.getRequest(), LIGHTCYAN, LIGHTCYAN);
-	// Log::raw(request, 16);
+	// LOG_MSG("REQUEST\n", request.getRequest(), LIGHTCYAN, LIGHTCYAN);
+	// LOG_RAW(final_response.c_str(), 16);
 }
 
 void Connection::handleErrorEvent(EventManager& event_manager)
 {
-	Log::msg("[handleErrorEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	LOG_MSG("[handleErrorEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	(void)event_manager;
 }
 
 void Connection::handleDisConnectEvent(EventManager& event_manager)
 {
-	Log::msg("[handleDisConnectEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	LOG_MSG("[handleDisConnectEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	event_manager.unregisterFd(socket_fd);
 }

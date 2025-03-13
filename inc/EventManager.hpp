@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 11:39:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/26 13:36:23 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/13 18:35:20 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <stdexcept>
 #include <poll.h>
 #include <utility>
+#include "webserv.hpp"
 #include "IEventHandler.hpp"
 #include "Server.hpp"
 #include "Connection.hpp"

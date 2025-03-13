@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/02/25 14:41:47 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/13 18:35:31 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ Server::Server()
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_fd < 0)
 		throw ( std::runtime_error("failed to create spcket for server") );
-	// Log::msg("[Server socket fd] ", std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	// LOG_MSG("[Server socket fd] ", std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 
 	// define server address
 	srv_addr.sin_family = AF_INET;
@@ -31,12 +31,12 @@ Server::Server()
 	// start listening
 	listen(socket_fd, 5);	// TODO: is 5 a good value here?
 
-	Log::success("Server starts listening fd: " + std::to_string(socket_fd));
+	LOG_SUCCESS("Server starts listening fd: " + std::to_string(socket_fd));
 }
 
 Server::~Server()
 {
-	Log::warning("CLOSING", std::string("server socket fd: ") + std::to_string(socket_fd));
+	LOG_WARNING_LM("CLOSING", std::string("server socket fd: ") + std::to_string(socket_fd));
 	close(socket_fd);
 }
 
@@ -53,7 +53,7 @@ void	Server::accept_connection(EventManager& event_manager)
 	if (cli_socket == -1)
 		throw ;
 	
-	Log::success("Connection established fd: " + std::to_string(cli_socket));
+	LOG_SUCCESS("Connection established fd: " + std::to_string(cli_socket));
 
 	Connection* connection = new Connection(cli_socket);
 
@@ -66,24 +66,24 @@ void	Server::accept_connection(EventManager& event_manager)
 
 void Server::handleReadEvent(EventManager& event_manager)
 {
-	Log::msg("[handleReadEvent] ", std::string("Server fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	LOG_MSG("[handleReadEvent] ", std::string("Server fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	accept_connection(event_manager);
 }
 
 void Server::handleWriteEvent(EventManager& event_manager)
 {
-	Log::msg("[handleWriteEvent] ", std::string("Server fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	LOG_MSG("[handleWriteEvent] ", std::string("Server fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	(void)event_manager;
 }
 
 void Server::handleErrorEvent(EventManager& event_manager)
 {
-	Log::msg("[handleErrorEvent] ", std::string("Server fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	LOG_MSG("[handleErrorEvent] ", std::string("Server fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	(void)event_manager;
 }
 
 void Server::handleDisConnectEvent(EventManager& event_manager)
 {
-	Log::msg("[handleDisConnectEvent] ", std::string("Server fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
+	LOG_MSG("[handleDisConnectEvent] ", std::string("Server fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	(void)event_manager;
 }

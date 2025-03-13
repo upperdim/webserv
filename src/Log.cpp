@@ -41,93 +41,49 @@ void	Log::debug(const std::string msg, const size_t val)
 
 void	Log::info(const std::string msg)
 {
-	#if ENABLE_LOG && PRINT_INFO
-		print(LOG_TYPES[INFO], LOG_TYPES[INFO].name, msg);
-	#else
-		(void)msg;
-	#endif
+	print(LOG_TYPES[INFO], LOG_TYPES[INFO].name, msg);
 }
 
 void	Log::info(const std::string label, const std::string msg)
 {
-	#if ENABLE_LOG && PRINT_INFO
-		print(LOG_TYPES[INFO], label, msg);
-	#else
-		(void)label;
-		(void)msg;
-	#endif
+	print(LOG_TYPES[INFO], label, msg);
 }
 
 void	Log::warning(const std::string msg)
 {
-	#if ENABLE_LOG && PRINT_WARNING
-		print(LOG_TYPES[WARNING], LOG_TYPES[WARNING].name, msg);
-	#else
-		(void)msg;
-	#endif
-
+	print(LOG_TYPES[WARNING], LOG_TYPES[WARNING].name, msg);
 }
 
 void	Log::warning(const std::string label, const std::string msg)
 {
-	#if ENABLE_LOG && PRINT_WARNING
-		print(LOG_TYPES[WARNING], label, msg);
-	#else
-		(void)label;
-		(void)msg;
-	#endif
+	print(LOG_TYPES[WARNING], label, msg);
 }
 
 void	Log::error(const std::string msg)
 {
-	#if ENABLE_LOG && PRINT_ERROR
-		print(LOG_TYPES[ERROR], LOG_TYPES[ERROR].name, msg);
-	#else
-		(void)msg;
-	#endif
+	print(LOG_TYPES[ERROR], LOG_TYPES[ERROR].name, msg);
 }
 
 void	Log::error(const std::string label, const std::string msg)
 {
-	#if ENABLE_LOG && PRINT_ERROR
-		print(LOG_TYPES[ERROR], label, msg);
-	#else
-		(void)label;
-		(void)msg;
-	#endif
+	print(LOG_TYPES[ERROR], label, msg);
 }
 
 void	Log::success(const std::string msg)
 {
-	#if ENABLE_LOG && PRINT_SUCCESS
-		print(LOG_TYPES[SUCCESS], LOG_TYPES[SUCCESS].name, msg);
-	#else
-		(void)msg;
-	#endif
+	print(LOG_TYPES[SUCCESS], LOG_TYPES[SUCCESS].name, msg);
 }
 
 void	Log::success(const std::string label, const std::string msg)
 {
-	#if ENABLE_LOG && PRINT_SUCCESS
-		print(LOG_TYPES[SUCCESS], label, msg);
-	#else
-		(void)label;
-		(void)msg;
-	#endif
+	print(LOG_TYPES[SUCCESS], label, msg);
 }
 
 void	Log::msg(const std::string label, const std::string msg, const std::string col1, const std::string col2)
 {
-	#if ENABLE_LOG && PRINT_MSG
-		std::cerr	<< col1 << BOLD << label 
-					<< col2 << REGULAR << msg
-					<< RESET << std::endl;
-	#else
-		(void)label;
-		(void)msg;
-		(void)col1;
-		(void)col2;
-	#endif
+	std::cerr	<< col1 << BOLD << label 
+				<< col2 << REGULAR << msg
+				<< RESET << std::endl;
 }
 
 void	Log::raw(const std::string msg, size_t split)

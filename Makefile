@@ -1,7 +1,7 @@
 
 NAME		=	webserv
 CPP			=	c++
-CPPFLAGS	=	-Wall -Wextra -Werror -std=c++11 -g -fsanitize=address
+CPPFLAGS	=	-Wall -Wextra -Werror -std=c++11#-g -fsanitize=address
 
 VPATH		=	src/ src/utils src/http
 

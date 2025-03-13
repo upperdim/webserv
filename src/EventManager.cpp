@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 19:30:12 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/04 13:06:35 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/13 18:33:54 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ void	EventManager::processPendingRegistrations(void)
 		auto found = m_fd_to_EventHandler.find(it->first->socket_fd);
 		if (found != m_fd_to_EventHandler.end())
 		{
-			Log::error("Omitting EventHandler with fd: " + std::to_string(it->first->socket_fd));
+			LOG_ERROR("Omitting EventHandler with fd: " + std::to_string(it->first->socket_fd));
 			continue ;
 		}
 		
@@ -92,7 +92,7 @@ void	EventManager::processClosingConnections(void)
 			m_fd_to_EventHandler.erase(*it);
 			delete_pollfd(*it);
 
-			Log::error("CLOSED", std::string("IEventHandler fd: ") + std::to_string(*it));
+			LOG_ERROR_LM("CLOSED", std::string("IEventHandler fd: ") + std::to_string(*it));
 		}
 	}
 
@@ -142,10 +142,10 @@ void	EventManager::run(void)
 	if (m_running == false)
 		return ;
 
-	Log::msg("running Webserv: ", "serving the world wide web", LIGHTGREEN, GREEN);
+	LOG_MSG("running Webserv: ", "serving the world wide web", LIGHTGREEN, GREEN);
 	while (m_running)
 	{
-		// Log::info("polling fds");
+		// LOG_INFO("polling fds");
 		int	fd_count = poll(m_pollfds.data(), m_pollfds.size(), 3000);	// TODO: is 1000 a good value for timeout
 		if (fd_count < 0 && g_running)
 			throw ( std::runtime_error("an error occured while polling") );
