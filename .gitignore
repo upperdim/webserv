@@ -9,6 +9,4 @@ webserv
 *.md
 *.ico
 error_pages/
-html/
-html1/
-html2/
+html*/
