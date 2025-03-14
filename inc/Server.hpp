@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/14 11:40:47 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/14 12:51:37 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,6 @@ public:
 	Server();
 	~Server();
 
-	struct sockaddr_in	srv_addr;
-
 	void	accept_connection(EventManager& event_manager);
 
 	virtual void handleReadEvent(EventManager& event_manager);
@@ -39,6 +37,8 @@ public:
 	virtual void handleDisConnectEvent(EventManager& event_manager);
 
 private:
+	struct sockaddr_in	m_srv_addr;
+
 	Server(const Server& other);
 	Server&	operator=(const Server& rhs);
 };

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/13 18:35:31 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/14 12:41:01 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,15 +18,14 @@ Server::Server()
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_fd < 0)
 		throw ( std::runtime_error("failed to create spcket for server") );
-	// LOG_MSG("[Server socket fd] ", std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 
 	// define server address
-	srv_addr.sin_family = AF_INET;
-	srv_addr.sin_port = htons(80);
-	srv_addr.sin_addr.s_addr = INADDR_ANY;
+	m_srv_addr.sin_family = AF_INET;
+	m_srv_addr.sin_port = htons(80);
+	m_srv_addr.sin_addr.s_addr = INADDR_ANY;
 
 	// bind srv socket to specific IP and PORT
-	bind(socket_fd, (struct sockaddr*) &srv_addr, sizeof(srv_addr));
+	bind(socket_fd, (struct sockaddr*) &m_srv_addr, sizeof(m_srv_addr));
 
 	// start listening
 	listen(socket_fd, 5);	// TODO: is 5 a good value here?
