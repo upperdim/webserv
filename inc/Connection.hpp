@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:36 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/09 18:02:16 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/14 11:40:36 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,6 @@
 #include "Router.hpp"
 #include "AHandler.hpp"
 #include "Response.hpp"
-#include "Log.hpp"
 
 class Connection : public IEventHandler
 {

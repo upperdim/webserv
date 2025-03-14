@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/12 15:31:16 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/14 11:40:40 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@
 #include <stdexcept>
 #include "webserv.hpp"
 #include "Validate.hpp"
-#include "Log.hpp"
 
 class Request
 {

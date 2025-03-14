@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 19:30:12 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/13 18:33:54 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/14 11:39:08 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,7 +142,8 @@ void	EventManager::run(void)
 	if (m_running == false)
 		return ;
 
-	LOG_MSG("running Webserv: ", "serving the world wide web", LIGHTGREEN, GREEN);
+	// always Log this message so we DON'T use the MACRO
+	Log::msg("running Webserv: ", "serving the world wide web", LIGHTGREEN, GREEN);
 	while (m_running)
 	{
 		// LOG_INFO("polling fds");

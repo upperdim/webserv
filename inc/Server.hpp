@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/13 17:56:44 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/14 11:40:47 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,6 @@
 #include "EventManager.hpp"
 #include "IEventHandler.hpp"
 #include "Connection.hpp"
-#include "Log.hpp"
-
 
 class Server : public IEventHandler
 {
