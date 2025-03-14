@@ -6,13 +6,14 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/09 18:19:21 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/12 15:16:17 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/14 18:36:36 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ErrorHandler.hpp"
 
-ErrorHandler::ErrorHandler()
+ErrorHandler::ErrorHandler(const Server& _server) : AHandler(_server)
+	// :	m_server(_server)
 {
 }
 

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:05 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/12 16:25:35 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/14 18:06:40 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,15 @@
 #define GETHANDLER_HPP
 
 #include "AHandler.hpp"
+#include "Response.hpp"
 #include "Http.hpp"
+
+class Server;
 
 class GetHandler : public AHandler
 {
 public:
-	GetHandler();
+	GetHandler(const Server& _server);
 	virtual ~GetHandler();
 
 	virtual Response	handle(const Request& request);

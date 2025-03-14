@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/14 12:41:01 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/14 15:05:40 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,9 @@
 
 Server::Server()
 {
+	// configer server
+	m_root_dir = "html/";
+
 	// create srv socket
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_fd < 0)
@@ -54,7 +57,7 @@ void	Server::accept_connection(EventManager& event_manager)
 	
 	LOG_SUCCESS("Connection established fd: " + std::to_string(cli_socket));
 
-	Connection* connection = new Connection(cli_socket);
+	Connection* connection = new Connection(cli_socket, *this);
 
 	event_manager.registerFd(connection, POLLIN | POLLERR | POLLHUP);
 
@@ -85,4 +88,14 @@ void Server::handleDisConnectEvent(EventManager& event_manager)
 {
 	LOG_MSG("[handleDisConnectEvent] ", std::string("Server fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	(void)event_manager;
+}
+
+void	Server::setRootDir(const std::string& _root_dir)
+{
+	m_root_dir = _root_dir;
+}
+
+std::string	Server::getRootDir(void) const
+{
+	return (m_root_dir);
 }

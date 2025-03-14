@@ -6,14 +6,15 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/13 18:41:02 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/14 15:41:22 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Connection.hpp"
 
-Connection::Connection(const int _cli_socket)
-	:	m_done(false)
+Connection::Connection(const int _cli_socket, const Server& _server)
+	:	m_done(false),
+		m_server(_server)
 {
 	socket_fd = _cli_socket;
 }
@@ -53,8 +54,7 @@ void Connection::handleReadEvent(EventManager& event_manager)
 	{
 		LOG_SUCCESS("DONE READING **********************************************************");
 		
-		// response.create(request);
-		Router router;
+		Router router(m_server);			// TODO: should the Router class be a Utility-Class like Log ???
 		AHandler* handler = router.route(request);
 		response = handler->handle(request);
 		delete (handler);

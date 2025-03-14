@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:36 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/14 11:40:36 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/14 15:06:18 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,10 +20,13 @@
 #include <sstream>
 #include "EventManager.hpp"
 #include "IEventHandler.hpp"
+#include "Server.hpp"
 #include "Request.hpp"
 #include "Router.hpp"
 #include "AHandler.hpp"
 #include "Response.hpp"
+
+class Server;
 
 class Connection : public IEventHandler
 {
@@ -31,7 +34,7 @@ public:
 	Request		request;
 	Response	response;
 
-	Connection(const int _cli_socket);
+	Connection(const int _cli_socket, const Server& _server);
 	~Connection();
 
 	bool	isDone() const;
@@ -45,8 +48,9 @@ private:
 	Connection();
 	Connection(const Connection& other);
 	Connection&	operator=(const Connection& rhs);
-
-	bool	m_done;
+	
+	bool			m_done;
+	const Server&	m_server;
 };
 
 #endif

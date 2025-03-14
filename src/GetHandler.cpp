@@ -6,13 +6,14 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:03 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/13 17:07:53 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/14 18:36:46 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "GetHandler.hpp"
 
-GetHandler::GetHandler()
+GetHandler::GetHandler(const Server& _server) : AHandler(_server)
+	// :	m_server(_server)
 {
 }
 
