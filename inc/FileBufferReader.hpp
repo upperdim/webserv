@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 18:07:47 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/15 19:09:27 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/15 20:22:41 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,11 +15,13 @@
 
 #include <string>
 #include <fstream>
+#include "Log.hpp"
 
 namespace FileBuffer
 {
 	enum class State
 	{
+		UNINITIALIZED,
 		INIT,
 		READING,
 		COMPLETE,
@@ -30,21 +32,25 @@ namespace FileBuffer
 class FileBufferReader
 {
 public:
+	FileBufferReader();
+	FileBufferReader(const FileBufferReader& other);
 	FileBufferReader(const std::string& _path, const size_t& _buff_size);
 	~FileBufferReader();
 
+	FileBufferReader&	operator=(const FileBufferReader& rhs);
 	std::string			getNextChunk(void);
 	FileBuffer::State	getState(void);
 	size_t				getSize(void);
 
 private:
-	FileBufferReader(const FileBufferReader& other);
-	FileBufferReader&	operator=(const FileBufferReader& rhs);
+
+	void	open_ifs(const std::string& _path);
+	void	close_ifs(void);
 
 	FileBuffer::State	m_state;
-	const std::string	m_path;
-	const size_t		m_buff_size;
-	std::ifstream		m_fd;
+	std::string			m_path;
+	size_t				m_buff_size;
+	std::ifstream		m_ifs;
 	size_t				m_file_size;
 };
 
