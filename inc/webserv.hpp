@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 13:26:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/14 11:36:12 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/15 18:41:37 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define WEBSERV_H
 
 # define REQUEST_BUFFER_SIZE 1024
+# define RESPONSE_BUFFER_SIZE 1024
 
 # include <iostream>
 # include <csignal>
