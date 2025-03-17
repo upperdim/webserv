@@ -8,7 +8,7 @@ VPATH		=	src/ src/utils src/http
 SRCS		=	main.cpp \
 				EventManager.cpp \
 				Server.cpp \
-				Connection.cpp Request.cpp Router.cpp Response.cpp Validate.cpp \
+				Connection.cpp Request.cpp Router.cpp FileBufferReader.cpp Response.cpp Validate.cpp \
 				AHandler.cpp ErrorHandler.cpp GetHandler.cpp \
 				signal.cpp Http.cpp Log.cpp \
 				startsEndsWith.cpp trimWhitespaces.cpp
