@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/14 15:41:22 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/17 19:29:09 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,18 +68,25 @@ void Connection::handleWriteEvent(EventManager& event_manager)
 	LOG_MSG("[handleWriteEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	(void)event_manager;
 
-	std::string	final_response = response.to_string();
+	std::string	chunk = response.getNextChunk();
 
-	LOG_INFO_LM("SENDING BYTES: ", std::to_string(final_response.length()));
-	// LOG_MSG("RESPONSE:\n", final_response, LIGHTRED, LIGHTCYAN);
+	LOG_INFO_LM("SENDING BYTES: ", std::to_string(chunk.length()));
+	// LOG_MSG("RESPONSE:\n", chunk, LIGHTRED, LIGHTCYAN);
 
-	send(socket_fd, final_response.c_str(), final_response.length(), 0);
-	m_done = true;
+	LOG_INFO_LM("RESPONSE STATE", std::string("------> ") + response.getResponseStateString());
+	send(socket_fd, chunk.c_str(), chunk.length(), 0);
 
-	LOG_SUCCESS("DONE SENDING **********************************************************");
+	if (response.complete() || response.error())
+	{
+		if (response.error())
+			LOG_ERROR("ERROR SENDING RESPONSE *************************************************");
+		else
+			LOG_SUCCESS("DONE SENDING RESPONSE *************************************************");
+		m_done = true;
+	}
 
 	// LOG_MSG("REQUEST\n", request.getRequest(), LIGHTCYAN, LIGHTCYAN);
-	// LOG_RAW(final_response.c_str(), 16);
+	// LOG_RAW(chunk.c_str(), 16);
 }
 
 void Connection::handleErrorEvent(EventManager& event_manager)
