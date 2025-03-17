@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 18:07:45 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/15 20:26:10 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/17 15:20:41 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,35 +16,24 @@ FileBufferReader::FileBufferReader()
 	:	m_state(FileBuffer::State::UNINITIALIZED),
 		m_path(""),
 		m_buff_size(0),
-		m_ifs(0),
+		m_fs(),
 		m_file_size(0)
 {
-}
-
-FileBufferReader::FileBufferReader(const FileBufferReader& other)
-	:	m_state(other.m_state),
-		m_path(other.m_path),
-		m_buff_size(other.m_buff_size),
-		m_ifs(0),
-		m_file_size(0)
-{
-	open_ifs(m_path);
 }
 
 FileBufferReader::FileBufferReader(const std::string& _path, const size_t& _buff_size)
 	:	m_state(FileBuffer::State::INIT),
 		m_path(_path),
 		m_buff_size(_buff_size),
-		m_ifs(0),
+		m_fs(),
 		m_file_size(0)
 {
-	open_ifs(_path);
-	m_state = FileBuffer::State::READING;
+	open_fs(_path);
 }
 
 FileBufferReader::~FileBufferReader()
 {
-	close_ifs();
+	close_fs();
 }
 
 
@@ -56,64 +45,92 @@ FileBufferReader&	FileBufferReader::operator=(const FileBufferReader& rhs)
 {
 	if (this != &rhs)
 	{
-		close_ifs();
+		close_fs();
 		m_state = rhs.m_state;
 		m_path = rhs.m_path;
 		m_buff_size = rhs.m_buff_size;
-		open_ifs(m_path);
+		m_file_size = 0;
+		open_fs(m_path);
 	}
 	return (*this);
 }
 
 std::string	FileBufferReader::getNextChunk(void)
 {
+	if (m_state != FileBuffer::State::READING)
+		return ("");
+
 	std::string	content(m_buff_size, '\0');
-	m_ifs.read(&content[0], m_buff_size);
-	
-	content.resize(m_ifs.gcount());
-
-	if (m_ifs.eof())
+	m_fs.read(&content[0], m_buff_size);
+	if (m_fs.bad())
+		m_state = FileBuffer::State::ERROR;
+	else if (m_fs.eof())
 		m_state = FileBuffer::State::COMPLETE;
-
+	
+	content.resize(m_fs.gcount());
 	return (content);
 }
 
-FileBuffer::State	FileBufferReader::getState(void)
+FileBuffer::State	FileBufferReader::getState(void) const
 {
 	return (m_state);
 }
 
-size_t	FileBufferReader::getSize(void)
+size_t	FileBufferReader::getSize(void) const
 {
+	if (m_state == FileBuffer::State::ERROR)
+		return (0);
 	return (m_file_size);
+}
+
+bool	FileBufferReader::complete(void) const
+{
+	return (m_state == FileBuffer::State::COMPLETE);
 }
 
 
 /* ************************************************************************** */
 /* ************************************************************************** */
 
-void	FileBufferReader::open_ifs(const std::string& _path)
+void	FileBufferReader::open_fs(const std::string& _path)
 {
-	m_ifs = std::ifstream(m_path, std::ios::binary);
+	if (m_state == FileBuffer::State::UNINITIALIZED
+		|| m_state == FileBuffer::State::ERROR)
+		return ;
 
-	m_ifs.open(_path);
-	if (!m_ifs.is_open())
+	m_fs.open(_path, std::ios::in | std::ios::binary);
+	if (!m_fs.is_open())
 	{
 		m_state = FileBuffer::State::ERROR;
 		return ;
 	}
 
 	// get the file size
-    m_ifs.seekg (0, m_ifs.end);
-    m_file_size = m_ifs.tellg();
-    m_ifs.seekg (0, m_ifs.beg);
+    m_fs.seekg (0, m_fs.end);
+	if (m_fs.fail())
+	{
+		m_state = FileBuffer::State::ERROR;
+		m_fs.close();
+		return ;
+	}
+    m_file_size = m_fs.tellg();
+    m_fs.seekg (0, m_fs.beg);
+	if (m_fs.fail())
+	{
+		m_state = FileBuffer::State::ERROR;
+		m_fs.close();
+		return ;
+	}
+
+	m_state = FileBuffer::State::READING;
 }
 
-void	FileBufferReader::close_ifs(void)
+void	FileBufferReader::close_fs(void)
 {
-	if (m_ifs.is_open())
+	if (m_fs.is_open())
 	{
 		LOG_WARNING_LM("CLOSING", std::string("FileBufferReader ") + m_path);
-		m_ifs.close();
+		m_file_size = 0;
+		m_fs.close();
 	}
 }

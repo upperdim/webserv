@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 18:07:47 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/15 20:22:41 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/17 15:20:46 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,24 +33,24 @@ class FileBufferReader
 {
 public:
 	FileBufferReader();
-	FileBufferReader(const FileBufferReader& other);
 	FileBufferReader(const std::string& _path, const size_t& _buff_size);
 	~FileBufferReader();
 
 	FileBufferReader&	operator=(const FileBufferReader& rhs);
 	std::string			getNextChunk(void);
-	FileBuffer::State	getState(void);
-	size_t				getSize(void);
+	FileBuffer::State	getState(void) const;
+	size_t				getSize(void) const;
+	bool				complete(void) const;
 
 private:
 
-	void	open_ifs(const std::string& _path);
-	void	close_ifs(void);
+	void	open_fs(const std::string& _path);
+	void	close_fs(void);
 
 	FileBuffer::State	m_state;
 	std::string			m_path;
 	size_t				m_buff_size;
-	std::ifstream		m_ifs;
+	std::fstream		m_fs;
 	size_t				m_file_size;
 };
 
