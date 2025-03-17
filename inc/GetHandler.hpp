@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:05 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/14 18:06:40 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/17 19:20:02 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@ private:
 
 	std::string	sanitizePath(const std::string& request_target);
 	bool		resourceExist(const std::string& path);
-	std::string	fetchContent(const std::string& path);
 };
 
 #endif
