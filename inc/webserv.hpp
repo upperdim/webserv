@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 13:26:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/15 18:41:37 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/17 18:46:43 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,8 @@
 # define WEBSERV_H
 
 # define REQUEST_BUFFER_SIZE 1024
-# define RESPONSE_BUFFER_SIZE 1024
+// a good default RESPONSE_BUFFER_SIZE seams to be 64kb - 128kb
+# define RESPONSE_BUFFER_SIZE (64 * 1024)
 
 # include <iostream>
 # include <csignal>
