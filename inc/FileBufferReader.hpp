@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 18:07:47 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/17 15:20:46 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/17 17:59:44 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <string>
 #include <fstream>
+#include <utility>
 #include "Log.hpp"
 
 namespace FileBuffer
@@ -36,11 +37,17 @@ public:
 	FileBufferReader(const std::string& _path, const size_t& _buff_size);
 	~FileBufferReader();
 
-	FileBufferReader&	operator=(const FileBufferReader& rhs);
+	// copy assignemnt operator overlaod
+	// FileBufferReader&	operator=(const FileBufferReader& rhs);
+
+	// move assignemnt operator overlaod
+	FileBufferReader&	operator=(FileBufferReader&& rhs);
+
 	std::string			getNextChunk(void);
 	FileBuffer::State	getState(void) const;
 	size_t				getSize(void) const;
 	bool				complete(void) const;
+	bool				error(void) const;
 
 private:
 
