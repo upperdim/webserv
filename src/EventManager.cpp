@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 19:30:12 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/14 11:39:08 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/19 10:54:52 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,7 +133,6 @@ void	EventManager::handleFdEvents(int max_events)
 			++counted;
 		if (counted >= max_events)
 			break ;
-		(void)max_events;
 	}
 }
 
