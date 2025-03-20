@@ -10,3 +10,4 @@ webserv
 *.ico
 error_pages/
 html*/
+*.conf
