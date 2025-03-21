@@ -6,14 +6,14 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/20 16:20:36 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/21 11:04:20 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/21 11:08:01 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
 
-Config::Config(const std::string _configFilePath)
-	:	m_configFilePath(_configFilePath)
+Config::Config(const std::string _config_file_path)
+	:	m_config_file_path(_config_file_path)
 {
 }
 
