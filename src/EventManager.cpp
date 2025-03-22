@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 19:30:12 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/19 10:54:52 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/22 11:22:21 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ void	EventManager::processPendingRegistrations(void)
 			continue ;
 		}
 		
-		m_pollfds.emplace_back( (pollfd){it->first->socket_fd, it->second, 0} );
+		m_pollfds.emplace_back( pollfd{it->first->socket_fd, it->second, 0} );
 		m_fd_to_EventHandler[it->first->socket_fd] = it->first;
 	}
 	
