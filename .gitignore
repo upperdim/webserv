@@ -11,3 +11,5 @@ webserv
 error_pages/
 html*/
 *.conf
+
+local/
