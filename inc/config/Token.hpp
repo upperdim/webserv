@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:35:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/04 17:25:43 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/04 19:08:33 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,11 +18,13 @@
 enum class TokenType
 {
 	END_OF_INPUT,
+	KEYWORD,
 	STRING,
 	NUMBER,
 	OPEN_BRACE,
 	CLOSE_BRACE,
-	SEMICOLON
+	SEMICOLON,
+	ERROR
 };
 
 class Token
@@ -33,6 +35,8 @@ public:
 
 	TokenType	type;
 	std::string	value;
+
+	std::string	toString(void);
 	
 private:
 };
