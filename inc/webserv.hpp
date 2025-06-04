@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 13:26:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/17 18:46:43 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/04 15:07:47 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,9 @@
 # include <csignal>
 # include <string>
 # include <unordered_map>
+# include <fstream>
+# include <sstream>
+# include <iostream>
 # include "Log.hpp"
 
 # define BOLD			"\033[1m"
@@ -44,9 +47,10 @@ typedef std::unordered_map<std::string, std::string> HeaderMap;
 
 extern bool	g_running;
 
-void	handleAbort(int signum);
-void	trimWhitespaces(std::string& str);
-bool	startsWith(const std::string& str, const std::string& prefix);
-bool	endsWith(const std::string& str, const std::string& suffix);
+void		handleAbort(int signum);
+void		trimWhitespaces(std::string& str);
+bool		startsWith(const std::string& str, const std::string& prefix);
+bool		endsWith(const std::string& str, const std::string& suffix);
+std::string readFile(const std::string& filename);
 
 #endif
