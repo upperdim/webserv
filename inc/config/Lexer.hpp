@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:27 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/04 15:28:56 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/04 18:54:54 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 #define LEXER_HPP
 
 #include <string>
+#include <cctype>
+#include "Token.hpp"
 #include "Log.hpp"
 
 class Lexer
@@ -23,8 +25,12 @@ public:
 	Lexer(const Lexer& other);
 	~Lexer();
 
+	Token	nextToken();
+
 private:
-	Lexer& operator=(const Lexer& rhs);
+	Lexer&	operator=(const Lexer& rhs);
+
+	void	skipWhitespaces();
 
 	std::string	m_input;
 	size_t		m_pos;
