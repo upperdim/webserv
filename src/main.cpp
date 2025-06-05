@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/04 19:25:23 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/05 18:44:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,10 @@ bool	g_running = true;
 
 void	terminate(std::string msg, int exit_code)
 {
-	Log::info(msg);
+	if (exit_code == 0)
+		Log::info(msg);
+	else
+		Log::error(msg);
 	exit(exit_code);
 }
 
