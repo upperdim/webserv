@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/04 19:18:20 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/05 12:29:42 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,17 +55,52 @@ Token	Lexer::nextToken()
 	{
 		case '{':
 			++m_pos;
-			return (Token(TokenType::OPEN_BRACE, "{"));
+			return ( Token(TokenType::OPEN_BRACE) );
 		case '}':
 			++m_pos;
-			return (Token(TokenType::CLOSE_BRACE, "}"));
+			return ( Token(TokenType::CLOSE_BRACE) );
 		case ';':
 			++m_pos;
-			return (Token(TokenType::SEMICOLON, ";"));
+			return ( Token(TokenType::SEMICOLON) );
+		case '/':
+		{
+			// URI
+			std::string uri;
+			while ( m_pos < m_input.length() && (std::isalnum(m_input[m_pos]) || std::string("-_.~/?#[]=&%").find(m_input[m_pos]) != std::string::npos) )
+				uri += m_input[m_pos++];
+			return ( Token(TokenType::URI, uri) );
+		}
+		default:
+			if (std::isalpha(m_input[m_pos]))
+			{
+				// KEYWORD or STRING
+				std::string word;
+				while ( m_pos < m_input.length() && std::isalpha(m_input[m_pos]) )
+					word += m_input[m_pos++];
+
+				// check for keyword
+				if (word == "http")
+					return ( Token(TokenType::HTTP) );
+				if (word == "server")
+					return ( Token(TokenType::SERVER) );
+				if (word == "location")
+					return ( Token(TokenType::LOCATION) );
+
+				return ( Token(TokenType::STRING, word) );
+			}
+			else if ( std::isdigit(m_input[m_pos]) )
+			{
+				// NUMBER
+				std::string num;
+				while ( m_pos < m_input.length() && std::isdigit(m_input[m_pos]) )
+					num += m_input[m_pos++];
+
+				return ( Token(TokenType::NUMBER, num) );
+			}
 	}
 
 	m_pos = m_input.length();	// TODO: delete me
-	return (Token(TokenType::ERROR, "Unexpected character"));
+	return ( Token(TokenType::ERROR, "Unexpected character") );
 }
 
 

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:46:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/04 19:23:33 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/05 17:08:06 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,22 @@ Token::~Token()
 
 std::string	Token::toString(void)
 {
-	std::string tokenStr = std::string("[");
-	tokenStr += tokenTypeToString() + "] " + value;
+	std::string tokenStr = std::string("[") + tokenTypeToString() + "]";
+
+	if (type == TokenType::HTTP)
+		tokenStr += " \033[0mHTTP";
+	else if (type == TokenType::SERVER)
+		tokenStr += " \033[0mSERVER";
+	else if (type == TokenType::LOCATION)
+		tokenStr += " \033[0mLOCATION";
+	else if (type == TokenType::OPEN_BRACE)
+		tokenStr += " \033[93m{";
+	else if (type == TokenType::CLOSE_BRACE)
+		tokenStr += " \033[93m}";
+	else if (type == TokenType::SEMICOLON)
+		tokenStr += " \033[91m;";
+	else if (type == TokenType::URI || type == TokenType::NUMBER || type == TokenType::STRING)
+		tokenStr += " \033[96m" + value;
 
 	return (tokenStr);
 }
@@ -45,13 +59,16 @@ std::string	Token::tokenTypeToString(void)
 	switch (type)
 	{
 		case (TokenType::END_OF_INPUT): return ("TOKEN::END_OF_INPUT");
-		case (TokenType::KEYWORD):      return ("TOKEN::KEYWORD");
-		case (TokenType::STRING):       return ("TOKEN::STRING");
-		case (TokenType::NUMBER):       return ("TOKEN::NUMBER");
+		case (TokenType::HTTP):         return ("TOKEN::HTTP");
+		case (TokenType::SERVER):       return ("TOKEN::SERVER");
+		case (TokenType::LOCATION):     return ("TOKEN::LOCATION");
 		case (TokenType::OPEN_BRACE):   return ("TOKEN::OPEN_BRACE");
 		case (TokenType::CLOSE_BRACE):  return ("TOKEN::CLOSE_BRACE");
 		case (TokenType::SEMICOLON):    return ("TOKEN::SEMICOLON");
+		case (TokenType::URI):          return ("TOKEN::URI");
+		case (TokenType::NUMBER):       return ("TOKEN::NUMBER");
+		case (TokenType::STRING):       return ("TOKEN::STRING");
 		case (TokenType::ERROR):        return ("TOKEN::ERROR");
 	}
-	return ("TOKEN::NO_TOKEN");
+	return ("TOKEN::INVALID_TOKEN");
 }
