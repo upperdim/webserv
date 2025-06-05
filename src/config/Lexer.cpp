@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/05 12:29:42 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/05 18:32:14 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,8 @@ Token	Lexer::nextToken()
 					word += m_input[m_pos++];
 
 				// check for keyword
+				if (word == "events")
+					return ( Token(TokenType::EVENTS) );
 				if (word == "http")
 					return ( Token(TokenType::HTTP) );
 				if (word == "server")
