@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:46:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/05 17:08:06 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/05 17:46:57 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,7 @@ std::string	Token::tokenTypeToString(void)
 	switch (type)
 	{
 		case (TokenType::END_OF_INPUT): return ("TOKEN::END_OF_INPUT");
+		case (TokenType::EVENTS):       return ("TOKEN::EVENTS");
 		case (TokenType::HTTP):         return ("TOKEN::HTTP");
 		case (TokenType::SERVER):       return ("TOKEN::SERVER");
 		case (TokenType::LOCATION):     return ("TOKEN::LOCATION");
