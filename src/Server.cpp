@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/16 17:37:43 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/19 12:08:36 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 Server::Server()
 {
 	// configer server
-	m_root_dir = "html/";
+	m_root_dir = "html";
 
 	// create srv socket
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0); // TODO: add SOCK_NONBLOCK
@@ -96,7 +96,7 @@ void	Server::setRootDir(const std::string& _root_dir)
 	m_root_dir = _root_dir;
 }
 
-std::string	Server::getRootDir(void) const
+const std::string	Server::getRootDir(void) const
 {
 	return (m_root_dir);
 }
