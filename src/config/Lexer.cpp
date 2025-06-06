@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/05 18:32:14 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/06 11:38:45 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ Token	Lexer::nextToken()
 			return ( Token(TokenType::END_OF_INPUT, "") );
 		}
 		m_pos = next_pos;
+		skipWhitespaces();
 	}
 
 	switch (m_input[m_pos])
