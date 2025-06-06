@@ -3,24 +3,22 @@
 /*                                                        :::      ::::::::   */
 /*   Config.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/20 16:20:36 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/21 11:08:01 by nmihaile         ###   ########.fr       */
+/*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
+/*   Updated: 2025/06/06 19:11:45 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
 
-Config::Config(const std::string _config_file_path)
-	:	m_config_file_path(_config_file_path)
+Config::Config()
 {
 }
 
 Config::~Config()
 {
 }
-
 
 /* ************************************************************************** */
 /* ************************************************************************** */

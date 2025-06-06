@@ -3,31 +3,23 @@
 /*                                                        :::      ::::::::   */
 /*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/20 16:20:40 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/21 11:07:49 by nmihaile         ###   ########.fr       */
+/*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
+/*   Updated: 2025/06/06 19:12:17 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-#include <string>
-#include <vector>
-
 class Config
 {
 public:
-	Config(const std::string _configFilePath);
+	Config();
 	~Config();
 
 private:
-	Config();
-	Config(const Config& other);
-	Config&	operator=(const Config& rhs);
-
-	std::string	m_config_file_path;
 };
 
 #endif
