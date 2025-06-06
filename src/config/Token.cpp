@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:46:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/05 17:46:57 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/06 11:25:49 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,26 @@ std::string	Token::toString(void)
 		tokenStr += " \033[96m" + value;
 
 	return (tokenStr);
+}
+
+std::string	Token::getTokenValue(void)
+{
+	switch (type)
+	{
+		case (TokenType::END_OF_INPUT): return ("end_of_input");
+		case (TokenType::EVENTS):       return ("events");
+		case (TokenType::HTTP):         return ("http");
+		case (TokenType::SERVER):       return ("server");
+		case (TokenType::LOCATION):     return ("location");
+		case (TokenType::OPEN_BRACE):   return ("{");
+		case (TokenType::CLOSE_BRACE):  return ("}");
+		case (TokenType::SEMICOLON):    return (";");
+		case (TokenType::URI):          return (value);
+		case (TokenType::NUMBER):       return (value);
+		case (TokenType::STRING):       return (value);
+		case (TokenType::ERROR):        return ("ERROR");
+	}
+	return ("INVALID_TOKEN");
 }
 
 

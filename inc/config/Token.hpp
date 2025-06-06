@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:35:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/05 17:46:42 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/06 11:25:54 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ public:
 	std::string	value;
 
 	std::string	toString(void);
+	std::string	getTokenValue(void);
 
 private:
 	std::string	tokenTypeToString(void);
