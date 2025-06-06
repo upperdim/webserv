@@ -28,7 +28,7 @@ int	main(int argc, char **argv)
 	} else if (argc == 2) {
 		configFilePath = argv[1];
 	} else {
-		configFilePath = "config.conf"; // default config path
+		configFilePath = "default.conf"; // default config path
 	}
 
 	std::signal(SIGINT, handleAbort);
