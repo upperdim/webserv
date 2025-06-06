@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/06 12:22:41 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/06 17:05:36 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,7 @@ Token	Lexer::nextToken()
 			{
 				// NUMBER
 				std::string num;
-				while ( m_pos < m_input.length() && std::isdigit(m_input[m_pos]) )
+				while ( m_pos < m_input.length() && (std::isdigit(m_input[m_pos]) || m_input[m_pos] == '.') )
 					num += m_input[m_pos++];
 
 				return ( Token(TokenType::NUMBER, num) );
