@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:35:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/06 11:25:54 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/06 16:26:18 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ enum class TokenType
 	HTTP,
 	SERVER,
 	LOCATION,
+	LISTEN,
 	OPEN_BRACE,
 	CLOSE_BRACE,
 	SEMICOLON,

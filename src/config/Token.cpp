@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:46:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/06 11:25:49 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/06 16:29:51 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,8 @@ std::string	Token::toString(void)
 		tokenStr += " \033[0mSERVER";
 	else if (type == TokenType::LOCATION)
 		tokenStr += " \033[0mLOCATION";
+	else if (type == TokenType::LISTEN)
+		tokenStr += " \033[0mLISTEN";
 	else if (type == TokenType::OPEN_BRACE)
 		tokenStr += " \033[93m{";
 	else if (type == TokenType::CLOSE_BRACE)
@@ -58,6 +60,7 @@ std::string	Token::getTokenValue(void)
 		case (TokenType::HTTP):         return ("http");
 		case (TokenType::SERVER):       return ("server");
 		case (TokenType::LOCATION):     return ("location");
+		case (TokenType::LISTEN):       return ("listen");
 		case (TokenType::OPEN_BRACE):   return ("{");
 		case (TokenType::CLOSE_BRACE):  return ("}");
 		case (TokenType::SEMICOLON):    return (";");
@@ -83,6 +86,7 @@ std::string	Token::tokenTypeToString(void)
 		case (TokenType::HTTP):         return ("TOKEN::HTTP");
 		case (TokenType::SERVER):       return ("TOKEN::SERVER");
 		case (TokenType::LOCATION):     return ("TOKEN::LOCATION");
+		case (TokenType::LISTEN):       return ("TOKEN::LISTEN");
 		case (TokenType::OPEN_BRACE):   return ("TOKEN::OPEN_BRACE");
 		case (TokenType::CLOSE_BRACE):  return ("TOKEN::CLOSE_BRACE");
 		case (TokenType::SEMICOLON):    return ("TOKEN::SEMICOLON");
