@@ -1,33 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Config.hpp                                         :+:      :+:    :+:   */
+/*   Parser.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/20 16:20:40 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/21 11:07:49 by nmihaile         ###   ########.fr       */
+/*   Created: 2025/06/06 17:50:21 by tunsal            #+#    #+#             */
+/*   Updated: 2025/06/06 17:50:21 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+#ifndef PARSER_HPP
+#define PARSER_HPP
 
 #include <string>
-#include <vector>
+#include "Config.hpp"
 
-class Config
+class Parser
 {
 public:
-	Config(const std::string _configFilePath);
-	~Config();
-
+	Config mockParseConfig(std::string configFilePath);
 private:
-	Config();
-	Config(const Config& other);
-	Config&	operator=(const Config& rhs);
-
-	std::string	m_config_file_path;
+	std::string readConfigFile(std::string configFilePath);
 };
 
 #endif

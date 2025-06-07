@@ -3,7 +3,7 @@ NAME		=	webserv
 CPP			=	c++
 CPPFLAGS	=	-Wall -Wextra -Werror -std=c++11#-g -fsanitize=address
 
-VPATH		=	src/ src/utils src/http
+VPATH		=	src/ src/utils src/http src/config
 
 SRCS		=	main.cpp \
 				EventManager.cpp \
@@ -11,17 +11,21 @@ SRCS		=	main.cpp \
 				Connection.cpp Request.cpp Router.cpp FileBufferReader.cpp Response.cpp Validate.cpp \
 				AHandler.cpp ErrorHandler.cpp GetHandler.cpp \
 				signal.cpp Http.cpp Log.cpp \
-				startsEndsWith.cpp trimWhitespaces.cpp
-OBJS		=	$(SRCS:.cpp=.o)
+				startsEndsWith.cpp trimWhitespaces.cpp \
+				Parser.cpp Config.cpp
+
+OBJS_DIR	=	obj
+OBJS		=	$(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))
 
 all: $(NAME)
 	@echo "\033[92mexecute with: \033[1;92m"./$(NAME)"\033[0m"
 
 $(NAME): $(OBJS)
-	$(CPP) $(CPPFLAGS) -Iinc -Iinc/http $(OBJS) -o $(NAME)
+	$(CPP) $(CPPFLAGS) -Iinc -Iinc/http -Iinc/config $(OBJS) -o $(NAME)
 
-%.o: %.cpp
-	$(CPP) $(CPPFLAGS) -Iinc -Iinc/http -c $< -o $@
+$(OBJS_DIR)/%.o: %.cpp
+	@mkdir -p $(dir $@)
+	$(CPP) $(CPPFLAGS) -Iinc -Iinc/http -Iinc/config -c $< -o $@
 
 clean:
 	rm -f $(OBJS)
