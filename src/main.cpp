@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "webserv.hpp"
+#include "Config.hpp"
 #include "Parser.hpp"
 #include "EventManager.hpp"
 #include "Server.hpp"
@@ -27,10 +28,18 @@ void	terminate(std::string msg, int exit_code)
 	exit(exit_code);
 }
 
-int	main(int ac, char **av)
+int	main(int argc, char **argv)
 {
-	if (ac != 2)
-		terminate("usage: ./webserv config.conf", 0);
+	std::string configFilePath;
+
+	if (argc > 2) {
+		std::cout << "Usage: ./webserv [configuration file]" << std::endl;
+		return 0;
+	} else if (argc == 2) {
+		configFilePath = argv[1];
+	} else {
+		configFilePath = "default.conf"; // default config path
+	}
 
 	std::signal(SIGINT, handleAbort);
 	std::signal(SIGQUIT, handleAbort);
@@ -39,7 +48,7 @@ int	main(int ac, char **av)
 	{
 		Lexer	lexer(readFile(av[1]));
 		Parser	parser(lexer);
-		Config	config;
+		Config config = parser.mockParseConfig(configFilePath);
 
 		try
 		{

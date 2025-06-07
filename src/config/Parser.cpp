@@ -10,7 +10,12 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
 #include "Parser.hpp"
+#include "Config.hpp"
 
 Parser::Parser(const Lexer& _lexer)
 	:	m_lexer(_lexer),
@@ -162,4 +167,25 @@ unsigned int	Parser::validatePort(const std::string& _port)
 		throw ( std::runtime_error("invalid port in \"" + _port + "\" of the \"listen\" directive.") );
 
 	return (port);
+}
+
+Config Parser::mockParseConfig(std::string configFilePath) {
+	std::string configFile = readConfigFile(configFilePath);
+
+	Config config;
+	std::cout << configFile << std::endl;
+	return config;
+}
+
+std::string Parser::readConfigFile(std::string configFilePath) {
+	std::ifstream configFile(configFilePath);
+	if (!configFile) {
+		throw std::runtime_error("Config file is not found.");
+	}
+
+	std::stringstream buffer;
+	buffer << configFile.rdbuf();
+	configFile.close();
+
+	return buffer.str();
 }

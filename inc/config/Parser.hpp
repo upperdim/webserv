@@ -20,20 +20,6 @@
 #include "Lexer.hpp"
 #include "Log.hpp"
 
-// TODO: THIS IS TEMP
-#include <vector>
-struct ServerBlock
-{
-	int							listenPort;
-	std::vector<std::string>	serverNames;
-};
-
-struct Config
-{
-	std::vector<ServerBlock>	serverblocks;
-};
-
-
 class Parser
 {
 public:
@@ -41,7 +27,7 @@ public:
 	~Parser();
 
 	Config	parse(void);
-
+	Config	mockParseConfig(std::string configFilePath);
 private:
 	Parser(const Parser& other);
 	Parser&	operator=(const Parser& rhs);
@@ -52,6 +38,7 @@ private:
 	void			ensureDirectiveTermination(const std::string& name);
 
 	unsigned int	validatePort(const std::string& _port);
+	std::string		readConfigFile(std::string configFilePath);
 
 	Lexer	m_lexer;
 	Token	m_currentToken;

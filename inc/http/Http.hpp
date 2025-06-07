@@ -85,7 +85,15 @@
 class HTTP
 {
 public:
+	enum Method
+	{
+		GET,
+		POST,
+		DELETE
+	};
+
 	~HTTP();
+
 
 	static std::string	getStatusMessage(int _status_code);
 	static std::string	getMimeType(const std::string& path);

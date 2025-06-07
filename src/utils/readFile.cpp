@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   readFile.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:05:58 by nmihaile          #+#    #+#             */
 /*   Updated: 2025/06/04 15:10:56 by nmihaile         ###   ########.fr       */

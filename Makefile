@@ -12,8 +12,11 @@ SRCS		=	main.cpp \
 				Connection.cpp Request.cpp Router.cpp FileBufferReader.cpp Response.cpp Validate.cpp \
 				AHandler.cpp ErrorHandler.cpp GetHandler.cpp \
 				signal.cpp Http.cpp Log.cpp \
-				startsEndsWith.cpp trimWhitespaces.cpp readFile.cpp
-OBJS		=	$(SRCS:.cpp=.o)
+				startsEndsWith.cpp trimWhitespaces.cpp readFile.cpp \
+				Parser.cpp Config.cpp
+
+OBJS_DIR	=	obj
+OBJS		=	$(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))
 
 all: $(NAME)
 	@echo "\033[92mexecute with: \033[1;92m"./$(NAME)"\033[0m"
@@ -21,7 +24,8 @@ all: $(NAME)
 $(NAME): $(OBJS)
 	$(CPP) $(CPPFLAGS) -Iinc -Iinc/http -Iinc/config $(OBJS) -o $(NAME)
 
-%.o: %.cpp
+$(OBJS_DIR)/%.o: %.cpp
+	@mkdir -p $(dir $@)
 	$(CPP) $(CPPFLAGS) -Iinc -Iinc/http -Iinc/config -c $< -o $@
 
 clean:
