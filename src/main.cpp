@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/05 18:44:55 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/07 14:17:59 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ int	main(int ac, char **av)
 	{
 		Lexer	lexer(readFile(av[1]));
 		Parser	parser(lexer);
-		std::string		config;	// TODO: change to config struct
+		Config	config;
 
 		try
 		{
