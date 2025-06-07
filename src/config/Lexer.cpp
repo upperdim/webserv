@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/07 11:02:06 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/07 14:12:49 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ Lexer::~Lexer()
 
 Token	Lexer::nextToken()
 {
+	
 	precededByComment = false;
 	skipWhitespaces();
 
@@ -101,7 +102,7 @@ Token	Lexer::nextToken()
 			{
 				// NUMBER
 				std::string num;
-				while ( m_pos < m_input.length() && (std::isdigit(m_input[m_pos]) || m_input[m_pos] == '.') )
+				while ( m_pos < m_input.length() && std::isdigit(m_input[m_pos]) )
 					num += m_input[m_pos++];
 
 				return ( Token(TokenType::NUMBER, num) );
