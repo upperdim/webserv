@@ -12,6 +12,7 @@
 
 #include "webserv.hpp"
 #include "Config.hpp"
+#include "Lexer.hpp"
 #include "Parser.hpp"
 #include "EventManager.hpp"
 #include "Server.hpp"
@@ -46,7 +47,7 @@ int	main(int argc, char **argv)
 
 	try
 	{
-		Lexer	lexer(readFile(av[1]));
+		Lexer	lexer(readFile(argv[1]));
 		Parser	parser(lexer);
 		Config config = parser.mockParseConfig(configFilePath);
 

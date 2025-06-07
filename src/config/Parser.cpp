@@ -62,7 +62,7 @@ Config	Parser::parse(void)
 						m_currentToken = m_lexer.nextToken();
 						consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"server\" directive, OPEN_BRACE \"{\" expected");
 						ServerBlock serverBlock = parseServer();
-						m_config.serverblocks.emplace_back(serverBlock);
+						m_config.serverBlocks.emplace_back(serverBlock);
 						break ;
 					}
 					case (TokenType::URI):

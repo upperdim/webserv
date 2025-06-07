@@ -16,6 +16,7 @@
 #include <string>
 #include <fstream>
 #include <stdexcept>
+#include "Config.hpp"
 #include "Token.hpp"
 #include "Lexer.hpp"
 #include "Log.hpp"
