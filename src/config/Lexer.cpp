@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/07 10:14:21 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/07 11:02:06 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ Lexer::~Lexer()
 
 Token	Lexer::nextToken()
 {
+	precededByComment = false;
 	skipWhitespaces();
 
 	if (m_pos >= m_input.length())
@@ -42,6 +43,7 @@ Token	Lexer::nextToken()
 
 	if (m_input[m_pos] == '#')
 	{
+		precededByComment = true;
 		size_t next_pos = m_input.find_first_of("\n", m_pos);
 		if (next_pos == std::string::npos)
 		{

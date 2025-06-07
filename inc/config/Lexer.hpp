@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:27 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/04 18:54:54 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/07 11:01:36 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@ public:
 	Lexer(const Lexer& other);
 	~Lexer();
 
+	bool	precededByComment = false;
+	
 	Token	nextToken();
 
 private:
