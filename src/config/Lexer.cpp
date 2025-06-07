@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/06 17:05:36 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/07 10:14:21 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,6 +90,8 @@ Token	Lexer::nextToken()
 					return ( Token(TokenType::SERVER) );
 				if (word == "location")
 					return ( Token(TokenType::LOCATION) );
+				if (word == "listen")
+					return ( Token(TokenType::LISTEN) );
 
 				return ( Token(TokenType::STRING, word) );
 			}
