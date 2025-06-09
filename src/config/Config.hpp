@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/09 17:24:53 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/09 17:57:27 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ class LocationBlock
 public:
 	std::string					route;
 	size_t 						clientMaxBodySize;
-	std::vector<HTTP::Method>	limitExcept;
+	std::vector<HTTP::Method>	allowMethods;
 	std::string					returnRoute;
 	std::string					root;
 	bool						autoIndex;
