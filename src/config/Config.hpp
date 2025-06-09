@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/09 17:57:27 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/09 18:19:05 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,11 +38,11 @@ class ServerBlock
 {
 public:
 	// Subject requirement of this scope
-	int listenPort;
-	in_addr_t host;		// assign in Server constructor like: m_srv_addr.sin_addr.s_addr = config.host;
-	std::vector<std::string> serverNames;
+	int							listenPort;
+	in_addr_t					host;		// assign in Server constructor like: m_srv_addr.sin_addr.s_addr = config.host;
+	std::vector<std::string>	serverNames;
 	std::map<int, std::string>	errorPagePaths;
-	size_t clientMaxBodySize;
+	size_t						clientMaxBodySize;
 	
 	// Multiscope options
 	std::string root;
@@ -59,9 +59,9 @@ public:
 	std::vector<ServerBlock> serverBlocks;
 
 	// Multiscope options
-	size_t clientMaxBodySize;
-	std::string index;
-	std::map<int, std::string> errorPagePaths;
+	size_t						clientMaxBodySize;
+	std::string					index;
+	std::map<int, std::string>	errorPagePaths;
 };
 
 #endif
