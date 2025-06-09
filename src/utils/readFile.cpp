@@ -1,24 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Config.cpp                                         :+:      :+:    :+:   */
+/*   readFile.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/06 19:11:45 by tunsal           ###   ########.fr       */
+/*   Created: 2025/06/04 15:05:58 by nmihaile          #+#    #+#             */
+/*   Updated: 2025/06/04 15:10:56 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Config.hpp"
+#include "webserv.hpp"
 
-Config::Config()
+std::string readFile(const std::string& filename)
 {
+	std::ifstream file(filename);
+	if (!file)
+		throw ( std::runtime_error("Failed to open" + filename) );
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+	return (buffer.str());
 }
-
-Config::~Config()
-{
-}
-
-/* ************************************************************************** */
-/* ************************************************************************** */
