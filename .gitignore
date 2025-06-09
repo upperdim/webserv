@@ -1,4 +1,5 @@
 .DS_Store
+obj/
 *.o
 .vscode
 
@@ -12,7 +13,6 @@ error_pages/
 html*/
 *.conf
 
-obj/
 local/
 *.bat
 *.ps1

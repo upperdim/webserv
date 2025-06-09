@@ -1,18 +1,44 @@
+# Sources
+SRC_FOLDERS	=	src \
+				src/http \
+				src/utils \
+				src/config \
+				src/network \
 
+
+VPATH		=	$(SRC_FOLDERS)
+
+
+SRCS_NO_MAIN=	Config.cpp \
+				Parser.cpp \
+				EventManager.cpp \
+				Server.cpp \
+				Connection.cpp \
+				Request.cpp \
+				Router.cpp \
+				FileBufferReader.cpp \
+				Response.cpp \
+				Validate.cpp \
+				AHandler.cpp \
+				ErrorHandler.cpp \
+				GetHandler.cpp \
+				signal.cpp \
+				Http.cpp \
+				Log.cpp \
+				startsEndsWith.cpp \
+				trimWhitespaces.cpp \
+
+
+SRCS		=	main.cpp $(SRCS_NO_MAIN)
+
+# Includes
+INCLUDES_DIRS	=	$(SRC_FOLDERS)
+INCLUDE_FLAG	=	$(addprefix -I, $(INCLUDES_DIRS))
+
+# Compilation
 NAME		=	webserv
 CPP			=	c++
 CPPFLAGS	=	-Wall -Wextra -Werror -std=c++11#-g -fsanitize=address
-
-VPATH		=	src/ src/utils src/http src/config
-
-SRCS		=	main.cpp \
-				EventManager.cpp \
-				Server.cpp \
-				Connection.cpp Request.cpp Router.cpp FileBufferReader.cpp Response.cpp Validate.cpp \
-				AHandler.cpp ErrorHandler.cpp GetHandler.cpp \
-				signal.cpp Http.cpp Log.cpp \
-				startsEndsWith.cpp trimWhitespaces.cpp \
-				Parser.cpp Config.cpp
 
 OBJS_DIR	=	obj
 OBJS		=	$(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))
@@ -21,11 +47,11 @@ all: $(NAME)
 	@echo "\033[92mexecute with: \033[1;92m"./$(NAME)"\033[0m"
 
 $(NAME): $(OBJS)
-	$(CPP) $(CPPFLAGS) -Iinc -Iinc/http -Iinc/config $(OBJS) -o $(NAME)
+	$(CPP) $(CPPFLAGS) $(INCLUDE_FLAG) $(OBJS) -o $(NAME)
 
 $(OBJS_DIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CPP) $(CPPFLAGS) -Iinc -Iinc/http -Iinc/config -c $< -o $@
+	$(CPP) $(CPPFLAGS) $(INCLUDE_FLAG) -c $< -o $@
 
 clean:
 	rm -f $(OBJS)
