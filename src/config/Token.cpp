@@ -6,15 +6,23 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:46:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/06 16:29:51 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/09 11:20:24 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Token.hpp"
 
-Token::Token(const TokenType& _type, const std::string _value)
+Token::Token(const TokenType& _type, const std::string _value, size_t _line)
 	:	type(_type),
-		value(_value)
+		value(_value),
+		line(_line)
+{
+}
+
+Token::Token(const TokenType& _type, size_t _line)
+	:	type(_type),
+		value(""),
+		line(_line)
 {
 }
 
@@ -45,7 +53,9 @@ std::string	Token::toString(void)
 		tokenStr += " \033[93m}";
 	else if (type == TokenType::SEMICOLON)
 		tokenStr += " \033[91m;";
-	else if (type == TokenType::URI || type == TokenType::NUMBER || type == TokenType::STRING)
+	else if (type == TokenType::COLON)
+		tokenStr += " \033[91m:";
+	else if (type == TokenType::URI || type == TokenType::NUMBER || type == TokenType::IP || type == TokenType::STRING)
 		tokenStr += " \033[96m" + value;
 
 	return (tokenStr);
@@ -64,12 +74,19 @@ std::string	Token::getTokenValue(void)
 		case (TokenType::OPEN_BRACE):   return ("{");
 		case (TokenType::CLOSE_BRACE):  return ("}");
 		case (TokenType::SEMICOLON):    return (";");
+		case (TokenType::COLON):        return (":");
 		case (TokenType::URI):          return (value);
 		case (TokenType::NUMBER):       return (value);
+		case (TokenType::IP):           return (value);
 		case (TokenType::STRING):       return (value);
 		case (TokenType::ERROR):        return ("ERROR");
 	}
 	return ("INVALID_TOKEN");
+}
+
+std::string	Token::onLine(void)
+{
+	return (std::string("on line \033[96m") + std::to_string(line));
 }
 
 
@@ -90,8 +107,10 @@ std::string	Token::tokenTypeToString(void)
 		case (TokenType::OPEN_BRACE):   return ("TOKEN::OPEN_BRACE");
 		case (TokenType::CLOSE_BRACE):  return ("TOKEN::CLOSE_BRACE");
 		case (TokenType::SEMICOLON):    return ("TOKEN::SEMICOLON");
+		case (TokenType::COLON):        return ("TOKEN::COLON");
 		case (TokenType::URI):          return ("TOKEN::URI");
 		case (TokenType::NUMBER):       return ("TOKEN::NUMBER");
+		case (TokenType::IP):           return ("TOKEN::IP");
 		case (TokenType::STRING):       return ("TOKEN::STRING");
 		case (TokenType::ERROR):        return ("TOKEN::ERROR");
 	}
