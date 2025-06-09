@@ -6,17 +6,28 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/13 18:33:42 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/09 16:52:00 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
+#include "Config.hpp"
+#include "Lexer.hpp"
+#include "Parser.hpp"
 #include "EventManager.hpp"
 #include "Server.hpp"
-#include "Config.hpp"
-#include "Parser.hpp"
+#include "Log.hpp"
 
 bool	g_running = true;
+
+void	terminate(std::string msg, int exit_code)
+{
+	if (exit_code == 0)
+		Log::info(msg);
+	else
+		Log::error(msg);
+	exit(exit_code);
+}
 
 int	main(int argc, char **argv)
 {
@@ -34,11 +45,20 @@ int	main(int argc, char **argv)
 	std::signal(SIGINT, handleAbort);
 	std::signal(SIGQUIT, handleAbort);
 
-	try
-	{
-		Parser parser;
-		Config config = parser.mockParseConfig(configFilePath);
+	Config config;
 
+	try	{
+		Lexer	lexer(readFile(argv[1]));
+		Parser	parser(lexer);
+
+		// config = parser.parse();
+		config = parser.mockParseConfig(configFilePath);
+		
+	} catch (const std::exception& e)	{
+		terminate(e.what(), 1);
+	}
+
+	try {
 		EventManager event_manager(g_running);
 		Server* server = new Server();
 
@@ -46,9 +66,7 @@ int	main(int argc, char **argv)
 		event_manager.processPendingRegistrations();
 
 		event_manager.run();
-	}
-	catch(const std::exception& e)
-	{
+	} catch(const std::exception& e) {
 		LOG_ERROR_LM("Critical Exception caught","::");
 		LOG_ERROR(e.what());
 		g_running = false;

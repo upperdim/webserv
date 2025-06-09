@@ -1,18 +1,18 @@
 
 NAME		=	webserv
 CPP			=	c++
-CPPFLAGS	=	-Wall -Wextra -Werror -std=c++11#-g -fsanitize=address
+CPPFLAGS	=	-Wall -Wextra -Werror -std=c++11 #-g -fsanitize=address
 
 VPATH		=	src/ src/utils src/http src/config
 
 SRCS		=	main.cpp \
+				Token.cpp Lexer.cpp Parser.cpp Config.cpp \
 				EventManager.cpp \
 				Server.cpp \
 				Connection.cpp Request.cpp Router.cpp FileBufferReader.cpp Response.cpp Validate.cpp \
 				AHandler.cpp ErrorHandler.cpp GetHandler.cpp \
 				signal.cpp Http.cpp Log.cpp \
-				startsEndsWith.cpp trimWhitespaces.cpp \
-				Parser.cpp Config.cpp
+				startsEndsWith.cpp trimWhitespaces.cpp readFile.cpp
 
 OBJS_DIR	=	obj
 OBJS		=	$(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))

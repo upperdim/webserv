@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/06 19:12:17 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/08 16:40:24 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <netinet/in.h>		// for in_addr
 #include "Http.hpp"
 
 class LocationBlock
@@ -38,7 +39,7 @@ class ServerBlock
 public:
 	// Subject requirement of this scope
 	int listenPort;
-	std::string host;
+	in_addr_t host;		// assign in Server constructor like: m_srv_addr.sin_addr.s_addr = config.host;
 	std::vector<std::string> serverNames;
 	std::map<int, std::string> errorPagePaths;
 	size_t clientMaxBodySize;

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/14 15:01:00 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/18 16:24:16 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,8 @@ public:
 	virtual void handleErrorEvent(EventManager& event_manager);
 	virtual void handleDisConnectEvent(EventManager& event_manager);
 
-	void		setRootDir(const std::string& _root_dir);
-	std::string	getRootDir(void) const;
+	void				setRootDir(const std::string& _root_dir);
+	const std::string	getRootDir(void) const;
 
 private:
 	struct sockaddr_in	m_srv_addr;

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:03 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/17 19:19:59 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/03/21 12:53:18 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ Response	GetHandler::handle(const Request& request)
 
 	// TODO: restructure:
 	// sanitize path
-	std::string path = sanitizePath(request.getRequestTarget());
+	std::string path = sanitizePath(request, response);
 	LOG_DEBUG("PATH ----> " + path);
 
 	// does the path resource exist
@@ -48,7 +48,7 @@ Response	GetHandler::handle(const Request& request)
 		response.setBodyFileBufferReader(path);
 	}
 	else
-		createErrorResponse(response, WSSC_NOT_FOUND);
+		createErrorResponse(response, WSSC_I_M_A_TEAPOT);
 
 	return (response);
 }
@@ -58,9 +58,13 @@ Response	GetHandler::handle(const Request& request)
 /* ************************************************************************** */
 
 
-std::string	GetHandler::sanitizePath(const std::string& request_target)
+std::string	GetHandler::sanitizePath(const Request& request, Response& response)
 {
-	std::string	path = request_target;
+	std::string	root_path	= m_server.getRootDir();
+	std::string path		= request.getRequestTarget();
+
+	(void)response;	// TODO: delete me
+
 	if (path == "/")
 		path += "index.html";
 	while (startsWith(path, "../"))
