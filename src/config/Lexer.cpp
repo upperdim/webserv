@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/09 12:21:17 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/10 17:46:43 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,37 +41,36 @@ Token	Lexer::nextToken(void)
 	skipWhitespaces();
 
 	if (m_pos >= m_input.length())
-		return ( Token(TokenType::END_OF_INPUT, "") );
+		return Token(TokenType::END_OF_INPUT, m_line);
 
-	char c = nextChar();
+	char c = peek();
 
-	if (c == '#')
-	{
-		precededByComment = true;
-		while (c != '\n' && m_pos < m_input.length())
-			c = nextChar();
-		if (c == '\n')
-			++m_line;
-		return (nextToken());
+	if (c == '#') {
+		skipComment();
+		if (m_pos >= m_input.length())
+			return Token(TokenType::END_OF_INPUT, m_line);
 	}
 
-	switch (c)
-	{
-		case '{':
-			return ( Token(TokenType::OPEN_BRACE, m_line) );
-		case '}':
-			return ( Token(TokenType::CLOSE_BRACE, m_line) );
-		case ';':
-			return ( Token(TokenType::SEMICOLON, m_line) );
+	switch (c) {
 		case ':':
-			return ( Token(TokenType::COLON, m_line) );
+			advance();
+			return Token(TokenType::COLON, ":", m_line);
+		case ';':
+			advance();
+			return Token(TokenType::SEMICOLON, ";", m_line);
+		case '{':
+			advance();
+			return Token(TokenType::OPEN_BRACE, "{", m_line);
+		case '}':
+			advance();
+			return Token(TokenType::CLOSE_BRACE, "}", m_line);
 		case '/':
 		{
 			// URI
 			std::string uri(1, c);
 			std::string validCharacters("-_.~/?#[]=&%");
 			while ( std::isalnum(m_input[m_pos]) || validCharacters.find(m_input[m_pos]) != std::string::npos )
-				uri += nextChar();
+				uri += advance();
 			return ( Token(TokenType::URI, uri) );
 		}
 		default:
@@ -81,7 +80,7 @@ Token	Lexer::nextToken(void)
 				std::string word(1, c);
 				std::string validCharacters(".");
 				while ( std::isalpha(m_input[m_pos]) || validCharacters.find(m_input[m_pos]) != std::string::npos )
-					word += nextChar();
+					word += advance();
 
 				// check for keyword
 				if (word == "events")
@@ -110,7 +109,7 @@ Token	Lexer::nextToken(void)
 				}
 
 				while ( std::isdigit(m_input[m_pos]) )
-					num += nextChar();
+					num += advance();
 				return ( Token(TokenType::NUMBER, num) );
 			}
 	}
@@ -124,21 +123,42 @@ Token	Lexer::nextToken(void)
 /* ************************************************************************** */
 
 
-char	Lexer::nextChar(void)
+void	Lexer::markStart(void)
 {
-	if (m_pos < m_input.length())
-		return (m_input[m_pos++]);
-	return ('\0');
+	m_startPos = m_pos;
+}
+
+char	Lexer::peek(size_t offset = 0) const
+{
+	size_t idx = m_pos + offset;
+	return  idx < m_input.length() ? m_input[idx] : '\0';
+}
+
+char	Lexer::advance(void)
+{
+	if (m_pos < m_input.length()) {
+		char c = m_input[m_pos++];
+		if (c == '\n')
+			++m_line;
+		return c;
+	}
+	return '\0';
 }
 
 void	Lexer::skipWhitespaces(void)
 {
-	while (m_pos < m_input.length() && std::isspace(m_input[m_pos]))
-	{
-		if (m_input[m_pos] == '\n')
-			++m_line;
-		m_pos++;
-	}
+	while (m_pos < m_input.length() && std::isspace(peek()))
+		advance();
+}
+
+void	Lexer::skipComment(void)
+{
+	precededByComment = true;
+	advance();	//	consume '#'
+	while (m_pos < m_input.length() && peek() != '\n')
+		advance();
+	if (peek() == '\n')
+		advance();
 }
 
 size_t	Lexer::isIPAddress(size_t start) const
