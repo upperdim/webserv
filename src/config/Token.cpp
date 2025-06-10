@@ -6,14 +6,15 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:46:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/09 11:20:24 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/10 16:55:59 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Token.hpp"
 
-Token::Token(const TokenType& _type, const std::string _value, size_t _line)
+Token::Token(const TokenType& _type, const std::string& _value, size_t _line)
 	:	type(_type),
+		keywordType(KeywordType::NONE),
 		value(_value),
 		line(_line)
 {
@@ -21,6 +22,7 @@ Token::Token(const TokenType& _type, const std::string _value, size_t _line)
 
 Token::Token(const TokenType& _type, size_t _line)
 	:	type(_type),
+		keywordType(KeywordType::NONE),
 		value(""),
 		line(_line)
 {
@@ -35,53 +37,29 @@ Token::~Token()
 /* ************************************************************************** */
 
 
-std::string	Token::toString(void)
+std::string	Token::toString(void)	// TODO: delete me
 {
-	std::string tokenStr = std::string("[") + tokenTypeToString() + "]";
-
-	if (type == TokenType::HTTP)
-		tokenStr += " \033[0mHTTP";
-	else if (type == TokenType::SERVER)
-		tokenStr += " \033[0mSERVER";
-	else if (type == TokenType::LOCATION)
-		tokenStr += " \033[0mLOCATION";
-	else if (type == TokenType::LISTEN)
-		tokenStr += " \033[0mLISTEN";
-	else if (type == TokenType::OPEN_BRACE)
-		tokenStr += " \033[93m{";
-	else if (type == TokenType::CLOSE_BRACE)
-		tokenStr += " \033[93m}";
-	else if (type == TokenType::SEMICOLON)
-		tokenStr += " \033[91m;";
-	else if (type == TokenType::COLON)
-		tokenStr += " \033[91m:";
-	else if (type == TokenType::URI || type == TokenType::NUMBER || type == TokenType::IP || type == TokenType::STRING)
-		tokenStr += " \033[96m" + value;
-
+	std::string tokenStr = std::string("\033[32m[\033[92m") + std::to_string(line) + "\033[32m] \033[96m";
+	tokenStr += tokenTypeToString() + " \033[91m" + tokenKeywordTypeToString();
+	tokenStr += " \033[33m\033[93m" + value + "\033[0m";
 	return (tokenStr);
 }
 
 std::string	Token::getTokenValue(void)
 {
-	switch (type)
-	{
-		case (TokenType::END_OF_INPUT): return ("end_of_input");
-		case (TokenType::EVENTS):       return ("events");
-		case (TokenType::HTTP):         return ("http");
-		case (TokenType::SERVER):       return ("server");
-		case (TokenType::LOCATION):     return ("location");
-		case (TokenType::LISTEN):       return ("listen");
-		case (TokenType::OPEN_BRACE):   return ("{");
-		case (TokenType::CLOSE_BRACE):  return ("}");
-		case (TokenType::SEMICOLON):    return (";");
-		case (TokenType::COLON):        return (":");
-		case (TokenType::URI):          return (value);
-		case (TokenType::NUMBER):       return (value);
-		case (TokenType::IP):           return (value);
-		case (TokenType::STRING):       return (value);
-		case (TokenType::ERROR):        return ("ERROR");
+	switch (type) {
+		case (TokenType::KEYWORD):		return lowerCase(tokenKeywordTypeToString());
+		case (TokenType::PARAM):		return value;
+		case (TokenType::URI):			return value;
+		case (TokenType::NUMBER):		return value;
+		case (TokenType::COLON):		return ":";
+		case (TokenType::SEMICOLON):	return ";";
+		case (TokenType::OPEN_BRACE):	return "{";
+		case (TokenType::CLOSE_BRACE):	return "}";
+		case (TokenType::END_OF_INPUT):	return "end_of_input";
+		case (TokenType::INVALID):		return "invalid_token";
+		default:						return "unknown_token";
 	}
-	return ("INVALID_TOKEN");
 }
 
 std::string	Token::onLine(void)
@@ -96,23 +74,49 @@ std::string	Token::onLine(void)
 
 std::string	Token::tokenTypeToString(void)
 {
-	switch (type)
-	{
-		case (TokenType::END_OF_INPUT): return ("TOKEN::END_OF_INPUT");
-		case (TokenType::EVENTS):       return ("TOKEN::EVENTS");
-		case (TokenType::HTTP):         return ("TOKEN::HTTP");
-		case (TokenType::SERVER):       return ("TOKEN::SERVER");
-		case (TokenType::LOCATION):     return ("TOKEN::LOCATION");
-		case (TokenType::LISTEN):       return ("TOKEN::LISTEN");
-		case (TokenType::OPEN_BRACE):   return ("TOKEN::OPEN_BRACE");
-		case (TokenType::CLOSE_BRACE):  return ("TOKEN::CLOSE_BRACE");
-		case (TokenType::SEMICOLON):    return ("TOKEN::SEMICOLON");
-		case (TokenType::COLON):        return ("TOKEN::COLON");
-		case (TokenType::URI):          return ("TOKEN::URI");
-		case (TokenType::NUMBER):       return ("TOKEN::NUMBER");
-		case (TokenType::IP):           return ("TOKEN::IP");
-		case (TokenType::STRING):       return ("TOKEN::STRING");
-		case (TokenType::ERROR):        return ("TOKEN::ERROR");
+	switch (type) {
+		case TokenType::KEYWORD: return "KEYWORD";
+		case TokenType::PARAM: return "PARAM";
+		case TokenType::URI: return "URI";
+		case TokenType::NUMBER: return "NUMBER";
+		case TokenType::COLON: return "COLON";
+		case TokenType::SEMICOLON: return "SEMICOLON";
+		case TokenType::OPEN_BRACE: return "OPEN_BRACE";
+		case TokenType::CLOSE_BRACE: return "CLOSE_BRACE";
+		case TokenType::END_OF_INPUT: return "END_OF_INPUT";
+		case TokenType::INVALID: return "INVALID";
+		default: return "UNKNOWN_TOKEN";
 	}
-	return ("TOKEN::INVALID_TOKEN");
+}
+
+std::string	Token::tokenKeywordTypeToString(void)
+{
+	switch (keywordType) {
+		case KeywordType::NONE: return "NONE";
+		case KeywordType::EVENTS: return "EVENTS";
+		case KeywordType::HTTP: return "HTTP";
+		case KeywordType::SERVER: return "SERVER";
+		case KeywordType::LOCATION: return "LOCATION";
+		case KeywordType::LISTEN: return "LISTEN";
+		case KeywordType::SERVER_NAME: return "SERVER_NAME";
+		case KeywordType::ERROR_PAGE: return "ERROR_PAGE";
+		case KeywordType::CLIENT_MAX_BODY_SIZE: return "CLIENT_MAX_BODY_SIZE";
+		case KeywordType::ROOT: return "ROOT";
+		case KeywordType::INDEX: return "INDEX";
+		case KeywordType::ALLOW_METHODS: return "ALLOW_METHODS";
+		case KeywordType::RETURN: return "RETURN";
+		case KeywordType::AUTOINDEX: return "AUTOINDEX";
+		case KeywordType::CGI_EXTENSION: return "CGI_EXTENSION";
+		case KeywordType::ALLOW_UPLOAD: return "ALLOW_UPLOAD";
+		case KeywordType::UPLOAD_STORE: return "UPLOAD_STORE";
+		default: return "UNKNOWN_KEYWORD_TYPE";
+	}
+}
+
+std::string Token::lowerCase(const std::string& str)
+{
+	std::string	lower;
+	for (std::string::const_iterator it = str.cbegin(); it < str.cend(); ++it)
+		lower += std::tolower(*it);
+	return (lower);	
 }
