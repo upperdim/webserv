@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:46:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/10 16:55:59 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/10 17:39:57 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,10 +52,10 @@ std::string	Token::getTokenValue(void)
 		case (TokenType::PARAM):		return value;
 		case (TokenType::URI):			return value;
 		case (TokenType::NUMBER):		return value;
-		case (TokenType::COLON):		return ":";
-		case (TokenType::SEMICOLON):	return ";";
-		case (TokenType::OPEN_BRACE):	return "{";
-		case (TokenType::CLOSE_BRACE):	return "}";
+		case (TokenType::COLON):		return value;
+		case (TokenType::SEMICOLON):	return value;
+		case (TokenType::OPEN_BRACE):	return value;
+		case (TokenType::CLOSE_BRACE):	return value;
 		case (TokenType::END_OF_INPUT):	return "end_of_input";
 		case (TokenType::INVALID):		return "invalid_token";
 		default:						return "unknown_token";
