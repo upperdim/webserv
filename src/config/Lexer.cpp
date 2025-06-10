@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/10 18:11:01 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/10 19:09:02 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,20 +35,24 @@ Lexer::~Lexer()
 /* ************************************************************************** */
 
 
-Token	Lexer::nextToken(void)
+Token	Lexer::nextToken(bool _precededByComment)
 {
-	precededByComment = false;
+	precededByComment = _precededByComment;
 	skipWhitespaces();
 
 	if (m_pos >= m_input.length())
 		return Token(TokenType::END_OF_INPUT, m_line);
 
+	markStart();
+
 	char c = peek();
 
 	if (c == '#') {
 		skipComment();
+		skipWhitespaces();
 		if (m_pos >= m_input.length())
 			return Token(TokenType::END_OF_INPUT, m_line);
+		return nextToken(true);
 	}
 
 	switch (c) {
@@ -64,38 +68,6 @@ Token	Lexer::nextToken(void)
 		case '}':
 			advance();
 			return Token(TokenType::CLOSE_BRACE, "}", m_line);
-		case '/':
-		{
-			// URI
-			std::string uri(1, c);
-			std::string validCharacters("-_.~/?#[]=&%");
-			while ( std::isalnum(m_input[m_pos]) || validCharacters.find(m_input[m_pos]) != std::string::npos )
-				uri += advance();
-			return ( Token(TokenType::URI, uri) );
-		}
-		default:
-			if (std::isalpha(c))
-			{
-				// KEYWORD or PARAM/STRING
-				std::string word(1, c);
-				std::string validCharacters(".");
-				while ( std::isalpha(m_input[m_pos]) || validCharacters.find(m_input[m_pos]) != std::string::npos )
-					word += advance();
-
-				// check for keyword
-				if (word == "events")
-					return ( Token(TokenType::EVENTS, m_line) );
-				if (word == "http")
-					return ( Token(TokenType::HTTP, m_line) );
-				if (word == "server")
-					return ( Token(TokenType::SERVER, m_line) );
-				if (word == "location")
-					return ( Token(TokenType::LOCATION, m_line) );
-				if (word == "listen")
-					return ( Token(TokenType::LISTEN, m_line) );
-
-				return ( Token(TokenType::STRING, word, m_line) );
-			}
 	}
 
 	//	Handle numbers
@@ -105,8 +77,13 @@ Token	Lexer::nextToken(void)
 		return readNumber();
 	}
 
-	m_pos = m_input.length();	// TODO: delete me
-	return ( Token(TokenType::ERROR, "Unexpected character") );
+	//	Handle keywords and general parameters
+	if (std::isalpha(c) || c == '/') {
+		return readAndClassify();
+	}
+
+	advance();
+	return Token(TokenType::INVALID, std::string(1, c), m_line);
 }
 
 
@@ -139,6 +116,14 @@ char	Lexer::advance(void)
 std::string Lexer::getCurrentLexeme() const
 {
 	return m_input.substr(m_startPos, m_pos - m_startPos);
+}
+
+KeywordType	Lexer::getKeywordType(const std::string& _keyword) const
+{
+	if (directives.find(_keyword) != directives.end()) {
+		return directives.at(_keyword);
+	}
+	return KeywordType::NONE;
 }
 
 void	Lexer::skipWhitespaces(void)
@@ -181,41 +166,61 @@ Token	Lexer::readNumber()
 	return Token(TokenType::NUMBER, getCurrentLexeme(), m_line);
 }
 
-
-size_t	Lexer::isIPAddress(size_t start) const
+Token	Lexer::readAndClassify()
 {
-	size_t	cpos = start;
-	int		octetCount = 0;
-	int		currentOctet;
-
-	if (cpos + 7 > m_input.length())
-		return (0);
-
-	while (cpos < m_input.length() && octetCount < 4)
-	{
-		currentOctet = 0;
-		int digits = 0;
-		
-		while (cpos < m_input.length() && std::isdigit(m_input[cpos]) && digits < 3)
-		{
-			currentOctet = currentOctet * 10 + (m_input[cpos++] - '0');
-			++digits;
-		}
-
-		if (currentOctet > 255)
-			return (0);
-		
-		if (octetCount < 3)
-		{
-			if (cpos >= m_input.length() || m_input[cpos] != '.')
-				return (0);
-			++cpos;
-		}
-
-		++octetCount;
+	while (m_pos < m_input.length() &&
+			(std::isalnum(peek()) || peek() == '.' || peek() == '/' || peek() == '_' || peek() == '-')) {
+		advance();
 	}
 
-	if ( octetCount == 4 && (cpos == m_input.length() || std::isdigit(m_input[cpos]) == false) )
-		return (cpos);
-	return (0);
+	std::string lexeme = getCurrentLexeme();
+
+	// check if it is a supported directive aka KEYWORD or URI
+	KeywordType keywordType = getKeywordType(lexeme);
+	if (keywordType != KeywordType::NONE) {
+		return Token(TokenType::KEYWORD, keywordType, lexeme, m_line);
+	} else if (lexeme[0] == '/') {
+		return Token(TokenType::URI, lexeme, m_line);
+	}
+
+	// By default we return a PARAM
+	return Token(TokenType::PARAM, lexeme, m_line);
 }
+
+// size_t	Lexer::isIPAddress(size_t start) const
+// {
+// 	size_t	cpos = start;
+// 	int		octetCount = 0;
+// 	int		currentOctet;
+
+// 	if (cpos + 7 > m_input.length())
+// 		return (0);
+
+// 	while (cpos < m_input.length() && octetCount < 4)
+// 	{
+// 		currentOctet = 0;
+// 		int digits = 0;
+		
+// 		while (cpos < m_input.length() && std::isdigit(m_input[cpos]) && digits < 3)
+// 		{
+// 			currentOctet = currentOctet * 10 + (m_input[cpos++] - '0');
+// 			++digits;
+// 		}
+
+// 		if (currentOctet > 255)
+// 			return (0);
+		
+// 		if (octetCount < 3)
+// 		{
+// 			if (cpos >= m_input.length() || m_input[cpos] != '.')
+// 				return (0);
+// 			++cpos;
+// 		}
+
+// 		++octetCount;
+// 	}
+
+// 	if ( octetCount == 4 && (cpos == m_input.length() || std::isdigit(m_input[cpos]) == false) )
+// 		return (cpos);
+// 	return (0);
+// }
