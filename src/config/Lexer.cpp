@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/10 17:46:43 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/10 18:11:01 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,22 +96,13 @@ Token	Lexer::nextToken(void)
 
 				return ( Token(TokenType::STRING, word, m_line) );
 			}
-			else if ( std::isdigit(c) )
-			{
-				// NUMBER or IP
-				std::string num(1, c);
-				size_t      epos = isIPAddress(m_pos - 1);
-				if (epos)
-				{
-					num = m_input.substr(m_pos - 1, epos - m_pos);
-					m_pos = epos;
-					return ( Token(TokenType::IP, num) );
-				}
+	}
 
-				while ( std::isdigit(m_input[m_pos]) )
-					num += advance();
-				return ( Token(TokenType::NUMBER, num) );
-			}
+	//	Handle numbers
+	if (std::isdigit(c)) {
+		if (isMixedAlphanumeric())
+			return readAndClassify();	//	Domain/address starting with digit
+		return readNumber();
 	}
 
 	m_pos = m_input.length();	// TODO: delete me
@@ -128,7 +119,7 @@ void	Lexer::markStart(void)
 	m_startPos = m_pos;
 }
 
-char	Lexer::peek(size_t offset = 0) const
+char	Lexer::peek(size_t offset) const
 {
 	size_t idx = m_pos + offset;
 	return  idx < m_input.length() ? m_input[idx] : '\0';
@@ -143,6 +134,11 @@ char	Lexer::advance(void)
 		return c;
 	}
 	return '\0';
+}
+
+std::string Lexer::getCurrentLexeme() const
+{
+	return m_input.substr(m_startPos, m_pos - m_startPos);
 }
 
 void	Lexer::skipWhitespaces(void)
@@ -160,6 +156,31 @@ void	Lexer::skipComment(void)
 	if (peek() == '\n')
 		advance();
 }
+
+bool	Lexer::isMixedAlphanumeric() const
+{
+	size_t	lookAhead = 0;
+
+	// skip inital digits
+	while (m_pos + lookAhead < m_input.length() && std::isdigit(peek(lookAhead)))
+		++lookAhead;
+	
+	//	check if followed by IPv4 domain/address aka isalpha, '-', '.'
+	if (m_pos + lookAhead < m_input.length()) {
+		char nextChar = peek(lookAhead);
+		return (std::isalpha(nextChar) || nextChar == '-' || nextChar == '.');
+	}
+
+	return false;
+}
+
+Token	Lexer::readNumber()
+{
+	while (m_pos < m_input.length() && (std::isdigit(peek()) || peek() == '.'))
+		advance();
+	return Token(TokenType::NUMBER, getCurrentLexeme(), m_line);
+}
+
 
 size_t	Lexer::isIPAddress(size_t start) const
 {

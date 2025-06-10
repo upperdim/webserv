@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/10 17:46:09 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/10 18:07:33 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,12 +31,17 @@ public:
 	bool	precededByComment = false;
 
 private:
-	void	markStart(void);
-	char	peek(size_t offset = 0) const;
-	char	advance(void);
-	void	skipWhitespaces(void);
-	void	skipComment(void);
-	
+	void		markStart(void);
+	char		peek(size_t offset = 0) const;
+	char		advance(void);
+	std::string	getCurrentLexeme() const;
+	void		skipWhitespaces(void);
+	void		skipComment(void);
+
+	bool	isMixedAlphanumeric() const;
+
+    Token	readNumber();
+
 	size_t	isIPAddress(size_t start) const;	// TODO: delete me
 
 	std::string	m_input;
