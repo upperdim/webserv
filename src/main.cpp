@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/09 17:31:22 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/10 19:40:41 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ int	main(int argc, char **argv)
 		Lexer	lexer(readFile(configFilePath));
 		Parser	parser(lexer);
 
-		// config = parser.parse();
+		config = parser.parse();
 		// config = parser.mockParseConfig(configFilePath);
 		
 	} catch (const std::exception& e)	{
