@@ -6,11 +6,19 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:46:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/10 17:39:57 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/10 19:30:01 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Token.hpp"
+
+Token::Token(const TokenType& _type, const KeywordType& _keywordType, const std::string& _value, size_t _line)
+	:	type(_type),
+		keywordType(_keywordType),
+		value(_value),
+		line(_line)
+{
+}
 
 Token::Token(const TokenType& _type, const std::string& _value, size_t _line)
 	:	type(_type),
@@ -28,6 +36,14 @@ Token::Token(const TokenType& _type, size_t _line)
 {
 }
 
+Token::Token(const Token& other)
+	:	type(other.type),
+		keywordType(other.keywordType),
+		value(other.value),
+		line(other.line)
+{
+}
+
 Token::~Token()
 {
 }
@@ -37,10 +53,14 @@ Token::~Token()
 /* ************************************************************************** */
 
 
-std::string	Token::toString(void)	// TODO: delete me
+std::string	Token::toString(void) const	// TODO: delete me
 {
+	std::string directive;
+	if (type == TokenType::KEYWORD)
+		directive = " " + tokenKeywordTypeToString();
+
 	std::string tokenStr = std::string("\033[32m[\033[92m") + std::to_string(line) + "\033[32m] \033[96m";
-	tokenStr += tokenTypeToString() + " \033[91m" + tokenKeywordTypeToString();
+	tokenStr += tokenTypeToString() + "\033[91m" + directive;
 	tokenStr += " \033[33m\033[93m" + value + "\033[0m";
 	return (tokenStr);
 }
@@ -72,7 +92,7 @@ std::string	Token::onLine(void)
 /* ************************************************************************** */
 
 
-std::string	Token::tokenTypeToString(void)
+std::string	Token::tokenTypeToString(void) const
 {
 	switch (type) {
 		case TokenType::KEYWORD: return "KEYWORD";
@@ -89,7 +109,7 @@ std::string	Token::tokenTypeToString(void)
 	}
 }
 
-std::string	Token::tokenKeywordTypeToString(void)
+std::string	Token::tokenKeywordTypeToString(void) const
 {
 	switch (keywordType) {
 		case KeywordType::NONE: return "NONE";
@@ -119,4 +139,15 @@ std::string Token::lowerCase(const std::string& str)
 	for (std::string::const_iterator it = str.cbegin(); it < str.cend(); ++it)
 		lower += std::tolower(*it);
 	return (lower);	
+}
+
+
+/* ************************************************************************** */
+/* ************************************************************************** */
+
+
+std::ostream&  operator << (std::ostream& os, const Token& token)
+{
+	os << token.toString();
+	return (os);
 }

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:35:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/10 16:55:21 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/10 19:30:04 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #define TOKEN_HPP
 
 #include <string>
+#include <iostream>
 
 enum class TokenType
 {
@@ -54,8 +55,10 @@ enum class KeywordType {
 class Token
 {
 public:
+	Token(const TokenType& _type, const KeywordType& _keywordType, const std::string& _value, size_t _line);
 	Token(const TokenType& _type, const std::string& _value, size_t _line = 0);
 	Token(const TokenType& _type, size_t _line);
+	Token(const Token& other);
 	~Token();
 
 	TokenType	type;
@@ -63,15 +66,17 @@ public:
 	std::string	value;
 	size_t		line;
 
-	std::string	toString(void);
+	std::string	toString(void) const;
 	std::string	getTokenValue(void);
 	std::string	onLine(void);
 
 private:
-	std::string	tokenTypeToString(void);
-	std::string	tokenKeywordTypeToString(void);
+	std::string	tokenTypeToString(void) const;
+	std::string	tokenKeywordTypeToString(void) const;
 
 	static std::string lowerCase(const std::string& str);
 };
+
+std::ostream&  operator << (std::ostream& os, const Token& token);
 
 #endif
