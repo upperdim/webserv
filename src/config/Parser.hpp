@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:43 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 16:41:08 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 20:43:06 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,11 +44,16 @@ private:
 	ServerBlock		parseServer(void);
 	void			parseListenDirective(ServerBlock& serverBlock);
 	void			parseServerNameDirective(ServerBlock& serverBlock);
+	void			parseErrorPageDirective(ServerBlock& serverBlock);
 
 	void			consume(TokenType _type, std::string msg = "");
 	void			ensureDirectiveTermination(const std::string& name);
 
-	unsigned int	validatePort(const std::string& _port);
+	void			throwIsNotTerminated(const std::string& directive) const;
+	void			throwInvalidNumberOfArguments(const std::string& directive) const;
+	void			throwUnexpected(void) const;
+
+	unsigned int	validatePort(const std::string& _port);		//	TODO: move this into Validator
 
 	std::string		readConfigFile(std::string configFilePath);		// TODO: remove 
 

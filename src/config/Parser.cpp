@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:42 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 18:39:19 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 20:14:38 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,6 +113,9 @@ ServerBlock	Parser::parseServer(void)
 					break ;
 				case KeywordType::SERVER_NAME:
 					parseServerNameDirective(serverBlock);
+					break ;
+				case KeywordType::ERROR_PAGE:
+					parseErrorPageDirective(serverBlock);
 					break ;
 				default:
 					throw ( std::runtime_error("webserv: unknown or unsupported directive \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );
@@ -228,6 +231,36 @@ void	Parser::parseServerNameDirective(ServerBlock& serverBlock)
 	consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine());
 }
 
+void	Parser::parseErrorPageDirective(ServerBlock& serverBlock)
+{
+	m_currentToken = m_lexer.nextToken();
+
+	if (m_currentToken.type == TokenType::SEMICOLON)
+		throwInvalidNumberOfArguments("error_page");
+	if (m_currentToken.type == TokenType::OPEN_BRACE)
+		throwIsNotTerminated("error_page");
+	if (m_currentToken.type == TokenType::CLOSE_BRACE)
+		throwUnexpected();
+	if (m_currentToken.type != TokenType::NUMBER)
+		throw ( std::runtime_error("webserv: invalid value \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine()) );
+	int	error_nbr = std::stoi(m_currentToken.value);
+
+	m_currentToken = m_lexer.nextToken();
+	if (m_currentToken.type == TokenType::SEMICOLON)
+		throwInvalidNumberOfArguments("error_page");
+	if (m_currentToken.type == TokenType::OPEN_BRACE)
+		throwIsNotTerminated("error_page");
+	if (m_currentToken.type == TokenType::CLOSE_BRACE)
+		throwUnexpected();
+	if (m_currentToken.type != TokenType::URI)
+		throw ( std::runtime_error("webserv: invalid value \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine()) );
+	
+	serverBlock.errorPagePaths[error_nbr] = m_currentToken.value;
+
+	m_currentToken = m_lexer.nextToken();
+	consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine());
+}
+
 void	Parser::consume(TokenType _type, std::string msg)
 {
 	if (m_currentToken.type != _type)
@@ -239,6 +272,21 @@ void	Parser::ensureDirectiveTermination(const std::string& name)
 {
 	if (m_lexer.precededByComment)
 		throw ( std::runtime_error("directive \"" + name + "\" is not terminated by \";\", " + m_currentToken.onLine()) );
+}
+
+void	Parser::throwIsNotTerminated(const std::string& directive) const
+{
+	throw std::runtime_error("webserv: directive \"" + directive + "\" is not terminated by \";\" on " + m_currentToken.onLine());
+}
+
+void	Parser::throwInvalidNumberOfArguments(const std::string& directive) const
+{
+	throw std::runtime_error("webserv: invalid number of arguments in \"" + directive + "\" directive " + m_currentToken.onLine());
+}
+
+void	Parser::throwUnexpected(void) const
+{
+	throw std::runtime_error("webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine());
 }
 
 unsigned int	Parser::validatePort(const std::string& _port)
