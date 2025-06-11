@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:35:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/10 19:30:04 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 16:13:27 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 enum class TokenType
 {
 	KEYWORD,		//	server, location, root, etc.
-	PARAM,			//	VALUES, TLD, IP
+	PARAM,			//	VALUES, DomainName, IP
 	URI,			//	URI
 	NUMBER,			//	80, 443, 1024, etc.
 
