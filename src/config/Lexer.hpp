@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/10 18:47:43 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 11:17:08 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,6 @@ private:
 
     Token		readNumber();
 	Token		readAndClassify();
-
-	// size_t	isIPAddress(size_t start) const;	// TODO: delete me
 
 	std::string	m_input;
 	size_t		m_pos;

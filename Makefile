@@ -12,6 +12,7 @@ VPATH		=	$(SRC_FOLDERS)
 SRCS_NO_MAIN=	Config.cpp \
 				Token.cpp \
 				Lexer.cpp \
+				Validator.cpp \
 				Parser.cpp \
 				EventManager.cpp \
 				Server.cpp \

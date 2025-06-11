@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/10 19:09:02 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 11:17:00 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,41 +186,3 @@ Token	Lexer::readAndClassify()
 	// By default we return a PARAM
 	return Token(TokenType::PARAM, lexeme, m_line);
 }
-
-// size_t	Lexer::isIPAddress(size_t start) const
-// {
-// 	size_t	cpos = start;
-// 	int		octetCount = 0;
-// 	int		currentOctet;
-
-// 	if (cpos + 7 > m_input.length())
-// 		return (0);
-
-// 	while (cpos < m_input.length() && octetCount < 4)
-// 	{
-// 		currentOctet = 0;
-// 		int digits = 0;
-		
-// 		while (cpos < m_input.length() && std::isdigit(m_input[cpos]) && digits < 3)
-// 		{
-// 			currentOctet = currentOctet * 10 + (m_input[cpos++] - '0');
-// 			++digits;
-// 		}
-
-// 		if (currentOctet > 255)
-// 			return (0);
-		
-// 		if (octetCount < 3)
-// 		{
-// 			if (cpos >= m_input.length() || m_input[cpos] != '.')
-// 				return (0);
-// 			++cpos;
-// 		}
-
-// 		++octetCount;
-// 	}
-
-// 	if ( octetCount == 4 && (cpos == m_input.length() || std::isdigit(m_input[cpos]) == false) )
-// 		return (cpos);
-// 	return (0);
-// }
