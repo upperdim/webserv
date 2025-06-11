@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:42 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 10:04:49 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 10:11:27 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,7 @@ Config	Parser::parse(void)
 {
 	m_currentToken = m_lexer.nextToken();
 
-	while (m_currentToken.type != TokenType::END_OF_INPUT)	// TODO: exit on INAVLID as well ???
-	{
+	while (m_currentToken.type != TokenType::END_OF_INPUT) {	//	TODO: exit on INAVLID as well ???
 		if (m_currentToken.type == TokenType::KEYWORD) {
 			switch (m_currentToken.keywordType) {
 				case KeywordType::EVENTS: {
@@ -81,7 +80,7 @@ Config	Parser::parse(void)
 		m_currentToken = m_lexer.nextToken();
 	}
 
-	return (m_config);
+	return m_config;
 }
 
 
