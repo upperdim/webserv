@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:42 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 10:11:27 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 10:26:17 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,20 +92,22 @@ ServerBlock	Parser::parseServer(void)
 {
 	ServerBlock	serverBlock;
 
-	while (m_currentToken.type != TokenType::CLOSE_BRACE && m_currentToken.type != TokenType::END_OF_INPUT && m_currentToken.type != TokenType::ERROR)
-	{
-		switch (m_currentToken.type)
-		{
-			case (TokenType::LISTEN):
-				parseListenDirective(serverBlock);
-				break ;
-			default:
-				throw ( std::runtime_error("webserv: unknown or unsupported directive \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );
+	while (m_currentToken.type != TokenType::CLOSE_BRACE && m_currentToken.type != TokenType::END_OF_INPUT && m_currentToken.type != TokenType::INVALID) {
+		if (m_currentToken.type == TokenType::KEYWORD) {
+			switch (m_currentToken.keywordType) {
+				case KeywordType::LISTEN:
+					parseListenDirective(serverBlock);
+					break ;
+				default:
+					throw ( std::runtime_error("webserv: unknown or unsupported directive \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );
+			}
 		}
-		// m_currentToken = m_lexer.nextToken();		// TODO: if done this can go, til then i let it sit here
+		else
+			throw ( std::runtime_error("webserv: unknown or unsupported directive \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );	// TODO: check if thiss error is correct I suppose it is not
+		// m_currentToken = m_lexer.nextToken();		//	TODO: if done this can go, til then i let it sit here
 	}
 
-	serverBlock.serverNames.emplace_back("whoops");	// TODO: change this
+	serverBlock.serverNames.emplace_back("whoops");		//	TODO: change this
 	return (serverBlock);
 }
 
