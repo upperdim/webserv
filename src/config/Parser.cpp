@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:42 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/09 12:34:25 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 09:55:59 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,54 +35,45 @@ Parser::~Parser()
 Config	Parser::parse(void)
 {
 	m_currentToken = m_lexer.nextToken();
-	while (m_currentToken.type != TokenType::END_OF_INPUT)	// TODO: exit on ERROR as well ???
-	{
-		switch (m_currentToken.type)
-		{
-			case (TokenType::EVENTS):
-			{
-				LOG_INFO("\033[92mwebserv\033[94m doesn't support the \"EVENTS\" directive, skipping this directive, " + m_currentToken.onLine());
-				while (m_currentToken.type != TokenType::CLOSE_BRACE && m_currentToken.type != TokenType::END_OF_INPUT && m_currentToken.type != TokenType::ERROR)
-					m_currentToken = m_lexer.nextToken();
-				if (m_currentToken.type == TokenType::END_OF_INPUT)
-					throw ( std::runtime_error("webserv: unexpected end of file, expected `}' after 'EVENTS' directive " + m_currentToken.onLine()) );
-				else if (m_currentToken.type == TokenType::ERROR)
-					throw ( std::runtime_error("webserv: an error occured while skipping unsupported 'EVENTS' directive " + m_currentToken.onLine()) );
-				break ;
-			}
-			case (TokenType::HTTP):
-			{
-				m_currentToken = m_lexer.nextToken();
-				consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"http\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.onLine());
 
-				switch (m_currentToken.type)
-				{
-					case (TokenType::SERVER):
-					{
+	while (m_currentToken.type != TokenType::END_OF_INPUT)	// TODO: exit on INAVLID as well ???
+	{
+		if (m_currentToken.type == TokenType::KEYWORD) {
+			switch (m_currentToken.keywordType) {
+				case KeywordType::EVENTS: {
+					LOG_INFO("\033[92mwebserv\033[94m doesn't support the \"EVENTS\" directive, skipping this directive, " + m_currentToken.onLine());
+					while (m_currentToken.type != TokenType::CLOSE_BRACE && m_currentToken.type != TokenType::END_OF_INPUT && m_currentToken.type != TokenType::INVALID)
+						m_currentToken = m_lexer.nextToken();
+					if (m_currentToken.type == TokenType::END_OF_INPUT)
+						throw ( std::runtime_error("webserv: unexpected end of file, expected `}' after 'EVENTS' directive " + m_currentToken.onLine()) );
+					else if (m_currentToken.type == TokenType::INVALID)
+						throw ( std::runtime_error("webserv: an error occured while skipping unsupported 'EVENTS' directive " + m_currentToken.onLine()) );
+					break ;
+				}
+				case KeywordType::HTTP: {
+					m_currentToken = m_lexer.nextToken();
+					consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"http\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.onLine());
+
+					if (m_currentToken.type == TokenType::KEYWORD && m_currentToken.keywordType == KeywordType::SERVER) {
 						m_currentToken = m_lexer.nextToken();
 						consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"server\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.onLine());
 						ServerBlock serverBlock = parseServer();
 						m_config.serverBlocks.emplace_back(serverBlock);
-						break ;
-					}
-					case (TokenType::URI):
-						// Fall through
-					case (TokenType::NUMBER):
-						// Fall through
-					case (TokenType::IP):
-						// Fall through
-					case (TokenType::STRING):
+					} else if (m_currentToken.type == TokenType::PARAM ||
+							m_currentToken.type == TokenType::URI ||
+							m_currentToken.type == TokenType::NUMBER) {
 						throw ( std::runtime_error("webserv: unknown or unsupported directive \"" + m_currentToken.value + "\", " + m_currentToken.onLine()) );
-					case (TokenType::END_OF_INPUT):
+					} else if (m_currentToken.type == TokenType::END_OF_INPUT) {
 						throw ( std::runtime_error("webserv: unexpected end of file, expected \"}\" " + m_currentToken.onLine()) );
-					default:
+					} else {
 						throw ( std::runtime_error("webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine()) );
+					}
 				}
-
-				break ;
+				default:
+					throw ( std::runtime_error(std::string("webserv: unknown or unsupported directive \"") + m_currentToken.getTokenValue() +"\", " + m_currentToken.onLine()) );
 			}
-			default:
-				throw ( std::runtime_error(std::string("webserv: unknown or unsupported directive \"") + m_currentToken.getTokenValue() +"\", " + m_currentToken.onLine()) );
+		} else {
+			throw ( std::runtime_error(std::string("webserv: unknown or unsupported directive \"") + m_currentToken.getTokenValue() +"\", " + m_currentToken.onLine()) );
 		}
 
 		m_currentToken = m_lexer.nextToken();
