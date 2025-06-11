@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/11 11:09:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 12:04:15 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 12:26:48 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ bool Validator::isIPAddr(const std::string& str)
 	return octetCount == 4 && (pos == str.length() || !std::isdigit(str[pos]));
 }
 
-bool	isDomainName(const std::string& str)
+bool	Validator::isDomainName(const std::string& str)
 {
 	if (str.empty() || str.length() > 253)
 		return false;
