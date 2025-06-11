@@ -6,13 +6,14 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/10 16:57:46 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 18:35:08 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
+#include <iostream>			// TODO: delete me if we delete the print functions
 #include <string>
 #include <vector>
 #include <map>
@@ -62,6 +63,12 @@ public:
 	size_t						clientMaxBodySize;	//	::	client_max_body_size
 	std::string					index;				//	::	index
 	std::map<int, std::string>	errorPagePaths;		//	::	error_page
+
+	void	printConfigs(void) const;				// TODO: delete me 
+
+private:
+	void	print(const std::string& str) const;	// TODO: delete me 
+	void	printLn(const std::string& str) const;	// TODO: delete me 
 };
 
 #endif
