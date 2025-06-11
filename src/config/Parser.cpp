@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:42 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 09:55:59 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 10:04:49 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ Config	Parser::parse(void)
 		if (m_currentToken.type == TokenType::KEYWORD) {
 			switch (m_currentToken.keywordType) {
 				case KeywordType::EVENTS: {
+					// Skipping EVENTS
 					LOG_INFO("\033[92mwebserv\033[94m doesn't support the \"EVENTS\" directive, skipping this directive, " + m_currentToken.onLine());
 					while (m_currentToken.type != TokenType::CLOSE_BRACE && m_currentToken.type != TokenType::END_OF_INPUT && m_currentToken.type != TokenType::INVALID)
 						m_currentToken = m_lexer.nextToken();
@@ -55,6 +56,7 @@ Config	Parser::parse(void)
 					consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"http\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.onLine());
 
 					if (m_currentToken.type == TokenType::KEYWORD && m_currentToken.keywordType == KeywordType::SERVER) {
+						// Parsing SERVER
 						m_currentToken = m_lexer.nextToken();
 						consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"server\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.onLine());
 						ServerBlock serverBlock = parseServer();
