@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:42 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 13:07:56 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 16:29:12 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,39 +39,19 @@ Config	Parser::parse(void)
 	while (m_currentToken.type != TokenType::END_OF_INPUT) {	//	TODO: exit on INAVLID as well ???
 		if (m_currentToken.type == TokenType::KEYWORD) {
 			switch (m_currentToken.keywordType) {
-				case KeywordType::EVENTS: {
+				case KeywordType::EVENTS:
 					parseEvents();
 					break ;
-				}
-				case KeywordType::HTTP: {
-					m_currentToken = m_lexer.nextToken();
-					consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"http\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.onLine());
-
-					if (m_currentToken.type == TokenType::KEYWORD && m_currentToken.keywordType == KeywordType::SERVER) {
-						// Parsing SERVER
-						m_currentToken = m_lexer.nextToken();
-						consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"server\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.onLine());
-						ServerBlock serverBlock = parseServer();
-						m_config.serverBlocks.emplace_back(serverBlock);
-					} else if (m_currentToken.type == TokenType::PARAM ||
-							m_currentToken.type == TokenType::URI ||
-							m_currentToken.type == TokenType::NUMBER) {
-						throw ( std::runtime_error("webserv: unknown or unsupported directive \"" + m_currentToken.value + "\", " + m_currentToken.onLine()) );
-					} else if (m_currentToken.type == TokenType::END_OF_INPUT) {
-						throw ( std::runtime_error("webserv: unexpected end of file, expected \"}\" " + m_currentToken.onLine()) );
-					} else {
-						throw ( std::runtime_error("webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine()) );
-					}
+				case KeywordType::HTTP:
+					parseHttp();
 					break ;
-				}
 				default:
-					throw ( std::runtime_error(std::string("webserv: unknown or unsupported directive \"") + m_currentToken.getTokenValue() +"\", " + m_currentToken.onLine()) );
+					throw ( std::runtime_error(std::string("webserv: \"" + m_currentToken.getTokenValue() + "\" directive is not allowed here: ") + m_currentToken.onLine()) );
 			}
 		} else {
 			throw ( std::runtime_error(std::string("webserv: unknown or unsupported directive \"") + m_currentToken.getTokenValue() +"\", " + m_currentToken.onLine()) );
 		}
-
-		m_currentToken = m_lexer.nextToken();
+		// m_currentToken = m_lexer.nextToken();	//	TODO:	delete me => we expect a new token here from the dedicated parseDirective functions
 	}
 
 	return m_config;
@@ -92,6 +72,33 @@ void	Parser::parseEvents(void)
 		throw ( std::runtime_error("webserv: unexpected end of file, expected `}' after 'EVENTS' directive " + m_currentToken.onLine()) );
 	else if (m_currentToken.type == TokenType::INVALID)
 		throw ( std::runtime_error("webserv: an error occured while skipping unsupported 'EVENTS' directive " + m_currentToken.onLine()) );
+	consume(TokenType::CLOSE_BRACE, "webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine());
+}
+
+void	Parser::parseHttp(void)
+{
+	m_currentToken = m_lexer.nextToken();
+	consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"http\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.onLine());
+
+	while (m_currentToken.type == TokenType::KEYWORD && m_currentToken.keywordType == KeywordType::SERVER) {
+		// Parsing SERVER
+		m_currentToken = m_lexer.nextToken();
+		consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"server\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.onLine());
+		ServerBlock serverBlock = parseServer();
+		m_config.serverBlocks.emplace_back(serverBlock);
+	}
+
+	if (m_currentToken.type == TokenType::PARAM ||
+	    m_currentToken.type == TokenType::URI ||
+	    m_currentToken.type == TokenType::NUMBER) {
+		throw ( std::runtime_error("webserv: unknown or unsupported directive \"" + m_currentToken.value + "\", " + m_currentToken.onLine()) );
+	} else if (m_currentToken.type == TokenType::END_OF_INPUT) {
+		throw ( std::runtime_error("webserv: unexpected end of file, expected \"}\" " + m_currentToken.onLine()) );
+	}
+	// } else {
+	// 	throw ( std::runtime_error("webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine()) );
+	// }
+	consume(TokenType::CLOSE_BRACE, "webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine());
 }
 
 ServerBlock	Parser::parseServer(void)
@@ -110,10 +117,10 @@ ServerBlock	Parser::parseServer(void)
 		}
 		else
 			throw ( std::runtime_error("webserv: unknown or unsupported directive \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );	// TODO: check if thiss error is correct I suppose it is not
-		// m_currentToken = m_lexer.nextToken();		//	TODO: if done this can go, til then i let it sit here
+		// m_currentToken = m_lexer.nextToken();	//	TODO:	delete me => we expect a new token here from the dedicated parseDirective functions
 	}
 
-	consume(TokenType::CLOSE_BRACE, "WHOOOPS");		//	TODO:	better error msg
+	consume(TokenType::CLOSE_BRACE, "webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine());		//	TODO:	better error msg
 
 	serverBlock.serverNames.emplace_back("whoops");		//	TODO: change this
 	return (serverBlock);
@@ -129,7 +136,7 @@ void	Parser::parseListenDirective(ServerBlock& serverBlock)
 		case TokenType::URI:
 			throw ( std::runtime_error("webserv: host not found in \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );
 		case TokenType::PARAM: {
-			//	check for TLD or IP
+			//	check for DomainName or IP
 			LOG_INFO(std::string("Resolving Token::PARAM: \033[0m" + m_currentToken.getTokenValue() + " \033[94m" + m_currentToken.onLine()));	//	TODO:	delete me
 	
 			if (m_currentToken.value == "localhost")
@@ -168,14 +175,13 @@ void	Parser::parseListenDirective(ServerBlock& serverBlock)
 			}
 			else
 				serverBlock.listenPort = 80;
+
 			ensureDirectiveTermination("listen");
 			consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine());
-
 			return ;
 		}
 		case TokenType::NUMBER: {
-			//	its a Port
-			// TODO: support STRING for domains as incomming host	==> CHECK we support it!
+			//	parse Port
 			serverBlock.host = INADDR_ANY;
 			serverBlock.listenPort = validatePort(m_currentToken.value);
 			m_currentToken = m_lexer.nextToken();
