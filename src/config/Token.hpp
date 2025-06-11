@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:35:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 16:13:27 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 19:49:09 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,8 +67,8 @@ public:
 	size_t		line;
 
 	std::string	toString(void) const;
-	std::string	getTokenValue(void);
-	std::string	onLine(void);
+	std::string	getTokenValue(void) const;
+	std::string	onLine(void) const;
 
 private:
 	std::string	tokenTypeToString(void) const;

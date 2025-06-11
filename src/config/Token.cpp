@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:46:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 18:21:05 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 19:49:13 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ std::string	Token::toString(void) const	// TODO: delete me
 	return (tokenStr);
 }
 
-std::string	Token::getTokenValue(void)
+std::string	Token::getTokenValue(void) const
 {
 	switch (type) {
 		case (TokenType::KEYWORD):		return lowerCase(tokenKeywordTypeToString());
@@ -82,7 +82,7 @@ std::string	Token::getTokenValue(void)
 	}
 }
 
-std::string	Token::onLine(void)
+std::string	Token::onLine(void) const
 {
 	return (std::string("on line \033[96m") + std::to_string(line));
 }
