@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/11 18:45:25 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 20:39:34 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,16 @@ void	Config::printConfigs(void) const	// TODO: delete me
 			}
 		}
 		printLn(";");
+
+		// Print alle ERROR_PAGE directives
+		if (server.errorPagePaths.size() > 0) {
+			for(std::map<int,std::string>::iterator it = server.errorPagePaths.begin(); it != server.errorPagePaths.end(); ++it)
+			{
+				print("\terror_page\t");
+				print(std::to_string(it->first) + " ");
+				printLn(it->second);
+			}
+		}
 
 		print("}\n");
 	}
