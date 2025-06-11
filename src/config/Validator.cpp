@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/11 11:09:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 12:26:48 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 18:45:04 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,14 +74,14 @@ bool	Validator::isDomainName(const std::string& str)
 		}
 		
 		// check first and last characters are alphanumeric
-		if (!std::isalpha(label.front()) || !std::isalpha(label.back())) {
+		if (!std::isalnum(label.front()) || !std::isalnum(label.back())) {
 			isValid = false;
 			break ;
 		}
 
 		// check each character in label
 		for (std::string::const_iterator it = label.cbegin(); it != label.end(); ++it) {
-			if (!std::isalpha(*it) && *it != '-') {
+			if (!std::isalnum(*it) && *it != '-') {
 				isValid = false;
 				break ;
 			}
@@ -96,11 +96,11 @@ bool	Validator::isDomainName(const std::string& str)
 	if (label.empty() || label.length() > 63) {
 		isValid = false;
 	} else {
-		if (!std::isalpha(label.front()) || !std::isalpha(label.back())) {
+		if (!std::isalnum(label.front()) || !std::isalnum(label.back())) {
 			isValid = false;
 		} else {
 			for (std::string::const_iterator it = label.cbegin(); it != label.end(); ++it) {
-				if (!std::isalpha(*it) && *it != '-') {
+				if (!std::isalnum(*it) && *it != '-') {
 					isValid = false;
 					break ;
 				}
@@ -109,4 +109,11 @@ bool	Validator::isDomainName(const std::string& str)
 	}
 
 	return isValid;
+}
+
+bool	Validator::isValidServerName(const std::string& str)
+{
+	if (isDomainName(str))
+		return true;
+	return false;
 }

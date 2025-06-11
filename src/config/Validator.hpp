@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/11 11:08:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 11:31:14 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 17:59:32 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ public:
 
 	static bool	isIPAddr(const std::string& str);
 	static bool	isDomainName(const std::string& str);
+	static bool	isValidServerName(const std::string& str);
 
 private:
 	Validator();
