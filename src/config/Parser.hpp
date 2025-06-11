@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:43 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/08 17:16:32 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 13:07:10 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include "Config.hpp"
 #include "Token.hpp"
 #include "Lexer.hpp"
+#include "Validator.hpp"
 #include "Log.hpp"
 
 class Parser
@@ -38,9 +39,9 @@ private:
 	Parser(const Parser& other);
 	Parser&	operator=(const Parser& rhs);
 
+	void			parseEvents(void);
 	ServerBlock		parseServer(void);
 	void			parseListenDirective(ServerBlock& serverBlock);
-	void			parsePortAfterHost(ServerBlock& serverBlock);
 	
 	void			consume(TokenType _type, std::string msg = "");
 	void			ensureDirectiveTermination(const std::string& name);
