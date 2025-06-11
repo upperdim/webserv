@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:42 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 16:29:12 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 18:39:19 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,6 +111,9 @@ ServerBlock	Parser::parseServer(void)
 				case KeywordType::LISTEN:
 					parseListenDirective(serverBlock);
 					break ;
+				case KeywordType::SERVER_NAME:
+					parseServerNameDirective(serverBlock);
+					break ;
 				default:
 					throw ( std::runtime_error("webserv: unknown or unsupported directive \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );
 			}
@@ -121,8 +124,6 @@ ServerBlock	Parser::parseServer(void)
 	}
 
 	consume(TokenType::CLOSE_BRACE, "webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine());		//	TODO:	better error msg
-
-	serverBlock.serverNames.emplace_back("whoops");		//	TODO: change this
 	return (serverBlock);
 }
 
@@ -198,6 +199,33 @@ void	Parser::parseListenDirective(ServerBlock& serverBlock)
 		default:
 			throw ( std::runtime_error("webserv: unexpected \"" + m_currentToken.getTokenValue() + "\"," + m_currentToken.onLine()) );
 	}
+}
+
+void	Parser::parseServerNameDirective(ServerBlock& serverBlock)
+{
+	m_currentToken = m_lexer.nextToken();
+
+	while (m_currentToken.type == TokenType::PARAM) {
+		if (Validator::isValidServerName(m_currentToken.value))
+			serverBlock.serverNames.emplace_back(m_currentToken.value);
+		else
+			throw ( std::runtime_error("webserv: accpets only \"domain names\" as server_name \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );
+		m_currentToken = m_lexer.nextToken();
+	}
+
+	if (m_currentToken.type == TokenType::KEYWORD ||
+	    m_currentToken.type == TokenType::URI ||
+	    m_currentToken.type == TokenType::NUMBER ||
+	    m_currentToken.type == TokenType::INVALID ||
+	    m_currentToken.type == TokenType::COLON)
+		throw ( std::runtime_error("webserv accpets only \"domain names\" as server_name \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );
+
+	if (m_currentToken.type == TokenType::OPEN_BRACE)
+		throw ( std::runtime_error("directive \"server_name\" is not terminated by \";\" " + m_currentToken.onLine()) );
+	if (m_currentToken.type == TokenType::CLOSE_BRACE)
+		throw ( std::runtime_error("webserv: unexpected \"" + m_currentToken.getTokenValue() + "\"," + m_currentToken.onLine()) );
+
+	consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine());
 }
 
 void	Parser::consume(TokenType _type, std::string msg)

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:43 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 13:12:30 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 16:41:08 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,8 @@ private:
 	void			parseHttp(void);
 	ServerBlock		parseServer(void);
 	void			parseListenDirective(ServerBlock& serverBlock);
-	
+	void			parseServerNameDirective(ServerBlock& serverBlock);
+
 	void			consume(TokenType _type, std::string msg = "");
 	void			ensureDirectiveTermination(const std::string& name);
 
