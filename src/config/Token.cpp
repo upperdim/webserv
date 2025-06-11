@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:46:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/10 19:30:01 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 18:21:05 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ std::string	Token::getTokenValue(void)
 		case (TokenType::OPEN_BRACE):	return value;
 		case (TokenType::CLOSE_BRACE):	return value;
 		case (TokenType::END_OF_INPUT):	return "end_of_input";
-		case (TokenType::INVALID):		return "invalid_token";
+		case (TokenType::INVALID):		return std::string("invalid_token(") + value + ")";	//"invalid_token";
 		default:						return "unknown_token";
 	}
 }
