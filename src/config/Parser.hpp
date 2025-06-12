@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:43 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/12 10:35:17 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/12 10:58:10 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,8 +68,6 @@ private:
 	void			throw_InvalidValue(void) const;
 	void			throw_InvalidParameter(void) const;
 	void			throw_Unexpected(void) const;
-
-	unsigned int	validatePort(const std::string& _port);		//	TODO: move this into Validator
 
 	std::string		readConfigFile(std::string configFilePath);		// TODO: remove 
 

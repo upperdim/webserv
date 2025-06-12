@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/11 11:09:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 18:45:04 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/12 10:54:21 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,4 +116,16 @@ bool	Validator::isValidServerName(const std::string& str)
 	if (isDomainName(str))
 		return true;
 	return false;
+}
+
+bool	Validator::isValidPort(const std::string& str, unsigned int& port)
+{
+	try {
+		port = std::stoi(str);
+	} catch(...) {
+		return false;
+	}
+	if (port == 0 || port > 65535)
+		return false;
+	return true;
 }

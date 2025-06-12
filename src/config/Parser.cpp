@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:42 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/12 10:37:38 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/12 10:58:22 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,7 +179,12 @@ void	Parser::parseListenDirective(ServerBlock& serverBlock)
 				m_currentToken = m_lexer.nextToken();
 				if (m_currentToken.type != TokenType::NUMBER)
 					throw_InvalidPort("LISTEN");
-				serverBlock.listenPort = validatePort(m_currentToken.value);
+				
+				unsigned int port;
+				if (!Validator::isValidPort(m_currentToken.value, port))
+					throw_InvalidPort("LISTEN");
+				serverBlock.listenPort = port;
+
 				m_currentToken = m_lexer.nextToken();
 			}
 			else
@@ -192,7 +197,12 @@ void	Parser::parseListenDirective(ServerBlock& serverBlock)
 		case TokenType::NUMBER: {
 			//	parse Port
 			serverBlock.host = INADDR_ANY;
-			serverBlock.listenPort = validatePort(m_currentToken.value);
+
+			unsigned int port;
+			if (!Validator::isValidPort(m_currentToken.value, port))
+				throw_InvalidPort("LISTEN");
+			serverBlock.listenPort = port;
+
 			m_currentToken = m_lexer.nextToken();
 			ensureDirectiveTermination("listen");
 			consume(TokenType::SEMICOLON, ThrowType::INVALID_PARAMETER);
@@ -358,20 +368,6 @@ void	Parser::throw_InvalidParameter(void) const
 void	Parser::throw_Unexpected(void) const
 {
 	throw std::runtime_error("unexpected \"" + m_currentToken.getTokenValue() + "\"" + m_currentToken.inLine());
-}
-
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
-
-unsigned int	Parser::validatePort(const std::string& _port)
-{
-	unsigned int	port = std::stoi(_port);
-	if (port == 0 || port > 65535)
-		throw ( std::runtime_error("invalid port in \"" + _port + "\" of the \"listen\" directive, " + m_currentToken.inLine()) );
-
-	return (port);
 }
 
 
