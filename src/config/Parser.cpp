@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:42 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/12 10:07:47 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/12 10:37:38 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,18 +76,18 @@ void	Parser::parseEvents(void)
 	}
 	if (m_currentToken.type == TokenType::END_OF_INPUT)
 		throw_UnexpectedEndOfFile("}", "EVENTS");
-	consume(TokenType::CLOSE_BRACE, "webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.inLine());
+	consume(TokenType::CLOSE_BRACE, ThrowType::UNEXPECTED);
 }
 
 void	Parser::parseHttp(void)
 {
 	m_currentToken = m_lexer.nextToken();
-	consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"http\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.inLine());
+	consume(TokenType::OPEN_BRACE, ThrowType::INVALID_NUMBER_OF_ARGUMENTS, "HTTP");
 
 	while (m_currentToken.type == TokenType::KEYWORD && m_currentToken.keywordType == KeywordType::SERVER) {
 		// Parsing SERVER
 		m_currentToken = m_lexer.nextToken();
-		consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"server\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.inLine());
+		consume(TokenType::OPEN_BRACE, ThrowType::INVALID_NUMBER_OF_ARGUMENTS, "SERVER");
 		ServerBlock serverBlock = parseServer();
 		m_config.serverBlocks.emplace_back(serverBlock);
 	}
@@ -103,7 +103,7 @@ void	Parser::parseHttp(void)
 	// } else {		
 	// 	throw ( std::runtime_error("webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.inLine()) );
 	// }
-	consume(TokenType::CLOSE_BRACE, "webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.inLine());
+	consume(TokenType::CLOSE_BRACE, ThrowType::UNEXPECTED);
 }
 
 ServerBlock	Parser::parseServer(void)
@@ -131,7 +131,7 @@ ServerBlock	Parser::parseServer(void)
 		// m_currentToken = m_lexer.nextToken();	//	TODO:	delete me => we expect a new token here from the dedicated parseDirective functions
 	}
 
-	consume(TokenType::CLOSE_BRACE, "webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.inLine());		//	TODO:	better error msg
+	consume(TokenType::CLOSE_BRACE, ThrowType::UNEXPECTED);		//	TODO:	better error msg
 	return (serverBlock);
 }
 
@@ -186,7 +186,7 @@ void	Parser::parseListenDirective(ServerBlock& serverBlock)
 				serverBlock.listenPort = 80;
 
 			ensureDirectiveTermination("listen");
-			consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.inLine());
+			consume(TokenType::SEMICOLON, ThrowType::INVALID_PARAMETER);
 			return ;
 		}
 		case TokenType::NUMBER: {
@@ -195,7 +195,7 @@ void	Parser::parseListenDirective(ServerBlock& serverBlock)
 			serverBlock.listenPort = validatePort(m_currentToken.value);
 			m_currentToken = m_lexer.nextToken();
 			ensureDirectiveTermination("listen");
-			consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.inLine());
+			consume(TokenType::SEMICOLON, ThrowType::INVALID_PARAMETER);
 			return ;
 		}
 		case (TokenType::COLON):
@@ -233,7 +233,7 @@ void	Parser::parseServerNameDirective(ServerBlock& serverBlock)
 	if (m_currentToken.type == TokenType::CLOSE_BRACE)
 		throw_Unexpected();
 
-	consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.inLine());
+	consume(TokenType::SEMICOLON, ThrowType::INVALID_PARAMETER);
 }
 
 void	Parser::parseErrorPageDirective(ServerBlock& serverBlock)
@@ -263,13 +263,23 @@ void	Parser::parseErrorPageDirective(ServerBlock& serverBlock)
 	serverBlock.errorPagePaths[error_nbr] = m_currentToken.value;
 
 	m_currentToken = m_lexer.nextToken();
-	consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.inLine());
+	consume(TokenType::SEMICOLON, ThrowType::INVALID_PARAMETER);
 }
 
-void	Parser::consume(TokenType _type, std::string msg)
+void	Parser::consume(TokenType _type, ThrowType _throwType, std::string directive)
 {
-	if (m_currentToken.type != _type)
-		throw ( std::runtime_error(msg) );
+	if (m_currentToken.type != _type) {
+		switch (_throwType) {
+			case ThrowType::UNEXPECTED:
+				throw_Unexpected();
+			case ThrowType::INVALID_NUMBER_OF_ARGUMENTS:
+				throw_InvalidNumberOfArguments(directive);
+			case ThrowType::INVALID_PARAMETER:
+				throw_InvalidParameter();
+			default:
+				throw std::runtime_error("error consuming token \"" + m_currentToken.getTokenValue() + "\"" + m_currentToken.inLine());
+		}
+	}
 	m_currentToken = m_lexer.nextToken();
 }
 

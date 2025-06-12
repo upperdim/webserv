@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:43 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/12 10:07:03 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/12 10:35:17 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,12 @@ private:
 	Parser(const Parser& other);
 	Parser&	operator=(const Parser& rhs);
 
+	enum class ThrowType {
+		UNEXPECTED,
+		INVALID_NUMBER_OF_ARGUMENTS,
+		INVALID_PARAMETER
+	};
+
 	void			parseEvents(void);
 	void			parseHttp(void);
 	ServerBlock		parseServer(void);
@@ -46,7 +52,7 @@ private:
 	void			parseServerNameDirective(ServerBlock& serverBlock);
 	void			parseErrorPageDirective(ServerBlock& serverBlock);
 
-	void			consume(TokenType _type, std::string msg = "");
+	void			consume(TokenType _type, ThrowType _throwType, std::string directive = "");
 	void			ensureDirectiveTermination(const std::string& name);
 
 	void			throw_DirectiveIsNotAllowed(const std::string& directive) const;
