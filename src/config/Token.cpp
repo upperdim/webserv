@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:46:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 19:49:13 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/11 21:04:19 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,9 +82,9 @@ std::string	Token::getTokenValue(void) const
 	}
 }
 
-std::string	Token::onLine(void) const
+std::string	Token::inLine(void) const
 {
-	return (std::string("on line \033[96m") + std::to_string(line));
+	return (std::string(" in line \033[96m") + std::to_string(line));
 }
 
 
