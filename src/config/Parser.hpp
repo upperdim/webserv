@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:43 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/12 10:58:10 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/12 17:26:21 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ private:
 	void			parseListenDirective(ServerBlock& serverBlock);
 	void			parseServerNameDirective(ServerBlock& serverBlock);
 	void			parseErrorPageDirective(ServerBlock& serverBlock);
+	void			parseClientMaxBodySize(size_t& _clientMaxBodySize);
 
 	void			consume(TokenType _type, ThrowType _throwType, std::string directive = "");
 	void			ensureDirectiveTermination(const std::string& name);
@@ -68,6 +69,7 @@ private:
 	void			throw_InvalidValue(void) const;
 	void			throw_InvalidParameter(void) const;
 	void			throw_Unexpected(void) const;
+	void			throw_FailedToConvertStringToNumber(void) const;
 
 	std::string		readConfigFile(std::string configFilePath);		// TODO: remove 
 

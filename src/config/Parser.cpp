@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:42 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/12 10:58:22 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/12 18:01:14 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,8 @@ void	Parser::parseHttp(void)
 		// Parsing SERVER
 		m_currentToken = m_lexer.nextToken();
 		consume(TokenType::OPEN_BRACE, ThrowType::INVALID_NUMBER_OF_ARGUMENTS, "SERVER");
-		ServerBlock serverBlock = parseServer();
+		ServerBlock serverBlock = {};
+		serverBlock = parseServer();
 		m_config.serverBlocks.emplace_back(serverBlock);
 	}
 
@@ -121,6 +122,9 @@ ServerBlock	Parser::parseServer(void)
 					break ;
 				case KeywordType::ERROR_PAGE:
 					parseErrorPageDirective(serverBlock);
+					break ;
+				case KeywordType::CLIENT_MAX_BODY_SIZE:
+					parseClientMaxBodySize(serverBlock.clientMaxBodySize);
 					break ;
 				default:
 					throw_UnknownOrUnsupportedDirective(m_currentToken.getTokenValue());
@@ -273,7 +277,41 @@ void	Parser::parseErrorPageDirective(ServerBlock& serverBlock)
 	serverBlock.errorPagePaths[error_nbr] = m_currentToken.value;
 
 	m_currentToken = m_lexer.nextToken();
+	if (m_currentToken.type == TokenType::OPEN_BRACE)
+		throw_DirectiveIsNotTerminated("error_page");
+	if (m_currentToken.type == TokenType::CLOSE_BRACE)
+		throw_Unexpected();
 	consume(TokenType::SEMICOLON, ThrowType::INVALID_PARAMETER);
+}
+
+void	Parser::parseClientMaxBodySize(size_t& _clientMaxBodySize)
+{
+	m_currentToken = m_lexer.nextToken();
+
+	if (m_currentToken.type == TokenType::NUMBER) {
+		try {
+			_clientMaxBodySize = std::stoul(m_currentToken.getTokenValue());
+		} catch(...) {
+			throw_FailedToConvertStringToNumber();
+		}
+		m_currentToken = m_lexer.nextToken();
+
+		if (m_currentToken.type == TokenType::OPEN_BRACE)
+			throw_DirectiveIsNotTerminated("client_max_body_size");
+		if (m_currentToken.type == TokenType::CLOSE_BRACE)
+			throw_Unexpected();
+
+		consume(TokenType::SEMICOLON, ThrowType::INVALID_NUMBER_OF_ARGUMENTS);
+		return ;
+	}
+
+	if (m_currentToken.type == TokenType::SEMICOLON)
+		throw_InvalidNumberOfArguments("client_max_body_size");
+	if (m_currentToken.type == TokenType::OPEN_BRACE)
+		throw_DirectiveIsNotTerminated("client_max_body_size");
+	if (m_currentToken.type == TokenType::CLOSE_BRACE)
+		throw_Unexpected();
+	throw_InvalidParameter();
 }
 
 void	Parser::consume(TokenType _type, ThrowType _throwType, std::string directive)
@@ -368,6 +406,11 @@ void	Parser::throw_InvalidParameter(void) const
 void	Parser::throw_Unexpected(void) const
 {
 	throw std::runtime_error("unexpected \"" + m_currentToken.getTokenValue() + "\"" + m_currentToken.inLine());
+}
+
+void	Parser::throw_FailedToConvertStringToNumber(void) const
+{
+	throw std::runtime_error("failed to convert string \"" + m_currentToken.getTokenValue() + "\" to number" + m_currentToken.inLine());
 }
 
 
