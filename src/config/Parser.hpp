@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:43 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 20:43:06 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/12 10:07:03 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,9 +49,19 @@ private:
 	void			consume(TokenType _type, std::string msg = "");
 	void			ensureDirectiveTermination(const std::string& name);
 
-	void			throwIsNotTerminated(const std::string& directive) const;
-	void			throwInvalidNumberOfArguments(const std::string& directive) const;
-	void			throwUnexpected(void) const;
+	void			throw_DirectiveIsNotAllowed(const std::string& directive) const;
+	void			throw_UnknownOrUnsupportedDirective(const std::string& directive) const;
+	void			throw_UnexpectedEndOfFile(const std::string& expected, const std::string& directive) const;
+	void			throw_DirectiveIsDuplicate(const std::string& directive) const;
+	void			throw_InvalidIPAddr(void) const;
+	void			throw_HostNotFound(void) const;
+	void			throw_InvalidPort(const std::string& directive) const;
+	void			throw_AccpetsOnlyDomainNames(void) const;
+	void			throw_DirectiveIsNotTerminated(const std::string& directive) const;
+	void			throw_InvalidNumberOfArguments(const std::string& directive) const;
+	void			throw_InvalidValue(void) const;
+	void			throw_InvalidParameter(void) const;
+	void			throw_Unexpected(void) const;
 
 	unsigned int	validatePort(const std::string& _port);		//	TODO: move this into Validator
 

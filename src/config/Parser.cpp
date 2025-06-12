@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 11:05:42 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 20:14:38 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/12 10:07:47 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ Parser::~Parser()
 Config	Parser::parse(void)
 {
 	m_currentToken = m_lexer.nextToken();
+	bool parsedHTTP = false;
 
 	while (m_currentToken.type != TokenType::END_OF_INPUT) {	//	TODO: exit on INAVLID as well ???
 		if (m_currentToken.type == TokenType::KEYWORD) {
@@ -43,13 +44,16 @@ Config	Parser::parse(void)
 					parseEvents();
 					break ;
 				case KeywordType::HTTP:
+					if (parsedHTTP)
+						throw_DirectiveIsDuplicate("HTTP");
 					parseHttp();
+					parsedHTTP = true;
 					break ;
 				default:
-					throw ( std::runtime_error(std::string("webserv: \"" + m_currentToken.getTokenValue() + "\" directive is not allowed here: ") + m_currentToken.onLine()) );
+					throw_DirectiveIsNotAllowed(m_currentToken.getTokenValue());
 			}
 		} else {
-			throw ( std::runtime_error(std::string("webserv: unknown or unsupported directive \"") + m_currentToken.getTokenValue() +"\", " + m_currentToken.onLine()) );
+			throw_UnknownOrUnsupportedDirective(m_currentToken.getTokenValue());
 		}
 		// m_currentToken = m_lexer.nextToken();	//	TODO:	delete me => we expect a new token here from the dedicated parseDirective functions
 	}
@@ -65,25 +69,25 @@ Config	Parser::parse(void)
 void	Parser::parseEvents(void)
 {
 	// Skipping EVENTS
-	LOG_INFO("\033[92mwebserv\033[94m doesn't support the \"EVENTS\" directive, skipping this directive, " + m_currentToken.onLine());
-	while (m_currentToken.type != TokenType::CLOSE_BRACE && m_currentToken.type != TokenType::END_OF_INPUT && m_currentToken.type != TokenType::INVALID)
+	LOG_INFO("\033[92mwebserv\033[94m doesn't support the \"EVENTS\" directive, skipping this directive, " + m_currentToken.inLine());
+	while (m_currentToken.type != TokenType::CLOSE_BRACE && m_currentToken.type != TokenType::END_OF_INPUT) {
+		// we also skip INVALID TOKENS now
 		m_currentToken = m_lexer.nextToken();
+	}
 	if (m_currentToken.type == TokenType::END_OF_INPUT)
-		throw ( std::runtime_error("webserv: unexpected end of file, expected `}' after 'EVENTS' directive " + m_currentToken.onLine()) );
-	else if (m_currentToken.type == TokenType::INVALID)
-		throw ( std::runtime_error("webserv: an error occured while skipping unsupported 'EVENTS' directive " + m_currentToken.onLine()) );
-	consume(TokenType::CLOSE_BRACE, "webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine());
+		throw_UnexpectedEndOfFile("}", "EVENTS");
+	consume(TokenType::CLOSE_BRACE, "webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.inLine());
 }
 
 void	Parser::parseHttp(void)
 {
 	m_currentToken = m_lexer.nextToken();
-	consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"http\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.onLine());
+	consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"http\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.inLine());
 
 	while (m_currentToken.type == TokenType::KEYWORD && m_currentToken.keywordType == KeywordType::SERVER) {
 		// Parsing SERVER
 		m_currentToken = m_lexer.nextToken();
-		consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"server\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.onLine());
+		consume(TokenType::OPEN_BRACE, "webserv: invalid number of arguments in \"server\" directive, OPEN_BRACE \"{\" expected " + m_currentToken.inLine());
 		ServerBlock serverBlock = parseServer();
 		m_config.serverBlocks.emplace_back(serverBlock);
 	}
@@ -91,14 +95,15 @@ void	Parser::parseHttp(void)
 	if (m_currentToken.type == TokenType::PARAM ||
 	    m_currentToken.type == TokenType::URI ||
 	    m_currentToken.type == TokenType::NUMBER) {
-		throw ( std::runtime_error("webserv: unknown or unsupported directive \"" + m_currentToken.value + "\", " + m_currentToken.onLine()) );
+		throw_UnknownOrUnsupportedDirective(m_currentToken.value);
 	} else if (m_currentToken.type == TokenType::END_OF_INPUT) {
-		throw ( std::runtime_error("webserv: unexpected end of file, expected \"}\" " + m_currentToken.onLine()) );
+		throw_UnexpectedEndOfFile("}", "HTTP");
 	}
-	// } else {
-	// 	throw ( std::runtime_error("webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine()) );
+	//	TOTO:	delete me afte we checked: CAN WE SAFELY DELETE THIS
+	// } else {		
+	// 	throw ( std::runtime_error("webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.inLine()) );
 	// }
-	consume(TokenType::CLOSE_BRACE, "webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine());
+	consume(TokenType::CLOSE_BRACE, "webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.inLine());
 }
 
 ServerBlock	Parser::parseServer(void)
@@ -118,15 +123,15 @@ ServerBlock	Parser::parseServer(void)
 					parseErrorPageDirective(serverBlock);
 					break ;
 				default:
-					throw ( std::runtime_error("webserv: unknown or unsupported directive \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );
+					throw_UnknownOrUnsupportedDirective(m_currentToken.getTokenValue());
 			}
 		}
 		else
-			throw ( std::runtime_error("webserv: unknown or unsupported directive \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );	// TODO: check if thiss error is correct I suppose it is not
+			throw_UnknownOrUnsupportedDirective(m_currentToken.getTokenValue());	// TODO: check if thiss error is correct I suppose it is not
 		// m_currentToken = m_lexer.nextToken();	//	TODO:	delete me => we expect a new token here from the dedicated parseDirective functions
 	}
 
-	consume(TokenType::CLOSE_BRACE, "webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine());		//	TODO:	better error msg
+	consume(TokenType::CLOSE_BRACE, "webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.inLine());		//	TODO:	better error msg
 	return (serverBlock);
 }
 
@@ -138,10 +143,10 @@ void	Parser::parseListenDirective(ServerBlock& serverBlock)
 		case TokenType::KEYWORD:
 			// Fall through
 		case TokenType::URI:
-			throw ( std::runtime_error("webserv: host not found in \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );
+			throw_HostNotFound();
 		case TokenType::PARAM: {
 			//	check for DomainName or IP
-			LOG_INFO(std::string("Resolving Token::PARAM: \033[0m" + m_currentToken.getTokenValue() + " \033[94m" + m_currentToken.onLine()));	//	TODO:	delete me
+			LOG_INFO(std::string("Resolving Token::PARAM: \033[0m" + m_currentToken.getTokenValue() + " \033[94m" + m_currentToken.inLine()));	//	TODO:	delete me
 	
 			if (m_currentToken.value == "localhost")
 				m_currentToken.value = "127.0.0.1";
@@ -150,7 +155,7 @@ void	Parser::parseListenDirective(ServerBlock& serverBlock)
 				in_addr	addr;
 				int result = inet_pton(AF_INET, m_currentToken.value.c_str(), &addr);
 				if (result == 0)
-					throw ( std::runtime_error("webserv: invalid IP address \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );
+					throw_InvalidIPAddr();
 
 				serverBlock.host = addr.s_addr;
 			} else if (Validator::isDomainName(m_currentToken.value)) {
@@ -159,13 +164,13 @@ void	Parser::parseListenDirective(ServerBlock& serverBlock)
 				hints.ai_socktype = SOCK_STREAM;	// we want a: stream socket (typically used for TCP)
 				addrinfo*	res;					// result
 				if (getaddrinfo(m_currentToken.value.c_str(), nullptr, &hints, &res) != 0)
-					throw ( std::runtime_error("webserv: host not found in \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );
+					throw_HostNotFound();
 				
 				sockaddr_in* ipv4 = reinterpret_cast<sockaddr_in*>(res->ai_addr);
 				serverBlock.host = ipv4->sin_addr.s_addr;
 				freeaddrinfo(res);
 			} else
-				throw ( std::runtime_error("webserve:invalid port in \"" + m_currentToken.getTokenValue() + "\" of the \"listen\" directive, " + m_currentToken.onLine()) );
+				throw_InvalidPort("LISTEN");
 
 			//	parse Port after Host
 			m_currentToken = m_lexer.nextToken();
@@ -173,7 +178,7 @@ void	Parser::parseListenDirective(ServerBlock& serverBlock)
 			{
 				m_currentToken = m_lexer.nextToken();
 				if (m_currentToken.type != TokenType::NUMBER)
-					throw ( std::runtime_error("webserv: invalid port \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );
+					throw_InvalidPort("LISTEN");
 				serverBlock.listenPort = validatePort(m_currentToken.value);
 				m_currentToken = m_lexer.nextToken();
 			}
@@ -181,7 +186,7 @@ void	Parser::parseListenDirective(ServerBlock& serverBlock)
 				serverBlock.listenPort = 80;
 
 			ensureDirectiveTermination("listen");
-			consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine());
+			consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.inLine());
 			return ;
 		}
 		case TokenType::NUMBER: {
@@ -190,17 +195,17 @@ void	Parser::parseListenDirective(ServerBlock& serverBlock)
 			serverBlock.listenPort = validatePort(m_currentToken.value);
 			m_currentToken = m_lexer.nextToken();
 			ensureDirectiveTermination("listen");
-			consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine());
+			consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.inLine());
 			return ;
 		}
 		case (TokenType::COLON):
-			throw ( std::runtime_error("webserve:invalid port in \"" + m_currentToken.getTokenValue() + "\" of the \"listen\" directive, " + m_currentToken.onLine()) );
+			throw_InvalidPort("LISTEN");
 		case (TokenType::SEMICOLON):
-			throw ( std::runtime_error("webserve: invalid number of arguments in \"listen\" directive, " + m_currentToken.onLine()) );
+			throw_InvalidNumberOfArguments("LISTEN");
 		case (TokenType::OPEN_BRACE):
-			throw ( std::runtime_error("webserve: directive \"listen\" is not terminated by \";\", " + m_currentToken.onLine()) );
+			throw_DirectiveIsNotTerminated("LISTEN");
 		default:
-			throw ( std::runtime_error("webserv: unexpected \"" + m_currentToken.getTokenValue() + "\"," + m_currentToken.onLine()) );
+			throw_Unexpected();
 	}
 }
 
@@ -212,7 +217,7 @@ void	Parser::parseServerNameDirective(ServerBlock& serverBlock)
 		if (Validator::isValidServerName(m_currentToken.value))
 			serverBlock.serverNames.emplace_back(m_currentToken.value);
 		else
-			throw ( std::runtime_error("webserv: accpets only \"domain names\" as server_name \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );
+			throw_AccpetsOnlyDomainNames();
 		m_currentToken = m_lexer.nextToken();
 	}
 
@@ -221,14 +226,14 @@ void	Parser::parseServerNameDirective(ServerBlock& serverBlock)
 	    m_currentToken.type == TokenType::NUMBER ||
 	    m_currentToken.type == TokenType::INVALID ||
 	    m_currentToken.type == TokenType::COLON)
-		throw ( std::runtime_error("webserv accpets only \"domain names\" as server_name \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine()) );
+			throw_AccpetsOnlyDomainNames();
 
 	if (m_currentToken.type == TokenType::OPEN_BRACE)
-		throw ( std::runtime_error("directive \"server_name\" is not terminated by \";\" " + m_currentToken.onLine()) );
+		throw_DirectiveIsNotTerminated("server_name");
 	if (m_currentToken.type == TokenType::CLOSE_BRACE)
-		throw ( std::runtime_error("webserv: unexpected \"" + m_currentToken.getTokenValue() + "\"," + m_currentToken.onLine()) );
+		throw_Unexpected();
 
-	consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine());
+	consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.inLine());
 }
 
 void	Parser::parseErrorPageDirective(ServerBlock& serverBlock)
@@ -236,29 +241,29 @@ void	Parser::parseErrorPageDirective(ServerBlock& serverBlock)
 	m_currentToken = m_lexer.nextToken();
 
 	if (m_currentToken.type == TokenType::SEMICOLON)
-		throwInvalidNumberOfArguments("error_page");
+		throw_InvalidNumberOfArguments("error_page");
 	if (m_currentToken.type == TokenType::OPEN_BRACE)
-		throwIsNotTerminated("error_page");
+		throw_DirectiveIsNotTerminated("error_page");
 	if (m_currentToken.type == TokenType::CLOSE_BRACE)
-		throwUnexpected();
+		throw_Unexpected();
 	if (m_currentToken.type != TokenType::NUMBER)
-		throw ( std::runtime_error("webserv: invalid value \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine()) );
+		throw_InvalidValue();
 	int	error_nbr = std::stoi(m_currentToken.value);
 
 	m_currentToken = m_lexer.nextToken();
 	if (m_currentToken.type == TokenType::SEMICOLON)
-		throwInvalidNumberOfArguments("error_page");
+		throw_InvalidNumberOfArguments("error_page");
 	if (m_currentToken.type == TokenType::OPEN_BRACE)
-		throwIsNotTerminated("error_page");
+		throw_DirectiveIsNotTerminated("error_page");
 	if (m_currentToken.type == TokenType::CLOSE_BRACE)
-		throwUnexpected();
+		throw_Unexpected();
 	if (m_currentToken.type != TokenType::URI)
-		throw ( std::runtime_error("webserv: invalid value \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine()) );
+		throw_InvalidValue();
 	
 	serverBlock.errorPagePaths[error_nbr] = m_currentToken.value;
 
 	m_currentToken = m_lexer.nextToken();
-	consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.onLine());
+	consume(TokenType::SEMICOLON, "webserv: invalid parameter \"" + m_currentToken.getTokenValue() + "\", " + m_currentToken.inLine());
 }
 
 void	Parser::consume(TokenType _type, std::string msg)
@@ -268,32 +273,93 @@ void	Parser::consume(TokenType _type, std::string msg)
 	m_currentToken = m_lexer.nextToken();
 }
 
-void	Parser::ensureDirectiveTermination(const std::string& name)
+void	Parser::ensureDirectiveTermination(const std::string& directive)
 {
 	if (m_lexer.precededByComment)
-		throw ( std::runtime_error("directive \"" + name + "\" is not terminated by \";\", " + m_currentToken.onLine()) );
+		throw_DirectiveIsNotTerminated(directive);
 }
 
-void	Parser::throwIsNotTerminated(const std::string& directive) const
+
+/* ************************************************************************** */
+/* THROW_ERROR_METHODS                                                        */
+/* ************************************************************************** */
+
+
+void	Parser::throw_DirectiveIsNotAllowed(const std::string& directive) const
 {
-	throw std::runtime_error("webserv: directive \"" + directive + "\" is not terminated by \";\" on " + m_currentToken.onLine());
+	throw std::runtime_error("\"" + directive + "\" directive is not allowed" + m_currentToken.inLine());
 }
 
-void	Parser::throwInvalidNumberOfArguments(const std::string& directive) const
+void	Parser::throw_UnknownOrUnsupportedDirective(const std::string& directive) const
 {
-	throw std::runtime_error("webserv: invalid number of arguments in \"" + directive + "\" directive " + m_currentToken.onLine());
+	throw std::runtime_error("unknown or unsupported directive \"" + directive + "\"" + m_currentToken.inLine());
 }
 
-void	Parser::throwUnexpected(void) const
+void	Parser::throw_UnexpectedEndOfFile(const std::string& expected, const std::string& directive) const
 {
-	throw std::runtime_error("webserv: unexpected \"" + m_currentToken.getTokenValue() + "\" " + m_currentToken.onLine());
+	throw std::runtime_error("webserv: unexpected end of file, expected \"" + expected + "\" after \"" + directive + "\" directive" + m_currentToken.inLine());
 }
+
+void	Parser::throw_DirectiveIsDuplicate(const std::string& directive) const
+{
+	throw std::runtime_error("\"" + directive + "\" directive is duplicate" + m_currentToken.inLine());
+}
+
+void	Parser::throw_InvalidIPAddr(void) const
+{
+	throw std::runtime_error("invalid IP address \"" + m_currentToken.getTokenValue() + "\"" + m_currentToken.inLine());
+}
+
+void	Parser::throw_HostNotFound(void) const
+{
+	throw std::runtime_error("host not found in \"" + m_currentToken.getTokenValue() + "\"" + m_currentToken.inLine());
+}
+
+void	Parser::throw_InvalidPort(const std::string& directive) const
+{
+	throw std::runtime_error("invalid port in \"" + m_currentToken.getTokenValue() + "\" of the \"" + directive + "\" directive" + m_currentToken.inLine());
+}
+
+void	Parser::throw_AccpetsOnlyDomainNames(void) const
+{
+	throw std::runtime_error("accpets only \"domain names\" as server_name \"" + m_currentToken.getTokenValue() + "\"" + m_currentToken.inLine());
+}
+
+void	Parser::throw_DirectiveIsNotTerminated(const std::string& directive) const
+{
+	throw std::runtime_error("directive \"" + directive + "\" is not terminated by \";\"" + m_currentToken.inLine());
+}
+
+void	Parser::throw_InvalidNumberOfArguments(const std::string& directive) const
+{
+	throw std::runtime_error("invalid number of arguments in \"" + directive + "\" directive" + m_currentToken.inLine());
+}
+
+void	Parser::throw_InvalidValue(void) const
+{
+	throw std::runtime_error("invalid value \"" + m_currentToken.getTokenValue() + "\"" + m_currentToken.inLine());
+}
+
+void	Parser::throw_InvalidParameter(void) const
+{
+	throw std::runtime_error("invalid parameter \"" + m_currentToken.getTokenValue() + "\"" + m_currentToken.inLine());
+}
+
+void	Parser::throw_Unexpected(void) const
+{
+	throw std::runtime_error("unexpected \"" + m_currentToken.getTokenValue() + "\"" + m_currentToken.inLine());
+}
+
+
+/* ************************************************************************** */
+/* ************************************************************************** */
+
 
 unsigned int	Parser::validatePort(const std::string& _port)
 {
 	unsigned int	port = std::stoi(_port);
 	if (port == 0 || port > 65535)
-		throw ( std::runtime_error("invalid port in \"" + _port + "\" of the \"listen\" directive, " + m_currentToken.onLine()) );
+		throw ( std::runtime_error("invalid port in \"" + _port + "\" of the \"listen\" directive, " + m_currentToken.inLine()) );
 
 	return (port);
 }
