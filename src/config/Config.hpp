@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/11 18:35:08 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/12 17:01:39 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,8 @@ public:
 	std::vector<std::string>	serverNames;		//	::	server_name
 	std::map<int, std::string>	errorPagePaths;		//	::	error_page
 	size_t						clientMaxBodySize;	//	::	client_max_body_size
-	
+	std::vector<LocationBlock>	locationsBlocks;
+
 	// Multiscope options
 	std::string root;								//	::	root
 	std::string index;								//	::	index
