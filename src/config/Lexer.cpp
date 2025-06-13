@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 11:17:00 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/13 11:13:26 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,24 @@ Lexer::~Lexer()
 /* ************************************************************************** */
 /* ************************************************************************** */
 
+
+std::vector<Token>	Lexer::tokenize(void)
+{
+	std::vector<Token> tokens;
+
+	while (m_pos < m_input.length()) {
+		Token token = nextToken();
+
+		//	TODO: decide if we process INVALID tokens or if we just leave them out
+		if (token.type != TokenType::INVALID)
+			tokens.emplace_back(token);
+	}
+
+	if (tokens.back().type != TokenType::END_OF_INPUT)
+		tokens.emplace_back(Token(TokenType::END_OF_INPUT, m_line));
+
+	return tokens;
+}
 
 Token	Lexer::nextToken(bool _precededByComment)
 {
@@ -84,6 +102,12 @@ Token	Lexer::nextToken(bool _precededByComment)
 
 	advance();
 	return Token(TokenType::INVALID, std::string(1, c), m_line);
+}
+
+void	Lexer::printTokens(std::vector<Token>& tokens)
+{
+	for (const Token& token : tokens)
+		std::cout << token << std::endl;
 }
 
 

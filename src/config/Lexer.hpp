@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/11 11:17:08 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/13 11:00:43 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <string>
 #include <cctype>
+#include <vector>
 #include <map>
 #include "Token.hpp"
 #include "Log.hpp"
@@ -26,7 +27,8 @@ public:
 	Lexer(const Lexer& other);
 	~Lexer();
 	
-	Token	nextToken(bool _precededByComment = false);
+	std::vector<Token>	tokenize(void);
+	void				printTokens(std::vector<Token>& tokens);
 
 	bool	precededByComment = false;
 
@@ -41,6 +43,7 @@ private:
 
 	bool		isMixedAlphanumeric() const;
 
+	Token		nextToken(bool _precededByComment = false);
     Token		readNumber();
 	Token		readAndClassify();
 
