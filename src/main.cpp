@@ -6,14 +6,14 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 18:28:51 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/13 11:08:00 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Config.hpp"
 #include "Lexer.hpp"
-#include "Parser.hpp"
+#include "Parser2.hpp"
 #include "EventManager.hpp"
 #include "Server.hpp"
 #include "Log.hpp"
@@ -48,8 +48,9 @@ int	main(int argc, char **argv)
 	Config config;
 
 	try	{
-		Lexer	lexer(readFile(configFilePath));
-		Parser	parser(lexer);
+		Lexer lexer(readFile(configFilePath));
+		std::vector<Token> tokens = lexer.tokenize();
+		Parser	parser(tokens);
 
 		config = parser.parse();
 		config.printConfigs();
