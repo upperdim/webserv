@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/11 11:09:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 14:45:01 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 18:17:24 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,4 +133,16 @@ bool	Validator::isValidPort(const std::string& str, unsigned int& port)
 	if (port == 0 || port > 65535)
 		return false;
 	return true;
+}
+
+bool Validator::isValidErrorPageNbr(const std::string& str, int& nbr)
+{
+	try {
+		nbr = std::stoi(str);
+	} catch(...) {
+		return false;
+	}
+	if (nbr >= 300 && nbr <= 599)
+		return true;
+	return false;
 }
