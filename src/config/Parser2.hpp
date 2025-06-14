@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 13:01:45 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 14:59:54 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include "Config.hpp"
 #include "Token.hpp"
 #include "Validator.hpp"
+#include "Log.hpp"
 
 class Parser
 {
@@ -49,6 +50,7 @@ private:
 	void			parseServerBlock(ServerBlock& server);
 	void			parseServerDirective(ServerBlock& server);
 	void			parseListenDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
+	void			parseServerNameDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseLocationBlock(LocationBlock& location);
 	void			parseLocationDirective(LocationBlock& location);
 
@@ -58,6 +60,8 @@ private:
 	void			throw_InvalidNumberOfArguments(const Token& token) const;
 	void			throw_InvalidIPAddr(const Token& token) const;
 	void			throw_HostNotFound(const Token& token) const;
+	void			throw_NoHost(const Token& directive, const Token& token) const;
+	void			throw_InavlidHost(const Token& directive, const Token& token) const;
 	void			throw_InvalidPort(const Token& directive, const Token& portToken) const;
 	void			throw_InvalidParameter(const Token& token) const;
 
