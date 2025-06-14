@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/11 11:09:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/12 10:54:21 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 14:45:01 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,11 @@ Validator::~Validator()
 
 bool Validator::isIPAddr(const std::string& str)
 {
+	if (str.empty())
+		return false;
+	if (str == "localhost")
+		return true;
+
 	size_t	pos = 0;
 	int		octetCount = 0;
 	int		currentOctet;
