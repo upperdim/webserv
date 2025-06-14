@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 15:00:09 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 15:35:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,11 +209,6 @@ void	Parser::parseServerDirective(ServerBlock& server)
 		parseListenDirective(directive, params, server);
 	}
 	else if (directive.keywordType == KeywordType::SERVER_NAME) {
-	
-		///////////////////////////
-		//////// WORK HERE ////////
-		///////////////////////////
-
 		parseServerNameDirective(directive, params, server);
 	} else {
 		throw_UnknownOrUnsupportedDirective(directive);
@@ -285,6 +280,7 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 	} else if (params[0]->type == TokenType::NUMBER) {
 		// we got a PORT
 		if (params.size() > 1) {
+			//	TODO: clean up the comments below, they are an old condition for a different throw method
 			// if (params[1]->type == TokenType::URI)
 				throw_InvalidParameter(*params[1]);
 			// throw_InvalidNumberOfArguments(directive);
@@ -301,9 +297,15 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 
 void	Parser::parseServerNameDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server)
 {
-	(void)directive;
-	(void)params;
-	(void)server;
+	if (params.size() == 0)
+		throw_InvalidNumberOfArguments(directive);
+
+	for (size_t i = 0; i < params.size(); ++i) {
+		if (params[i]->type == TokenType::PARAM &&  Validator::isValidServerName(params[i]->value))
+			server.serverNames.emplace_back(params[i]->value);
+		else
+			throw_AccpetsOnlyDomainNames(*params[i]);
+	}
 }
 
 void	Parser::parseLocationBlock(LocationBlock& location)
@@ -374,4 +376,9 @@ void	Parser::throw_InvalidPort(const Token& directive, const Token& portToken) c
 void	Parser::throw_InvalidParameter(const Token& token) const
 {
 	throw std::runtime_error("invalid parameter \"" + token.getTokenValue() + "\"" + token.inLine());
+}
+
+void	Parser::throw_AccpetsOnlyDomainNames(const Token& token) const
+{
+	throw std::runtime_error("accpets only \"domain names\" as server_name \"" + token.getTokenValue() + "\"" + token.inLine());
 }

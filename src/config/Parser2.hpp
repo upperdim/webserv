@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 14:59:54 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 15:27:35 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ private:
 	void			throw_InavlidHost(const Token& directive, const Token& token) const;
 	void			throw_InvalidPort(const Token& directive, const Token& portToken) const;
 	void			throw_InvalidParameter(const Token& token) const;
+	void			throw_AccpetsOnlyDomainNames(const Token& token) const;
 
 };
 
