@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 11:14:27 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 13:01:45 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,14 @@
 
 #include <string>
 #include <vector>
+#include <arpa/inet.h>		// for inet_pton()
+#include <sys/types.h>		// for getaddrinfo()
+#include <sys/socket.h>		// for getaddrinfo()
+#include <netdb.h>			// for getaddrinfo()
 #include "colors.hpp"
 #include "Config.hpp"
 #include "Token.hpp"
+#include "Validator.hpp"
 
 class Parser
 {
@@ -41,12 +46,20 @@ private:
 
 	void			skipEventsDirective(void);
 	void			parseHttpDirective(Config& config);
-	void			parseServerDirective(ServerBlock& serverBlock);
+	void			parseServerBlock(ServerBlock& server);
+	void			parseServerDirective(ServerBlock& server);
+	void			parseListenDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
+	void			parseLocationBlock(LocationBlock& location);
+	void			parseLocationDirective(LocationBlock& location);
 
 	void			throw_SyntaxError(const std::string& msg) const;
 	void			throw_Unexpected(const Token& token) const;
 	void			throw_UnknownOrUnsupportedDirective(const Token& token) const;
 	void			throw_InvalidNumberOfArguments(const Token& token) const;
+	void			throw_InvalidIPAddr(const Token& token) const;
+	void			throw_HostNotFound(const Token& token) const;
+	void			throw_InvalidPort(const Token& directive, const Token& portToken) const;
+	void			throw_InvalidParameter(const Token& token) const;
 
 };
 
