@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/12 18:10:06 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 18:32:44 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,41 +28,46 @@ Config::~Config()
 void	Config::printConfigs(void) const	// TODO: delete me 
 {
 
-	print("\n\033[92mserver count: ");
-	std::cout << serverBlocks.size();
-	printLn("\033[0m\n");
+	printLn(LIGHTGREEN"\nPRINT CONFIG");
+	print(LIGHTGREEN"SERVERS: ");
+	std::cout << LIGHTMAGENTA << serverBlocks.size();
+	printLn("");
 
 	for (ServerBlock server : serverBlocks) {
-		printLn("server {");
+		printLn(LIGHTCYAN"server" LIGHTYELLOW " {" RESET);
 
-		print("\tlisten\t\t\t");
-		printLn(std::to_string(server.host) + ":" + std::to_string(server.listenPort) + ";");
+		print(LIGHTCYAN"\tlisten\t\t\t" RESET);
+		print(LIGHTMAGENTA + std::to_string(server.host) + ":" + std::to_string(server.listenPort));
+		printLn(GRAY";" RESET);
 
-		print("\tserver_names\t\t");
+		print(LIGHTCYAN"\tserver_names\t\t" RESET);
 		if (server.serverNames.size() == 0)
-			print("--");
+			print(LIGHTMAGENTA"--" RESET);
 		else {
 			for (const std::string& serverName : server.serverNames) {
-				print(serverName + " ");
+				print(LIGHTMAGENTA + serverName);
+				if (serverName != server.serverNames.back())
+					print(" ");
 			}
 		}
-		printLn(";");
+		printLn(GRAY";" RESET);
 
 		// Print all ERROR_PAGE directives
 		if (server.errorPagePaths.size() > 0) {
 			for(std::map<int,std::string>::iterator it = server.errorPagePaths.begin(); it != server.errorPagePaths.end(); ++it)
 			{
-				print("\terror_page\t\t");
-				print(std::to_string(it->first) + " ");
-				printLn(it->second);
+				print(LIGHTCYAN"\terror_page\t\t" RESET);
+				print(LIGHTMAGENTA + std::to_string(it->first) + " ");
+				print(LIGHTBLUE + it->second);
+				printLn(GRAY";" RESET);
 			}
 		}
 
-		print("\tclient_max_body_size\t");
-		std::cout << server.clientMaxBodySize;
-		printLn(";");
+		print(LIGHTCYAN"\tclient_max_body_size\t" RESET);
+		std::cout << LIGHTMAGENTA << server.clientMaxBodySize;
+		printLn(GRAY";" RESET);
 
-		print("}\n");
+		print(LIGHTYELLOW"}\n" RESET);
 	}
 }
 

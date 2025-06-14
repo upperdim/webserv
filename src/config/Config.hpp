@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/12 18:08:05 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 18:20:04 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <map>
 #include <netinet/in.h>		// for in_addr
 #include "Http.hpp"
+#include "colors.hpp"
 
 class LocationBlock
 {
