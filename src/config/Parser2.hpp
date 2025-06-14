@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 09:19:04 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 09:36:41 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ private:
 
 	const Token&	peek(void) const;
 	const Token&	advance(void);
+	bool			isAtEnd(void) const;
 	
 };
 
