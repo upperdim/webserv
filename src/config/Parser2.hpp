@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/13 11:11:45 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 09:19:04 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,11 @@ public:
 
 private:
 	const std::vector<Token>&	m_tokens;
-	Config						m_config = {};
+	size_t						m_pos;
+
+	const Token&	peek(void) const;
+	const Token&	advance(void);
+	
 };
 
 #endif

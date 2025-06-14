@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/13 11:12:13 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 09:20:19 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,22 @@ Parser::~Parser()
 
 Config	Parser::parse(void)
 {
+	Config config = {};
 	(void)m_tokens;
-	return m_config;
+	return config;
+}
+
+
+/* ************************************************************************** */
+/* ************************************************************************** */
+
+
+const Token&	Parser::peek(void) const
+{
+	return m_tokens[m_pos];
+}
+
+const Token&	Parser::advance(void)
+{
+	return m_tokens[m_pos++];
 }
