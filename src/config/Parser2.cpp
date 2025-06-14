@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 10:38:39 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 11:13:11 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ Config	Parser::parse(void)
 			peek().type == TokenType::OPEN_BRACE ||
 			peek().type == TokenType::CLOSE_BRACE)
 			throw_Unexpected(peek());
-		if (peek().type != TokenType::KEYWORD)
+		if (!isValidKeyword(peek()))
 			throw_UnknownOrUnsupportedDirective(peek());
 
 		const Token& directive = peek();
@@ -45,10 +45,14 @@ Config	Parser::parse(void)
 			case KeywordType::EVENTS:
 				skipEventsDirective();
 				break ;
+			case KeywordType::HTTP:
+				parseHttpDirective(config);
+				break ;
+			// add any global supported directive here
 			default:
+				advance();	//	TODO: delete me later if not needed!!!!
 				break ;
 		}
-		advance();	//	TODO: delete me later if not needed!!!!
 	}
 
 	return config;
@@ -81,6 +85,11 @@ bool	Parser::isAtEnd(void) const
 	return m_pos < m_tokens.size() && m_tokens[m_pos].type == TokenType::END_OF_INPUT;
 }
 
+bool	Parser::isValidKeyword(const Token& token) const
+{
+	return token.type == TokenType::KEYWORD && token.keywordType != KeywordType::NONE;
+}
+
 void	Parser::expect(TokenType _type, const std::string& msg)
 {
 	if (m_pos >= m_tokens.size() || m_tokens[m_pos].type != _type)
@@ -88,17 +97,20 @@ void	Parser::expect(TokenType _type, const std::string& msg)
 	advance();
 }
 
-
-void	Parser::skipEventsDirective(void)
+void	Parser::expectNoArguments(void)
 {
-	advance();	//	consumes "EVENTS"
-	
-	// throw if params available
+	// throw if param is available
 	if (peek().type == TokenType::PARAM ||
 	    peek().type == TokenType::URI ||
 	    peek().type == TokenType::NUMBER)
 		throw_InvalidNumberOfArguments(prev());
-		
+}
+
+void	Parser::skipEventsDirective(void)
+{
+	advance();	//	consumes EVENTS directive
+	
+	expectNoArguments();
 	expect(TokenType::OPEN_BRACE, "expected \"{\"");
 
 	// count scopes and skips any tokens inside EVENTS directive
@@ -114,7 +126,52 @@ void	Parser::skipEventsDirective(void)
 		}
 		advance();
 	}
+	expect(TokenType::CLOSE_BRACE, "expected \"}\"");
+}
 
+void	Parser::parseHttpDirective(Config& config)
+{
+	advance();	//	consumes HTTP directive
+
+	expectNoArguments();
+	expect(TokenType::OPEN_BRACE, "expected \"{\"");
+
+	while (m_pos < m_tokens.size() && !isAtEnd() && peek().type != TokenType::CLOSE_BRACE) {
+		// expect KEYWORD
+		if (!isValidKeyword(peek()))
+			throw_UnknownOrUnsupportedDirective(peek());
+
+		// select action based on KEYWORDTYPE
+		const Token& directive = peek();
+		switch (directive.keywordType) {
+			case KeywordType::SERVER: {
+				ServerBlock serverBlock;
+				parseServerDirective(serverBlock);
+				config.serverBlocks.emplace_back(serverBlock);
+				break ;
+			}
+			// add any Http scoped supported directive here
+			default:
+				throw_UnknownOrUnsupportedDirective(peek());
+		}
+	}
+	expect(TokenType::CLOSE_BRACE, "expected \"}\"");
+}
+
+void	Parser::parseServerDirective(ServerBlock& serverBlock)
+{
+	advance();	//	consumes SERVER directive
+
+	expectNoArguments();
+	expect(TokenType::OPEN_BRACE, "expected \"{\"");
+
+	while (m_pos < m_tokens.size() && !isAtEnd() && peek().type != TokenType::CLOSE_BRACE) {
+		////////////////////////////
+		//	TODO
+		(void)serverBlock;
+		////////////////////////////
+		advance();
+	}
 	expect(TokenType::CLOSE_BRACE, "expected \"}\"");
 }
 

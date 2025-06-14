@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 10:21:26 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 11:14:27 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,9 +35,13 @@ private:
 	const Token&	peek(void) const;
 	const Token&	advance(void);
 	bool			isAtEnd(void) const;
+	bool			isValidKeyword(const Token& token) const;
 	void			expect(TokenType _type, const std::string& msg);
+	void			expectNoArguments(void);
 
 	void			skipEventsDirective(void);
+	void			parseHttpDirective(Config& config);
+	void			parseServerDirective(ServerBlock& serverBlock);
 
 	void			throw_SyntaxError(const std::string& msg) const;
 	void			throw_Unexpected(const Token& token) const;
