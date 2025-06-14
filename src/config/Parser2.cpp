@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 15:35:55 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 18:16:39 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,11 @@ bool	Parser::isValidKeyword(const Token& token) const
 
 void	Parser::expect(TokenType _type, const std::string& msg)
 {
+	if (_type == TokenType::SEMICOLON && !isAtEnd() &&
+	    peek().type == TokenType::CLOSE_BRACE) {
+		throw_Unexpected(peek());
+	}
+
 	if (m_pos >= m_tokens.size() || m_tokens[m_pos].type != _type)
 		throw_SyntaxError(msg);
 	advance();
@@ -207,9 +212,10 @@ void	Parser::parseServerDirective(ServerBlock& server)
 
 	if (directive.keywordType == KeywordType::LISTEN) {
 		parseListenDirective(directive, params, server);
-	}
-	else if (directive.keywordType == KeywordType::SERVER_NAME) {
+	} else if (directive.keywordType == KeywordType::SERVER_NAME) {
 		parseServerNameDirective(directive, params, server);
+	} else if (directive.keywordType == KeywordType::ERROR_PAGE) {
+		parseErrorPageDirective(directive, params, server);
 	} else {
 		throw_UnknownOrUnsupportedDirective(directive);
 	}
@@ -308,6 +314,26 @@ void	Parser::parseServerNameDirective(const Token& directive, std::vector<const 
 	}
 }
 
+void	Parser::parseErrorPageDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server)
+{
+	if (params.size() != 2)
+		throw_InvalidNumberOfArguments(directive);
+
+	if (params[0]->type != TokenType::NUMBER)
+		throw_InvalidValue(*params[0]);
+	if (!(params[1]->type != TokenType::PARAM ||
+	      params[1]->type != TokenType::URI ||
+	      params[1]->type != TokenType::NUMBER))
+		throw_InvalidValue(*params[1]);
+
+	int error_nbr = 0;
+	if (!Validator::isValidErrorPageNbr(params[0]->value, error_nbr))
+		throw_InvalidErrorpageNbr(*params[0]);
+
+	server.errorPagePaths[error_nbr] = params[1]->value;
+
+}
+
 void	Parser::parseLocationBlock(LocationBlock& location)
 {
 	advance();	//	consumes LOCATION directive
@@ -381,4 +407,14 @@ void	Parser::throw_InvalidParameter(const Token& token) const
 void	Parser::throw_AccpetsOnlyDomainNames(const Token& token) const
 {
 	throw std::runtime_error("accpets only \"domain names\" as server_name \"" + token.getTokenValue() + "\"" + token.inLine());
+}
+
+void	Parser::throw_InvalidValue(const Token& token) const
+{
+	throw std::runtime_error("invalid value \"" + token.getTokenValue() + "\"" + token.inLine());
+}
+
+void	Parser::throw_InvalidErrorpageNbr(const Token& token) const
+{
+	throw std::runtime_error("value \"" + token.getTokenValue() + "\" must be between 300 and 599" + token.inLine());
 }
