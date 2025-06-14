@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 09:36:41 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 10:21:26 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <string>
 #include <vector>
+#include "colors.hpp"
 #include "Config.hpp"
 #include "Token.hpp"
 
@@ -30,10 +31,19 @@ private:
 	const std::vector<Token>&	m_tokens;
 	size_t						m_pos;
 
+	const Token&	prev(void) const;
 	const Token&	peek(void) const;
 	const Token&	advance(void);
 	bool			isAtEnd(void) const;
-	
+	void			expect(TokenType _type, const std::string& msg);
+
+	void			skipEventsDirective(void);
+
+	void			throw_SyntaxError(const std::string& msg) const;
+	void			throw_Unexpected(const Token& token) const;
+	void			throw_UnknownOrUnsupportedDirective(const Token& token) const;
+	void			throw_InvalidNumberOfArguments(const Token& token) const;
+
 };
 
 #endif
