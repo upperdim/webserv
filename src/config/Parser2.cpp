@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 18:16:39 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 19:57:33 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,11 +95,14 @@ bool	Parser::isValidKeyword(const Token& token) const
 	return token.type == TokenType::KEYWORD && token.keywordType != KeywordType::NONE;
 }
 
-void	Parser::expect(TokenType _type, const std::string& msg)
+void	Parser::expect(TokenType _type, const Token& directive, const std::string& msg)
 {
-	if (_type == TokenType::SEMICOLON && !isAtEnd() &&
-	    peek().type == TokenType::CLOSE_BRACE) {
-		throw_Unexpected(peek());
+	if (_type == TokenType::SEMICOLON && !isAtEnd()) {
+	    if (peek().type == TokenType::CLOSE_BRACE) {
+			throw_Unexpected(peek());
+		} else if (peek().type == TokenType::OPEN_BRACE) {
+			throw_DirectiveIsNotTerminated(directive);
+		}
 	}
 
 	if (m_pos >= m_tokens.size() || m_tokens[m_pos].type != _type)
@@ -118,10 +121,10 @@ void	Parser::expectNoArguments(void)
 
 void	Parser::skipEventsDirective(void)
 {
-	advance();	//	consumes EVENTS directive
+	const Token& directive = advance();	//	consumes EVENTS directive
 	
 	expectNoArguments();
-	expect(TokenType::OPEN_BRACE, "expected \"{\"");
+	expect(TokenType::OPEN_BRACE, directive, "expected \"{\"");
 
 	// count scopes and skips any tokens inside EVENTS directive
 	size_t braceCount = 1;
@@ -136,15 +139,15 @@ void	Parser::skipEventsDirective(void)
 		}
 		advance();
 	}
-	expect(TokenType::CLOSE_BRACE, "expected \"}\"");
+	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
 }
 
 void	Parser::parseHttpDirective(Config& config)
 {
-	advance();	//	consumes HTTP directive
+	const Token& directive = advance();	//	consumes HTTP directive
 
 	expectNoArguments();
-	expect(TokenType::OPEN_BRACE, "expected \"{\"");
+	expect(TokenType::OPEN_BRACE, directive, "expected \"{\"");
 
 	while (m_pos < m_tokens.size() && !isAtEnd() && peek().type != TokenType::CLOSE_BRACE) {
 		// expect KEYWORD
@@ -165,15 +168,15 @@ void	Parser::parseHttpDirective(Config& config)
 				throw_UnknownOrUnsupportedDirective(peek());
 		}
 	}
-	expect(TokenType::CLOSE_BRACE, "expected \"}\"");
+	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
 }
 
 void	Parser::parseServerBlock(ServerBlock& server)
 {
-	advance();	//	consumes SERVER directive
+	const Token& directive = advance();	//	consumes SERVER directive
 
 	expectNoArguments();
-	expect(TokenType::OPEN_BRACE, "expected \"{\"");
+	expect(TokenType::OPEN_BRACE, directive, "expected \"{\"");
 
 	while (m_pos < m_tokens.size() && !isAtEnd() && peek().type != TokenType::CLOSE_BRACE) {
 		// expect KEYWORD
@@ -190,7 +193,7 @@ void	Parser::parseServerBlock(ServerBlock& server)
 			parseServerDirective(server);
 		}
 	}
-	expect(TokenType::CLOSE_BRACE, "expected \"}\"");
+	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
 }
 
 void	Parser::parseServerDirective(ServerBlock& server)
@@ -208,7 +211,7 @@ void	Parser::parseServerDirective(ServerBlock& server)
 		const Token& current = advance();
 		params.emplace_back(&current);
 	}
-	expect(TokenType::SEMICOLON, "expected \";\"");
+	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
 
 	if (directive.keywordType == KeywordType::LISTEN) {
 		parseListenDirective(directive, params, server);
@@ -216,6 +219,8 @@ void	Parser::parseServerDirective(ServerBlock& server)
 		parseServerNameDirective(directive, params, server);
 	} else if (directive.keywordType == KeywordType::ERROR_PAGE) {
 		parseErrorPageDirective(directive, params, server);
+	} else if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
+		parseClientMaxBodySizeDirective(directive, params, server);
 	} else {
 		throw_UnknownOrUnsupportedDirective(directive);
 	}
@@ -331,7 +336,26 @@ void	Parser::parseErrorPageDirective(const Token& directive, std::vector<const T
 		throw_InvalidErrorpageNbr(*params[0]);
 
 	server.errorPagePaths[error_nbr] = params[1]->value;
+}
 
+void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server)
+{
+	if (params.size() != 1)
+		throw_InvalidNumberOfArguments(directive);
+
+	size_t bodySizeValue;
+	try {
+		bodySizeValue = std::stoul(params[0]->value);
+		if (params[0]->value.back() == 'k' || params[0]->value.back() == 'K')
+			bodySizeValue *= 1024;
+		else if (params[0]->value.back() == 'm' || params[0]->value.back() == 'M')
+			bodySizeValue *= 1024 * 1024;
+		else if (params[0]->value.back() == 'g' || params[0]->value.back() == 'G')
+			bodySizeValue *= 1024 * 1024 * 1024;
+	} catch(...) {
+		throw_InvalidValue(*params[0]);
+	}
+	server.clientMaxBodySize = bodySizeValue;
 }
 
 void	Parser::parseLocationBlock(LocationBlock& location)
@@ -417,4 +441,9 @@ void	Parser::throw_InvalidValue(const Token& token) const
 void	Parser::throw_InvalidErrorpageNbr(const Token& token) const
 {
 	throw std::runtime_error("value \"" + token.getTokenValue() + "\" must be between 300 and 599" + token.inLine());
+}
+
+void	Parser::throw_DirectiveIsNotTerminated(const Token& token) const
+{
+	throw std::runtime_error("directive \"" + token.getTokenValue() + "\" is not terminated by \";\"" + token.inLine());
 }

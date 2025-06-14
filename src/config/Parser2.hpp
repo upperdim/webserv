@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 18:39:38 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 19:42:03 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ private:
 	const Token&	advance(void);
 	bool			isAtEnd(void) const;
 	bool			isValidKeyword(const Token& token) const;
-	void			expect(TokenType _type, const std::string& msg);
+	void			expect(TokenType _type, const Token& directive, const std::string& msg);
 	void			expectNoArguments(void);
 
 	void			skipEventsDirective(void);
@@ -52,6 +52,7 @@ private:
 	void			parseListenDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseServerNameDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseErrorPageDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
+	void			parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseLocationBlock(LocationBlock& location);
 	void			parseLocationDirective(LocationBlock& location);
 
@@ -68,6 +69,7 @@ private:
 	void			throw_AccpetsOnlyDomainNames(const Token& token) const;
 	void			throw_InvalidValue(const Token& token) const;
 	void			throw_InvalidErrorpageNbr(const Token& token) const;
+	void			throw_DirectiveIsNotTerminated(const Token& token) const;
 
 };
 
