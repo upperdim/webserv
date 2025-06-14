@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/13 11:13:26 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/14 14:26:33 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,12 +42,13 @@ std::vector<Token>	Lexer::tokenize(void)
 	while (m_pos < m_input.length()) {
 		Token token = nextToken();
 
-		//	TODO: decide if we process INVALID tokens or if we just leave them out
-		if (token.type != TokenType::INVALID)
+		//	TODO:	decide if we process INVALID tokens or if we just leave them out
+		//			currently I decided to add INVALID tokens to the list… lets see…
+		// if (token.type != TokenType::INVALID)
 			tokens.emplace_back(token);
 	}
 
-	if (tokens.back().type != TokenType::END_OF_INPUT)
+	if (tokens.size() == 0 || tokens.back().type != TokenType::END_OF_INPUT)
 		tokens.emplace_back(Token(TokenType::END_OF_INPUT, m_line));
 
 	return tokens;
