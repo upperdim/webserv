@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/03 13:04:46 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/21 12:54:39 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 17:14:02 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,4 +213,11 @@ std::string	HTTP::getErrorPageTemplate(const int& status_code)
 	}
 
 	return (page);
+}
+
+bool	HTTP::isValidStatusCode(int& statusCode)
+{
+	if (m_status_messages.find(statusCode) != m_status_messages.end())
+		return true;
+	return false;
 }

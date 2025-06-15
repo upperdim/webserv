@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:09:01 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 15:19:04 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 17:11:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,6 +99,7 @@ public:
 	static std::string	getStatusMessage(int _status_code);
 	static std::string	getMimeType(const std::string& path);
 	static std::string	getErrorPageTemplate(const int& status_code);
+	static bool			isValidStatusCode(int& statusCode);
 
 private:
 	static const std::map<int, std::string>			m_status_messages;

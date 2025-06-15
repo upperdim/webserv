@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/15 12:15:21 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 17:07:15 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,16 +21,24 @@
 #include "Http.hpp"
 #include "colors.hpp"
 
+struct ReturnRoute
+{
+	int			returnCode;
+	std::string	returnRoute;
+};
+
 class LocationBlock
 {
 public:
-	std::string					route;				//	path after location
-	std::vector<HTTP::Method>	allowMethods;		//	::	allow_methods
-	std::string					returnRoute;		//	::	return		TBD: should we name it: redirect
-	bool						autoIndex;			//	::	autoindex
-	std::string					cgiExtension;		//	::	cgi_extension
-	bool						allowUpload;		//	::	allow_upload
-	std::string					uploadDir;			//	::	upload_store
+	std::string					route;										//	path after location
+	std::vector<HTTP::Method>	allowMethods	= {HTTP::Method::GET,
+	                                               HTTP::Method::POST,
+	                                               HTTP::Method::DELETE};	//	::	allow_methods
+	ReturnRoute					returnRoute		= {0, ""};					//	::	return		TBD: should we name it: redirect
+	bool						autoIndex;									//	::	autoindex
+	std::string					cgiExtension;								//	::	cgi_extension
+	bool						allowUpload;								//	::	allow_upload
+	std::string					uploadDir;									//	::	upload_store
 
 	// Multiscope options
 	size_t 						clientMaxBodySize;	//	::	client_max_body_size

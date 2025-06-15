@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 15:08:31 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 17:23:10 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,7 @@ private:
 	void			parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, size_t& value);
 	void			parseRootDirective(const Token& directive, std::vector<const Token*>& params, std::string& root);
 	void			parseIndexDirective(const Token& directive, std::vector<const Token*>& params, std::string& index);
+	void			parseReturnDirective(const Token& directive, std::vector<const Token*>& params, ReturnRoute& returnRoute);
 
 	void			throw_SyntaxError(const std::string& msg) const;
 	void			throw_Unexpected(const Token& token) const;
@@ -75,6 +76,7 @@ private:
 	void			throw_InvalidValue(const Token& token) const;
 	void			throw_InvalidErrorpageNbr(const Token& token) const;
 	void			throw_DirectiveIsNotTerminated(const Token& token) const;
+	void			throw_InvalidReturnCode(const Token& token) const;
 
 };
 

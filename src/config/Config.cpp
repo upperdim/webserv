@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/15 15:20:55 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 17:18:15 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,13 @@ void	Config::printConfigs(void) const	// TODO: delete me
 		// print locations
 		for (LocationBlock location : server.locationBlocks) {
 			printLn(LIGHTCYAN"\n\tlocation " LIGHTMAGENTA + location.route +  LIGHTYELLOW " {" RESET);
+
+			if (HTTP::isValidStatusCode(location.returnRoute.returnCode)) {
+				print(LIGHTCYAN"\t\treturn\t" RESET);
+				print(LIGHTMAGENTA "\t\t" + std::to_string(location.returnRoute.returnCode));
+				print(MAGENTA " " + location.returnRoute.returnRoute);
+				printLn(GRAY";" RESET);
+			}
 
 			if (location.allowMethods.size() > 0) {
 				print(LIGHTCYAN"\t\tallow_methods\t\t" RESET);

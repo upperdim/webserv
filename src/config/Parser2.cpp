@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 15:21:59 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 17:32:00 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -398,6 +398,8 @@ void	Parser::parseLocationDirective(LocationBlock& location)
 
 	if (directive.keywordType == KeywordType::ALLOW_METHODS) {
 		parseAllowMethodsDirective(directive, params, location);
+	} else if (directive.keywordType == KeywordType::RETURN) {
+		parseReturnDirective(directive, params, location.returnRoute);
 	} else if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
 		parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize);
 	} else if (directive.keywordType == KeywordType::ROOT) {
@@ -477,6 +479,28 @@ void	Parser::parseIndexDirective(const Token& directive, std::vector<const Token
 	index = params[0]->value;
 }
 
+//	multiscope directive method expects the returnRoute struct, so it can be set in the different scopes
+void	Parser::parseReturnDirective(const Token& directive, std::vector<const Token*>& params, ReturnRoute& returnRoute)
+{
+	if (params.size() != 2)
+		throw_InvalidNumberOfArguments(directive);
+	if (params[0]->type != TokenType::NUMBER)
+		throw_InvalidReturnCode(*params[0]);
+	if (params[1]->type != TokenType::URI)
+		throw_InvalidValue(*params[1]);
+	
+	int returnCode;
+	try {
+		returnCode = std::stoi(params[0]->value);
+	} catch (...) {
+		throw_InvalidValue(*params[0]);
+	}
+	if (!HTTP::isValidStatusCode(returnCode))
+		throw_InvalidReturnCode(*params[0]);
+	returnRoute.returnCode = returnCode;
+	returnRoute.returnRoute = params[1]->value;
+}
+
 
 /* ************************************************************************** */
 /* ************************************************************************** */
@@ -550,4 +574,9 @@ void	Parser::throw_InvalidErrorpageNbr(const Token& token) const
 void	Parser::throw_DirectiveIsNotTerminated(const Token& token) const
 {
 	throw std::runtime_error("directive \"" + token.getTokenValue() + "\" is not terminated by \";\"" + token.inLine());
+}
+
+void	Parser::throw_InvalidReturnCode(const Token& token) const
+{
+	throw std::runtime_error("invalid return code \"" + token.getTokenValue() + "\"" + token.inLine());
 }
