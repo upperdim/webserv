@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 11:59:51 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 15:08:31 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,9 @@
 #include <sys/types.h>		// for getaddrinfo()
 #include <sys/socket.h>		// for getaddrinfo()
 #include <netdb.h>			// for getaddrinfo()
+#include <algorithm>		// for std::find in parseAllowMethodsDirective() method
 #include "colors.hpp"
+#include "Http.hpp"
 #include "Config.hpp"
 #include "Token.hpp"
 #include "Validator.hpp"
@@ -54,6 +56,7 @@ private:
 	void			parseErrorPageDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseLocationBlock(LocationBlock& location);
 	void			parseLocationDirective(LocationBlock& location);
+	void			parseAllowMethodsDirective(const Token& directive, std::vector<const Token*>& params, LocationBlock& location);
 	void			parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, size_t& value);
 	void			parseRootDirective(const Token& directive, std::vector<const Token*>& params, std::string& root);
 	void			parseIndexDirective(const Token& directive, std::vector<const Token*>& params, std::string& index);

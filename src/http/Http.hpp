@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:09:01 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/13 16:56:25 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 15:19:04 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,6 +87,7 @@ class HTTP
 public:
 	enum Method
 	{
+		INVALID,
 		GET,
 		POST,
 		DELETE

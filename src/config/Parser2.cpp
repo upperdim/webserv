@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 12:05:42 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 15:21:59 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ Config	Parser::parse(void)
 
 	if (m_tokens.size() == 0 || isAtEnd()) {
 		//	TODO:	return a valid default config
+		//			set default value for allow_methods					
 		return config;
 	}
 
@@ -395,11 +396,9 @@ void	Parser::parseLocationDirective(LocationBlock& location)
 	}
 	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
 
-	// if (directive.keywordType == KeywordType::SERVER_NAME) {
-	// 	parseServerNameDirective(directive, params, server);
-	// } else if (directive.keywordType == KeywordType::ERROR_PAGE) {
-	// 	parseErrorPageDirective(directive, params, server);
-	if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
+	if (directive.keywordType == KeywordType::ALLOW_METHODS) {
+		parseAllowMethodsDirective(directive, params, location);
+	} else if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
 		parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize);
 	} else if (directive.keywordType == KeywordType::ROOT) {
 		parseRootDirective(directive, params, location.root);
@@ -407,6 +406,22 @@ void	Parser::parseLocationDirective(LocationBlock& location)
 		parseIndexDirective(directive, params, location.index);
 	} else {
 		throw_UnknownOrUnsupportedDirective(directive);
+	}
+}
+
+void	Parser::parseAllowMethodsDirective(const Token& directive, std::vector<const Token*>& params, LocationBlock& location)
+{
+	if (params.size() == 0)
+		throw_InvalidNumberOfArguments(directive);
+
+	for (size_t i = 0; i < params.size(); ++i) {
+		HTTP::Method method = HTTP::Method::INVALID;
+		if (params[i]->type == TokenType::PARAM && Validator::isValidMethod(params[i]->value, method)) {
+			if (std::find(location.allowMethods.begin(), location.allowMethods.end(), method) == location.allowMethods.end())
+				location.allowMethods.emplace_back(method);
+		}
+		else
+			throw_InvalidValue(*params[i]);
 	}
 }
 

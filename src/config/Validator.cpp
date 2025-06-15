@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/11 11:09:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 18:17:24 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 15:19:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,5 +144,20 @@ bool Validator::isValidErrorPageNbr(const std::string& str, int& nbr)
 	}
 	if (nbr >= 300 && nbr <= 599)
 		return true;
+	return false;
+}
+
+bool	Validator::isValidMethod(const std::string& str, HTTP::Method& method)
+{
+	if (str == "GET") {
+		method = HTTP::Method::GET;
+		return true;
+	} else if (str == "POST") {
+		method = HTTP::Method::POST;
+		return true;
+	} else if (str == "DELETE") {
+		method = HTTP::Method::DELETE;
+		return true;
+	}
 	return false;
 }

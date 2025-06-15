@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/15 12:09:30 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 15:20:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ void	Config::printConfigs(void) const	// TODO: delete me
 
 		// Print all ERROR_PAGE directives
 		if (server.errorPagePaths.size() > 0) {
-			for(std::map<int,std::string>::iterator it = server.errorPagePaths.begin(); it != server.errorPagePaths.end(); ++it)
+			for (std::map<int,std::string>::iterator it = server.errorPagePaths.begin(); it != server.errorPagePaths.end(); ++it)
 			{
 				print(LIGHTCYAN"\terror_page\t\t" RESET);
 				print(LIGHTMAGENTA + std::to_string(it->first) + " ");
@@ -78,6 +78,22 @@ void	Config::printConfigs(void) const	// TODO: delete me
 		// print locations
 		for (LocationBlock location : server.locationBlocks) {
 			printLn(LIGHTCYAN"\n\tlocation " LIGHTMAGENTA + location.route +  LIGHTYELLOW " {" RESET);
+
+			if (location.allowMethods.size() > 0) {
+				print(LIGHTCYAN"\t\tallow_methods\t\t" RESET);
+				for (HTTP::Method method : location.allowMethods)
+				{
+					switch (method) {
+						case HTTP::Method::GET:		print(LIGHTMAGENTA"GET"); break;
+						case HTTP::Method::POST:	print(LIGHTMAGENTA"POST"); break;
+						case HTTP::Method::DELETE:	print(LIGHTMAGENTA"DELETE"); break;
+						default:					print(LIGHTMAGENTA"INVALID_METHOD"); break;
+					}
+					if (method != location.allowMethods.back()) 
+						print(" ");
+				}
+				printLn(GRAY";" RESET);
+			}
 
 			print(LIGHTCYAN"\t\tclient_max_body_size\t" RESET);
 			std::cout << LIGHTMAGENTA << location.clientMaxBodySize;
