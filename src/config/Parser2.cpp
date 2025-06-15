@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 11:52:42 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 12:05:42 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,7 +189,7 @@ void	Parser::parseServerBlock(ServerBlock& server)
 		if (directive.keywordType == KeywordType::LOCATION) {
 			LocationBlock location;
 			parseLocationBlock(location);
-			server.locationsBlocks.emplace_back(location);
+			server.locationBlocks.emplace_back(location);
 		} else {
 			parseServerDirective(server);
 		}
@@ -221,7 +221,7 @@ void	Parser::parseServerDirective(ServerBlock& server)
 	} else if (directive.keywordType == KeywordType::ERROR_PAGE) {
 		parseErrorPageDirective(directive, params, server);
 	} else if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
-		parseClientMaxBodySizeDirective(directive, params, server);
+		parseClientMaxBodySizeDirective(directive, params, server.clientMaxBodySize);
 	} else if (directive.keywordType == KeywordType::ROOT) {
 		parseRootDirective(directive, params, server.root);
 	} else if (directive.keywordType == KeywordType::INDEX) {
@@ -343,28 +343,6 @@ void	Parser::parseErrorPageDirective(const Token& directive, std::vector<const T
 	server.errorPagePaths[error_nbr] = params[1]->value;
 }
 
-void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server)
-{
-	if (params.size() != 1)
-		throw_InvalidNumberOfArguments(directive);
-	if (params[0]->value.find('.') != std::string::npos)
-		throw_InvalidValue(*params[0]);
-
-	size_t bodySizeValue;
-	try {
-		bodySizeValue = std::stoul(params[0]->value);
-		if (params[0]->value.back() == 'k' || params[0]->value.back() == 'K')
-			bodySizeValue *= 1024;
-		else if (params[0]->value.back() == 'm' || params[0]->value.back() == 'M')
-			bodySizeValue *= 1024 * 1024;
-		else if (params[0]->value.back() == 'g' || params[0]->value.back() == 'G')
-			bodySizeValue *= 1024 * 1024 * 1024;
-	} catch(...) {
-		throw_InvalidValue(*params[0]);
-	}
-	server.clientMaxBodySize = bodySizeValue;
-}
-
 void	Parser::parseLocationBlock(LocationBlock& location)
 {
 	const Token& directive = advance();	//	consumes LOCATION directive
@@ -421,15 +399,38 @@ void	Parser::parseLocationDirective(LocationBlock& location)
 	// 	parseServerNameDirective(directive, params, server);
 	// } else if (directive.keywordType == KeywordType::ERROR_PAGE) {
 	// 	parseErrorPageDirective(directive, params, server);
-	// } else if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
-	// 	parseClientMaxBodySizeDirective(directive, params, server);
-	if (directive.keywordType == KeywordType::ROOT) {
+	if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
+		parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize);
+	} else if (directive.keywordType == KeywordType::ROOT) {
 		parseRootDirective(directive, params, location.root);
 	} else if (directive.keywordType == KeywordType::INDEX) {
 		parseIndexDirective(directive, params, location.index);
 	} else {
 		throw_UnknownOrUnsupportedDirective(directive);
 	}
+}
+
+//	multiscope directive method expects the clientMaxBodySize value, so it can be set in the different scopes
+void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, size_t& value)
+{
+	if (params.size() != 1)
+		throw_InvalidNumberOfArguments(directive);
+	if (params[0]->value.find('.') != std::string::npos)
+		throw_InvalidValue(*params[0]);
+
+	size_t bodySizeValue;
+	try {
+		bodySizeValue = std::stoul(params[0]->value);
+		if (params[0]->value.back() == 'k' || params[0]->value.back() == 'K')
+			bodySizeValue *= 1024;
+		else if (params[0]->value.back() == 'm' || params[0]->value.back() == 'M')
+			bodySizeValue *= 1024 * 1024;
+		else if (params[0]->value.back() == 'g' || params[0]->value.back() == 'G')
+			bodySizeValue *= 1024 * 1024 * 1024;
+	} catch(...) {
+		throw_InvalidValue(*params[0]);
+	}
+	value = bodySizeValue;
 }
 
 //	multiscope directive method expects the root string, so it can be set in the different scopes

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 11:00:58 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 11:59:51 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,9 +52,9 @@ private:
 	void			parseListenDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseServerNameDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseErrorPageDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
-	void			parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseLocationBlock(LocationBlock& location);
 	void			parseLocationDirective(LocationBlock& location);
+	void			parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, size_t& value);
 	void			parseRootDirective(const Token& directive, std::vector<const Token*>& params, std::string& root);
 	void			parseIndexDirective(const Token& directive, std::vector<const Token*>& params, std::string& index);
 
