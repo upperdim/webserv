@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/15 17:07:15 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 18:03:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ public:
 	                                               HTTP::Method::POST,
 	                                               HTTP::Method::DELETE};	//	::	allow_methods
 	ReturnRoute					returnRoute		= {0, ""};					//	::	return		TBD: should we name it: redirect
-	bool						autoIndex;									//	::	autoindex
+	bool						autoIndex		= false;					//	::	autoindex
 	std::string					cgiExtension;								//	::	cgi_extension
 	bool						allowUpload;								//	::	allow_upload
 	std::string					uploadDir;									//	::	upload_store

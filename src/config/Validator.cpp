@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/11 11:09:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 15:19:55 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 17:59:11 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,6 +157,18 @@ bool	Validator::isValidMethod(const std::string& str, HTTP::Method& method)
 		return true;
 	} else if (str == "DELETE") {
 		method = HTTP::Method::DELETE;
+		return true;
+	}
+	return false;
+}
+
+bool	Validator::isValidToggle(const std::string& str, bool& toggle)
+{
+	if (str == "on" || str == "true") {
+		toggle = true;
+		return true;
+	} else if (str == "off" || str == "false") {
+		toggle = false;
 		return true;
 	}
 	return false;

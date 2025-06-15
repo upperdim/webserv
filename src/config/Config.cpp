@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/15 17:18:15 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 18:08:16 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,9 @@ Config::~Config()
 {
 }
 
-/* ************************************************************************** */
-/* ************************************************************************** */
 
+/* ************************************************************************** */
+/* ************************************************************************** */
 
 
 void	Config::printConfigs(void) const	// TODO: delete me 
@@ -80,11 +80,15 @@ void	Config::printConfigs(void) const	// TODO: delete me
 			printLn(LIGHTCYAN"\n\tlocation " LIGHTMAGENTA + location.route +  LIGHTYELLOW " {" RESET);
 
 			if (HTTP::isValidStatusCode(location.returnRoute.returnCode)) {
-				print(LIGHTCYAN"\t\treturn\t" RESET);
-				print(LIGHTMAGENTA "\t\t" + std::to_string(location.returnRoute.returnCode));
+				print(LIGHTCYAN"\t\treturn\t\t\t" RESET);
+				print(LIGHTMAGENTA + std::to_string(location.returnRoute.returnCode));
 				print(MAGENTA " " + location.returnRoute.returnRoute);
 				printLn(GRAY";" RESET);
 			}
+
+			print(LIGHTCYAN"\t\tautoindex\t\t" RESET);
+			location.autoIndex ? print(LIGHTMAGENTA "on") : print(LIGHTMAGENTA "off");
+			printLn(GRAY";" RESET);
 
 			if (location.allowMethods.size() > 0) {
 				print(LIGHTCYAN"\t\tallow_methods\t\t" RESET);
@@ -106,12 +110,12 @@ void	Config::printConfigs(void) const	// TODO: delete me
 			std::cout << LIGHTMAGENTA << location.clientMaxBodySize;
 			printLn(GRAY";" RESET);
 
-			print(LIGHTCYAN"\t\troot\t" RESET);
-			print(LIGHTMAGENTA "\t\t" + location.root);
+			print(LIGHTCYAN"\t\troot\t\t\t" RESET);
+			print(LIGHTMAGENTA + location.root);
 			printLn(GRAY";" RESET);
 
-			print(LIGHTCYAN"\t\tindex\t" RESET);
-			print(LIGHTMAGENTA "\t\t" + location.index);
+			print(LIGHTCYAN"\t\tindex\t\t\t" RESET);
+			print(LIGHTMAGENTA + location.index);
 			printLn(GRAY";" RESET);
 
 			print(LIGHTYELLOW"\t}\n" RESET);

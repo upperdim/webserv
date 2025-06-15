@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 17:32:00 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 18:03:45 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -400,6 +400,8 @@ void	Parser::parseLocationDirective(LocationBlock& location)
 		parseAllowMethodsDirective(directive, params, location);
 	} else if (directive.keywordType == KeywordType::RETURN) {
 		parseReturnDirective(directive, params, location.returnRoute);
+	} else if (directive.keywordType == KeywordType::AUTOINDEX) {
+		parseAutoIndexDirective(directive, params, location.autoIndex);
 	} else if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
 		parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize);
 	} else if (directive.keywordType == KeywordType::ROOT) {
@@ -499,6 +501,20 @@ void	Parser::parseReturnDirective(const Token& directive, std::vector<const Toke
 		throw_InvalidReturnCode(*params[0]);
 	returnRoute.returnCode = returnCode;
 	returnRoute.returnRoute = params[1]->value;
+}
+
+void	Parser::parseAutoIndexDirective(const Token& directive, std::vector<const Token*>& params, bool& autoIndex)
+{
+	if (params.size() != 1)
+		throw_InvalidNumberOfArguments(directive);
+	if (params[0]->type != TokenType::PARAM)
+		throw_InvalidValue(*params[0]);
+
+	bool toggle = false;
+	if (!Validator::isValidToggle(params[0]->value, toggle))
+		throw_InvalidValue(*params[0]);
+
+	autoIndex = toggle;
 }
 
 
