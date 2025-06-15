@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 10:37:07 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 11:17:16 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,8 @@ Config	Parser::parse(void)
 				break ;
 			// add any global supported directive here
 			default:
-				advance();	//	TODO: delete me later if not needed!!!!
+				throw_UnknownOrUnsupportedDirective(peek());
+				// advance();	//	TODO: delete me later if not needed!!!!
 				break ;
 		}
 	}
@@ -223,6 +224,8 @@ void	Parser::parseServerDirective(ServerBlock& server)
 		parseClientMaxBodySizeDirective(directive, params, server);
 	} else if (directive.keywordType == KeywordType::ROOT) {
 		parseRootDirective(directive, params, server.root);
+	} else if (directive.keywordType == KeywordType::INDEX) {
+		parseIndexDirective(directive, params, server.index);
 	} else {
 		throw_UnknownOrUnsupportedDirective(directive);
 	}
@@ -314,7 +317,7 @@ void	Parser::parseServerNameDirective(const Token& directive, std::vector<const 
 		throw_InvalidNumberOfArguments(directive);
 
 	for (size_t i = 0; i < params.size(); ++i) {
-		if (params[i]->type == TokenType::PARAM &&  Validator::isValidServerName(params[i]->value))
+		if (params[i]->type == TokenType::PARAM && Validator::isValidServerName(params[i]->value))
 			server.serverNames.emplace_back(params[i]->value);
 		else
 			throw_AccpetsOnlyDomainNames(*params[i]);
@@ -388,6 +391,22 @@ void	Parser::parseRootDirective(const Token& directive, std::vector<const Token*
 	//	TODO:	we currently accept any URI
 	//			IS this good enough for use ??
 	root = params[0]->value;
+}
+
+//	multiscope directive method expects the index string, so it can be set in the different scopes
+void	Parser::parseIndexDirective(const Token& directive, std::vector<const Token*>& params, std::string& index)
+{
+	//	TODO:	we currently go with single param first, since subject doesn't specifiy it as plural, see Notion
+	if (params.size() != 1)
+		throw_InvalidNumberOfArguments(directive);
+	if (!(params[0]->type == TokenType::PARAM ||
+		  params[0]->type == TokenType::URI ||
+		  params[0]->type == TokenType::NUMBER))
+		throw_InvalidValue(*params[0]);
+
+	//	TODO:	we currently accept only one parameter
+	//			and we accept any PARAM, URI or NUMBER
+	index = params[0]->value;
 }
 
 

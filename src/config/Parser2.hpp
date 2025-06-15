@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 10:16:03 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 11:00:58 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,7 @@ private:
 	void			parseLocationBlock(LocationBlock& location);
 	void			parseLocationDirective(LocationBlock& location);
 	void			parseRootDirective(const Token& directive, std::vector<const Token*>& params, std::string& root);
+	void			parseIndexDirective(const Token& directive, std::vector<const Token*>& params, std::string& index);
 
 	void			throw_SyntaxError(const std::string& msg) const;
 	void			throw_Unexpected(const Token& token) const;
