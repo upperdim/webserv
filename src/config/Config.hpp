@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/15 11:00:35 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 12:15:21 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,15 +25,17 @@ class LocationBlock
 {
 public:
 	std::string					route;				//	path after location
-	size_t 						clientMaxBodySize;	//	::	client_max_body_size
 	std::vector<HTTP::Method>	allowMethods;		//	::	allow_methods
 	std::string					returnRoute;		//	::	return		TBD: should we name it: redirect
-	std::string					root;				//	::	root
 	bool						autoIndex;			//	::	autoindex
-	std::string					index;				//	::	index
 	std::string					cgiExtension;		//	::	cgi_extension
 	bool						allowUpload;		//	::	allow_upload
 	std::string					uploadDir;			//	::	upload_store
+
+	// Multiscope options
+	size_t 						clientMaxBodySize;	//	::	client_max_body_size
+	std::string					index;				//	::	index
+	std::string					root;				//	::	root
 };
 
 class ServerBlock
@@ -44,8 +46,8 @@ public:
 	in_addr_t					host               = 0;						//	assign in Server constructor like: m_srv_addr.sin_addr.s_addr = config.host;
 	std::vector<std::string>	serverNames;								//	::	server_name
 	std::map<int, std::string>	errorPagePaths;								//	::	error_page
-	size_t						clientMaxBodySize  = 1073741824; // 1 MB	//	::	client_max_body_size
-	std::vector<LocationBlock>	locationsBlocks;
+	size_t						clientMaxBodySize  = 1048576; // 1 MB		//	::	client_max_body_size
+	std::vector<LocationBlock>	locationBlocks;
 
 	// Multiscope options
 	std::string root;								//	::	root

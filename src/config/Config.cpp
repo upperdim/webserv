@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/15 11:22:28 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 12:09:30 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,25 @@ void	Config::printConfigs(void) const	// TODO: delete me
 		print(LIGHTCYAN"\tindex\t" RESET);
 		print(LIGHTMAGENTA "\t\t" + server.index);
 		printLn(GRAY";" RESET);
+
+		// print locations
+		for (LocationBlock location : server.locationBlocks) {
+			printLn(LIGHTCYAN"\n\tlocation " LIGHTMAGENTA + location.route +  LIGHTYELLOW " {" RESET);
+
+			print(LIGHTCYAN"\t\tclient_max_body_size\t" RESET);
+			std::cout << LIGHTMAGENTA << location.clientMaxBodySize;
+			printLn(GRAY";" RESET);
+
+			print(LIGHTCYAN"\t\troot\t" RESET);
+			print(LIGHTMAGENTA "\t\t" + location.root);
+			printLn(GRAY";" RESET);
+
+			print(LIGHTCYAN"\t\tindex\t" RESET);
+			print(LIGHTMAGENTA "\t\t" + location.index);
+			printLn(GRAY";" RESET);
+
+			print(LIGHTYELLOW"\t}\n" RESET);
+		}
 
 		print(LIGHTYELLOW"}\n" RESET);
 	}
