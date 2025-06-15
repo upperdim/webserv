@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/14 18:32:44 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 11:22:28 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,14 @@ void	Config::printConfigs(void) const	// TODO: delete me
 
 		print(LIGHTCYAN"\tclient_max_body_size\t" RESET);
 		std::cout << LIGHTMAGENTA << server.clientMaxBodySize;
+		printLn(GRAY";" RESET);
+
+		print(LIGHTCYAN"\troot\t" RESET);
+		print(LIGHTMAGENTA "\t\t" + server.root);
+		printLn(GRAY";" RESET);
+
+		print(LIGHTCYAN"\tindex\t" RESET);
+		print(LIGHTMAGENTA "\t\t" + server.index);
 		printLn(GRAY";" RESET);
 
 		print(LIGHTYELLOW"}\n" RESET);

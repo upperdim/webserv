@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/14 18:20:04 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 11:00:35 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,12 +59,12 @@ public:
 	~Config();
 
 	// Subject requirement of this scope
-	std::vector<ServerBlock> serverBlocks;			//	server
+	std::vector<ServerBlock>	serverBlocks;		//	::	server
 
 	// Multiscope options
 	size_t						clientMaxBodySize;	//	::	client_max_body_size
-	std::string					index;				//	::	index
 	std::map<int, std::string>	errorPagePaths;		//	::	error_page
+	std::string					index;				//	::	index
 
 	void	printConfigs(void) const;				// TODO: delete me 
 
