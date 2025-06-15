@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 19:57:33 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 10:37:07 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,6 +221,8 @@ void	Parser::parseServerDirective(ServerBlock& server)
 		parseErrorPageDirective(directive, params, server);
 	} else if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
 		parseClientMaxBodySizeDirective(directive, params, server);
+	} else if (directive.keywordType == KeywordType::ROOT) {
+		parseRootDirective(directive, params, server.root);
 	} else {
 		throw_UnknownOrUnsupportedDirective(directive);
 	}
@@ -342,6 +344,8 @@ void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector
 {
 	if (params.size() != 1)
 		throw_InvalidNumberOfArguments(directive);
+	if (params[0]->value.find('.') != std::string::npos)
+		throw_InvalidValue(*params[0]);
 
 	size_t bodySizeValue;
 	try {
@@ -371,6 +375,19 @@ void	Parser::parseLocationBlock(LocationBlock& location)
 void	Parser::parseLocationDirective(LocationBlock& location)
 {
 	(void)location;
+}
+
+//	multiscope directive method expects the root string, so it can be set in the different scopes
+void	Parser::parseRootDirective(const Token& directive, std::vector<const Token*>& params, std::string& root)
+{
+	if (params.size() != 1)
+		throw_InvalidNumberOfArguments(directive);
+	if (params[0]->type != TokenType::URI)
+		throw_InvalidValue(*params[0]);
+
+	//	TODO:	we currently accept any URI
+	//			IS this good enough for use ??
+	root = params[0]->value;
 }
 
 
