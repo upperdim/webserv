@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 11:17:16 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/15 11:52:42 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -367,17 +367,69 @@ void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector
 
 void	Parser::parseLocationBlock(LocationBlock& location)
 {
-	advance();	//	consumes LOCATION directive
+	const Token& directive = advance();	//	consumes LOCATION directive
 
-	//	expect PARAMS
-	//	TODO: the rest …
-	(void)location;
+	// grab all parameters
+	std::vector<const Token*>	params;
+	while (m_pos < m_tokens.size() && (
+	       peek().type == TokenType::PARAM ||
+	       peek().type == TokenType::URI ||
+	       peek().type == TokenType::NUMBER ||
+	       peek().type == TokenType::COLON ||
+	       peek().type == TokenType::INVALID)) {
+		const Token& current = advance();
+		params.emplace_back(&current);
+	}
+	expect(TokenType::OPEN_BRACE, directive, "expected \"{\"");
 
+	//	validate PARAMS
+	if (params.size() != 1)
+		throw_InvalidNumberOfArguments(directive);
+	if (params[0]->type != TokenType::URI)
+		throw_InvalidValue(directive);
+
+	//	TODO:	do we have to validate this route here???
+	location.route = params[0]->value;
+
+	while (m_pos < m_tokens.size() && !isAtEnd() && peek().type != TokenType::CLOSE_BRACE) {
+		// expect KEYWORD
+		if (!isValidKeyword(peek()))
+			throw_UnknownOrUnsupportedDirective(peek());
+		parseLocationDirective(location);
+	}
+	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
 }
 
 void	Parser::parseLocationDirective(LocationBlock& location)
 {
-	(void)location;
+	const Token& directive = advance();	// grab the current directive token
+
+	// grab all parameters
+	std::vector<const Token*>	params;
+	while (m_pos < m_tokens.size() && (
+	       peek().type == TokenType::PARAM ||
+	       peek().type == TokenType::URI ||
+	       peek().type == TokenType::NUMBER ||
+	       peek().type == TokenType::COLON ||
+	       peek().type == TokenType::INVALID)) {
+		const Token& current = advance();
+		params.emplace_back(&current);
+	}
+	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
+
+	// if (directive.keywordType == KeywordType::SERVER_NAME) {
+	// 	parseServerNameDirective(directive, params, server);
+	// } else if (directive.keywordType == KeywordType::ERROR_PAGE) {
+	// 	parseErrorPageDirective(directive, params, server);
+	// } else if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
+	// 	parseClientMaxBodySizeDirective(directive, params, server);
+	if (directive.keywordType == KeywordType::ROOT) {
+		parseRootDirective(directive, params, location.root);
+	} else if (directive.keywordType == KeywordType::INDEX) {
+		parseIndexDirective(directive, params, location.index);
+	} else {
+		throw_UnknownOrUnsupportedDirective(directive);
+	}
 }
 
 //	multiscope directive method expects the root string, so it can be set in the different scopes
