@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 10:24:57 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 11:03:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ private:
 	void			parseReturnDirective(const Token& directive, std::vector<const Token*>& params, ReturnRoute& returnRoute);
 	void			parseUriDirective(const Token& directive, std::vector<const Token*>& params, std::string& root);
 	void			parseToggleDirective(const Token& directive, std::vector<const Token*>& params, bool& autoIndex);
+	void			parseExtensionDirective(const Token& directive, std::vector<const Token*>& params, std::string& ext);
 
 };
 

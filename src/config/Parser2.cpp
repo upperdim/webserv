@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 10:27:45 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 11:03:49 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -282,6 +282,7 @@ void	Parser::parseLocationDirective(LocationBlock& location)
 		case KeywordType::ALLOW_METHODS:		parseAllowMethodsDirective(directive, params, location); break;
 		case KeywordType::RETURN:				parseReturnDirective(directive, params, location.returnRoute); break;
 		case KeywordType::AUTOINDEX:			parseToggleDirective(directive, params, location.autoIndex); break;
+		case KeywordType::CGI_EXTENSION:		parseExtensionDirective(directive, params, location.cgiExtension); break;
 		case KeywordType::ALLOW_UPLOAD:			parseToggleDirective(directive, params, location.allowUpload); break;
 		case KeywordType::UPLOAD_STORE:			parseUriDirective(directive, params, location.uploadDir); break;
 		case KeywordType::CLIENT_MAX_BODY_SIZE:	parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize); break;
@@ -505,4 +506,17 @@ void	Parser::parseToggleDirective(const Token& directive, std::vector<const Toke
 		Throw::InvalidValue(*params[0]);
 
 	toggle = validToggle;
+}
+
+void	Parser::parseExtensionDirective(const Token& directive, std::vector<const Token*>& params, std::string& ext)
+{
+	if (params.size() != 1)
+		Throw::InvalidNumberOfArguments(directive);
+	if (params[0]->type != TokenType::PARAM)
+		Throw::InvalidValue(*params[0]);
+
+	if (!Validator::isValidExtension(params[0]->value))
+		Throw::InvalidExtension(*params[0]);
+	
+	ext = params[0]->value;
 }
