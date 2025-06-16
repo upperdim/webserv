@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 09:35:02 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 10:14:47 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,7 +224,7 @@ void	Parser::parseServerDirective(ServerBlock& server)
 	} else if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
 		parseClientMaxBodySizeDirective(directive, params, server.clientMaxBodySize);
 	} else if (directive.keywordType == KeywordType::ROOT) {
-		parseRootDirective(directive, params, server.root);
+		parseUriDirective(directive, params, server.root);
 	} else if (directive.keywordType == KeywordType::INDEX) {
 		parseIndexDirective(directive, params, server.index);
 	} else {
@@ -404,10 +404,12 @@ void	Parser::parseLocationDirective(LocationBlock& location)
 		parseToggleDirective(directive, params, location.autoIndex);
 	} else if (directive.keywordType == KeywordType::ALLOW_UPLOAD) {
 		parseToggleDirective(directive, params, location.allowUpload);
+	} else if (directive.keywordType == KeywordType::UPLOAD_STORE) {
+		parseUriDirective(directive, params, location.uploadDir);
 	} else if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
 		parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize);
 	} else if (directive.keywordType == KeywordType::ROOT) {
-		parseRootDirective(directive, params, location.root);
+		parseUriDirective(directive, params, location.root);
 	} else if (directive.keywordType == KeywordType::INDEX) {
 		parseIndexDirective(directive, params, location.index);
 	} else {
@@ -454,8 +456,8 @@ void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector
 	value = bodySizeValue;
 }
 
-//	multiscope directive method expects the root string, so it can be set in the different scopes
-void	Parser::parseRootDirective(const Token& directive, std::vector<const Token*>& params, std::string& root)
+//	multiscope directive for URI, expects a single URI as param
+void	Parser::parseUriDirective(const Token& directive, std::vector<const Token*>& params, std::string& uri)
 {
 	if (params.size() != 1)
 		Throw::InvalidNumberOfArguments(directive);
@@ -464,7 +466,7 @@ void	Parser::parseRootDirective(const Token& directive, std::vector<const Token*
 
 	//	TODO:	we currently accept any URI
 	//			IS this good enough for use ??
-	root = params[0]->value;
+	uri = params[0]->value;
 }
 
 //	multiscope directive method expects the index string, so it can be set in the different scopes
