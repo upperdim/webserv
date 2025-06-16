@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 18:03:45 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 09:19:20 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,9 +42,9 @@ Config	Parser::parse(void)
 		if (peek().type == TokenType::SEMICOLON ||
 			peek().type == TokenType::OPEN_BRACE ||
 			peek().type == TokenType::CLOSE_BRACE)
-			throw_Unexpected(peek());
+			Throw::Unexpected(peek());
 		if (!isValidKeyword(peek()))
-			throw_UnknownOrUnsupportedDirective(peek());
+			Throw::UnknownOrUnsupportedDirective(peek());
 
 		const Token& directive = peek();
 		switch (directive.keywordType) {
@@ -56,7 +56,7 @@ Config	Parser::parse(void)
 				break ;
 			// add any global supported directive here
 			default:
-				throw_UnknownOrUnsupportedDirective(peek());
+				Throw::UnknownOrUnsupportedDirective(peek());
 				// advance();	//	TODO: delete me later if not needed!!!!
 				break ;
 		}
@@ -101,14 +101,14 @@ void	Parser::expect(TokenType _type, const Token& directive, const std::string& 
 {
 	if (_type == TokenType::SEMICOLON && !isAtEnd()) {
 	    if (peek().type == TokenType::CLOSE_BRACE) {
-			throw_Unexpected(peek());
+			Throw::Unexpected(peek());
 		} else if (peek().type == TokenType::OPEN_BRACE) {
-			throw_DirectiveIsNotTerminated(directive);
+			Throw::DirectiveIsNotTerminated(directive);
 		}
 	}
 
 	if (m_pos >= m_tokens.size() || m_tokens[m_pos].type != _type)
-		throw_SyntaxError(msg);
+		Throw::SyntaxError(m_pos, m_tokens, msg);
 	advance();
 }
 
@@ -118,7 +118,7 @@ void	Parser::expectNoArguments(void)
 	if (peek().type == TokenType::PARAM ||
 	    peek().type == TokenType::URI ||
 	    peek().type == TokenType::NUMBER)
-		throw_InvalidNumberOfArguments(prev());
+		Throw::InvalidNumberOfArguments(prev());
 }
 
 void	Parser::skipEventsDirective(void)
@@ -154,7 +154,7 @@ void	Parser::parseHttpDirective(Config& config)
 	while (m_pos < m_tokens.size() && !isAtEnd() && peek().type != TokenType::CLOSE_BRACE) {
 		// expect KEYWORD
 		if (!isValidKeyword(peek()))
-			throw_UnknownOrUnsupportedDirective(peek());
+			Throw::UnknownOrUnsupportedDirective(peek());
 
 		// select action based on KEYWORD_TYPE
 		const Token& directive = peek();
@@ -167,7 +167,7 @@ void	Parser::parseHttpDirective(Config& config)
 			}
 			// add any Http scoped supported directive here
 			default:
-				throw_UnknownOrUnsupportedDirective(peek());
+				Throw::UnknownOrUnsupportedDirective(peek());
 		}
 	}
 	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
@@ -183,7 +183,7 @@ void	Parser::parseServerBlock(ServerBlock& server)
 	while (m_pos < m_tokens.size() && !isAtEnd() && peek().type != TokenType::CLOSE_BRACE) {
 		// expect KEYWORD
 		if (!isValidKeyword(peek()))
-			throw_UnknownOrUnsupportedDirective(peek());
+			Throw::UnknownOrUnsupportedDirective(peek());
 
 		// select action based on KEYWORD_TYPE
 		const Token& directive = peek();
@@ -228,24 +228,24 @@ void	Parser::parseServerDirective(ServerBlock& server)
 	} else if (directive.keywordType == KeywordType::INDEX) {
 		parseIndexDirective(directive, params, server.index);
 	} else {
-		throw_UnknownOrUnsupportedDirective(directive);
+		Throw::UnknownOrUnsupportedDirective(directive);
 	}
 }
 
 void	Parser::parseListenDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server)
 {
 	if (params.size() == 0)
-		throw_InvalidNumberOfArguments(directive);
+		Throw::InvalidNumberOfArguments(directive);
 	if (params[0]->type == TokenType::INVALID)
-		throw_HostNotFound(directive);
+		Throw::HostNotFound(directive);
 	if (params[0]->type == TokenType::URI)
-		throw_InavlidHost(directive, *params[0]);
+		Throw::InavlidHost(directive, *params[0]);
 	if (params[0]->type == TokenType::COLON) {
 		if (params.size() > 1 && params[1]->type == TokenType::NUMBER) {
 			const Token combinedToken(TokenType::PARAM, std::string(params[0]->value) + params[1]->value, params[0]->line);
-			throw_NoHost(directive, combinedToken);
+			Throw::NoHost(directive, combinedToken);
 		}
-		throw_InvalidPort(directive, *params[0]);
+		Throw::InvalidPort(directive, *params[0]);
 	}
 
 	if (params[0]->type == TokenType::PARAM) {
@@ -256,7 +256,7 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 
 			int result = inet_pton(AF_INET, ip.c_str(), &addr);
 			if (result == 0)
-				throw_InvalidIPAddr(*params[0]);
+				Throw::InvalidIPAddr(*params[0]);
 			server.host = addr.s_addr;
 		} else if (Validator::isDomainName(params[0]->value)) {
 			// we got a DomainName
@@ -265,33 +265,33 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 			hints.ai_socktype = SOCK_STREAM;	// we want a: stream socket (typically used for TCP)
 			addrinfo* res;						// result
 			if (getaddrinfo(params[0]->value.c_str(), nullptr, &hints, &res) != 0)
-				throw_HostNotFound(*params[0]);
+				Throw::HostNotFound(*params[0]);
 			
 			sockaddr_in* ipv4 = reinterpret_cast<sockaddr_in*>(res->ai_addr);
 			server.host = ipv4->sin_addr.s_addr;
 			freeaddrinfo(res);
 		} else 
-			throw_InvalidPort(directive, *params[0]);
+			Throw::InvalidPort(directive, *params[0]);
 
 		if (params.size() > 1 && params[1]->type == TokenType::COLON)
 		{
 			//	we got ":" so we have to check for a give PORT
 			if (params.size() > 2) {
 				if (params[2]->type != TokenType::NUMBER)
-					throw_InvalidPort(directive, *params[2]);
+					Throw::InvalidPort(directive, *params[2]);
 				
 				unsigned int port;
 				if (!Validator::isValidPort(params[2]->value, port))
-					throw_InvalidPort(directive, *params[2]);
+					Throw::InvalidPort(directive, *params[2]);
 				server.listenPort = port;
 			} else {
 				const Token combinedToken(TokenType::PARAM, std::string(params[0]->value) + params[1]->value, params[0]->line);
-				throw_InvalidPort(directive, combinedToken);
+				Throw::InvalidPort(directive, combinedToken);
 			}
 		}
 		else {
 			if (params.size() > 1)
-				throw_InvalidParameter(*params[1]);
+				Throw::InvalidParameter(*params[1]);
 			server.listenPort = 80;
 		}
 	} else if (params[0]->type == TokenType::NUMBER) {
@@ -299,15 +299,15 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 		if (params.size() > 1) {
 			//	TODO: clean up the comments below, they are an old condition for a different throw method
 			// if (params[1]->type == TokenType::URI)
-				throw_InvalidParameter(*params[1]);
-			// throw_InvalidNumberOfArguments(directive);
+				Throw::InvalidParameter(*params[1]);
+			// Throw::InvalidNumberOfArguments(directive);
 		}
 
 		server.host = INADDR_ANY;
 
 		unsigned int port;
 		if (!Validator::isValidPort(params[0]->value, port))
-			throw_InvalidPort(directive, *params[0]);
+			Throw::InvalidPort(directive, *params[0]);
 		server.listenPort = port;
 	}
 }
@@ -315,31 +315,31 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 void	Parser::parseServerNameDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server)
 {
 	if (params.size() == 0)
-		throw_InvalidNumberOfArguments(directive);
+		Throw::InvalidNumberOfArguments(directive);
 
 	for (size_t i = 0; i < params.size(); ++i) {
 		if (params[i]->type == TokenType::PARAM && Validator::isValidServerName(params[i]->value))
 			server.serverNames.emplace_back(params[i]->value);
 		else
-			throw_AccpetsOnlyDomainNames(*params[i]);
+			Throw::AccpetsOnlyDomainNames(*params[i]);
 	}
 }
 
 void	Parser::parseErrorPageDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server)
 {
 	if (params.size() != 2)
-		throw_InvalidNumberOfArguments(directive);
+		Throw::InvalidNumberOfArguments(directive);
 
 	if (params[0]->type != TokenType::NUMBER)
-		throw_InvalidValue(*params[0]);
+		Throw::InvalidValue(*params[0]);
 	if (!(params[1]->type != TokenType::PARAM ||
 	      params[1]->type != TokenType::URI ||
 	      params[1]->type != TokenType::NUMBER))
-		throw_InvalidValue(*params[1]);
+		Throw::InvalidValue(*params[1]);
 
 	int error_nbr = 0;
 	if (!Validator::isValidErrorPageNbr(params[0]->value, error_nbr))
-		throw_InvalidErrorpageNbr(*params[0]);
+		Throw::InvalidErrorpageNbr(*params[0]);
 
 	server.errorPagePaths[error_nbr] = params[1]->value;
 }
@@ -363,9 +363,9 @@ void	Parser::parseLocationBlock(LocationBlock& location)
 
 	//	validate PARAMS
 	if (params.size() != 1)
-		throw_InvalidNumberOfArguments(directive);
+		Throw::InvalidNumberOfArguments(directive);
 	if (params[0]->type != TokenType::URI)
-		throw_InvalidValue(directive);
+		Throw::InvalidValue(directive);
 
 	//	TODO:	do we have to validate this route here???
 	location.route = params[0]->value;
@@ -373,7 +373,7 @@ void	Parser::parseLocationBlock(LocationBlock& location)
 	while (m_pos < m_tokens.size() && !isAtEnd() && peek().type != TokenType::CLOSE_BRACE) {
 		// expect KEYWORD
 		if (!isValidKeyword(peek()))
-			throw_UnknownOrUnsupportedDirective(peek());
+			Throw::UnknownOrUnsupportedDirective(peek());
 		parseLocationDirective(location);
 	}
 	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
@@ -409,14 +409,14 @@ void	Parser::parseLocationDirective(LocationBlock& location)
 	} else if (directive.keywordType == KeywordType::INDEX) {
 		parseIndexDirective(directive, params, location.index);
 	} else {
-		throw_UnknownOrUnsupportedDirective(directive);
+		Throw::UnknownOrUnsupportedDirective(directive);
 	}
 }
 
 void	Parser::parseAllowMethodsDirective(const Token& directive, std::vector<const Token*>& params, LocationBlock& location)
 {
 	if (params.size() == 0)
-		throw_InvalidNumberOfArguments(directive);
+		Throw::InvalidNumberOfArguments(directive);
 
 	for (size_t i = 0; i < params.size(); ++i) {
 		HTTP::Method method = HTTP::Method::INVALID;
@@ -425,7 +425,7 @@ void	Parser::parseAllowMethodsDirective(const Token& directive, std::vector<cons
 				location.allowMethods.emplace_back(method);
 		}
 		else
-			throw_InvalidValue(*params[i]);
+			Throw::InvalidValue(*params[i]);
 	}
 }
 
@@ -433,9 +433,9 @@ void	Parser::parseAllowMethodsDirective(const Token& directive, std::vector<cons
 void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, size_t& value)
 {
 	if (params.size() != 1)
-		throw_InvalidNumberOfArguments(directive);
+		Throw::InvalidNumberOfArguments(directive);
 	if (params[0]->value.find('.') != std::string::npos)
-		throw_InvalidValue(*params[0]);
+		Throw::InvalidValue(*params[0]);
 
 	size_t bodySizeValue;
 	try {
@@ -447,7 +447,7 @@ void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector
 		else if (params[0]->value.back() == 'g' || params[0]->value.back() == 'G')
 			bodySizeValue *= 1024 * 1024 * 1024;
 	} catch(...) {
-		throw_InvalidValue(*params[0]);
+		Throw::InvalidValue(*params[0]);
 	}
 	value = bodySizeValue;
 }
@@ -456,9 +456,9 @@ void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector
 void	Parser::parseRootDirective(const Token& directive, std::vector<const Token*>& params, std::string& root)
 {
 	if (params.size() != 1)
-		throw_InvalidNumberOfArguments(directive);
+		Throw::InvalidNumberOfArguments(directive);
 	if (params[0]->type != TokenType::URI)
-		throw_InvalidValue(*params[0]);
+		Throw::InvalidValue(*params[0]);
 
 	//	TODO:	we currently accept any URI
 	//			IS this good enough for use ??
@@ -470,11 +470,11 @@ void	Parser::parseIndexDirective(const Token& directive, std::vector<const Token
 {
 	//	TODO:	we currently go with single param first, since subject doesn't specifiy it as plural, see Notion
 	if (params.size() != 1)
-		throw_InvalidNumberOfArguments(directive);
+		Throw::InvalidNumberOfArguments(directive);
 	if (!(params[0]->type == TokenType::PARAM ||
 		  params[0]->type == TokenType::URI ||
 		  params[0]->type == TokenType::NUMBER))
-		throw_InvalidValue(*params[0]);
+		Throw::InvalidValue(*params[0]);
 
 	//	TODO:	we currently accept only one parameter
 	//			and we accept any PARAM, URI or NUMBER
@@ -485,20 +485,20 @@ void	Parser::parseIndexDirective(const Token& directive, std::vector<const Token
 void	Parser::parseReturnDirective(const Token& directive, std::vector<const Token*>& params, ReturnRoute& returnRoute)
 {
 	if (params.size() != 2)
-		throw_InvalidNumberOfArguments(directive);
+		Throw::InvalidNumberOfArguments(directive);
 	if (params[0]->type != TokenType::NUMBER)
-		throw_InvalidReturnCode(*params[0]);
+		Throw::InvalidReturnCode(*params[0]);
 	if (params[1]->type != TokenType::URI)
-		throw_InvalidValue(*params[1]);
+		Throw::InvalidValue(*params[1]);
 	
 	int returnCode;
 	try {
 		returnCode = std::stoi(params[0]->value);
 	} catch (...) {
-		throw_InvalidValue(*params[0]);
+		Throw::InvalidValue(*params[0]);
 	}
 	if (!HTTP::isValidStatusCode(returnCode))
-		throw_InvalidReturnCode(*params[0]);
+		Throw::InvalidReturnCode(*params[0]);
 	returnRoute.returnCode = returnCode;
 	returnRoute.returnRoute = params[1]->value;
 }
@@ -506,93 +506,13 @@ void	Parser::parseReturnDirective(const Token& directive, std::vector<const Toke
 void	Parser::parseAutoIndexDirective(const Token& directive, std::vector<const Token*>& params, bool& autoIndex)
 {
 	if (params.size() != 1)
-		throw_InvalidNumberOfArguments(directive);
+		Throw::InvalidNumberOfArguments(directive);
 	if (params[0]->type != TokenType::PARAM)
-		throw_InvalidValue(*params[0]);
+		Throw::InvalidValue(*params[0]);
 
 	bool toggle = false;
 	if (!Validator::isValidToggle(params[0]->value, toggle))
-		throw_InvalidValue(*params[0]);
+		Throw::InvalidValue(*params[0]);
 
 	autoIndex = toggle;
-}
-
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
-
-void	Parser::throw_SyntaxError(const std::string& msg) const
-{
-	throw std::runtime_error("Syntax error" + (m_pos < m_tokens.size() ? m_tokens[m_pos].inLine() : m_tokens.back().inLine()) + RED + (msg.empty() ? "" : ": " + msg));
-}
-
-void	Parser::throw_Unexpected(const Token& token) const
-{
-	throw std::runtime_error("unexpected \"" + token.getTokenValue() + "\"" + token.inLine());
-}
-
-void	Parser::throw_UnknownOrUnsupportedDirective(const Token& token) const
-{
-	throw std::runtime_error("unknown or unsupported directive \"" + token.getTokenValue() + "\"" + token.inLine());
-}
-
-void	Parser::throw_InvalidNumberOfArguments(const Token& token) const
-{
-	throw std::runtime_error("invalid number of arguments in \"" + token.getTokenValue() + "\" directive" + token.inLine());
-}
-
-void	Parser::throw_InvalidIPAddr(const Token& token) const
-{
-	throw std::runtime_error("invalid IP address \"" + token.getTokenValue() + "\"" + token.inLine());
-}
-
-void	Parser::throw_HostNotFound(const Token& token) const
-{
-	throw std::runtime_error("host not found in \"" + token.getTokenValue() + "\"" + token.inLine());
-}
-
-void	Parser::throw_NoHost(const Token& directive, const Token& token) const
-{
-	throw std::runtime_error("no host in \"" + token.getTokenValue() + "\" of the \"" + directive.getTokenValue() + "\" directive" + token.inLine());
-}
-
-void	Parser::throw_InavlidHost(const Token& directive, const Token& token) const
-{
-	throw std::runtime_error("invalid host in \"" + token.getTokenValue() + "\" of the \"" + directive.getTokenValue() + "\" directive" + token.inLine());
-}
-
-void	Parser::throw_InvalidPort(const Token& directive, const Token& portToken) const
-{
-	throw std::runtime_error("invalid port in \"" + portToken.getTokenValue() + "\" of the \"" + directive.getTokenValue() + "\" directive" + portToken.inLine());
-}
-
-void	Parser::throw_InvalidParameter(const Token& token) const
-{
-	throw std::runtime_error("invalid parameter \"" + token.getTokenValue() + "\"" + token.inLine());
-}
-
-void	Parser::throw_AccpetsOnlyDomainNames(const Token& token) const
-{
-	throw std::runtime_error("accpets only \"domain names\" as server_name \"" + token.getTokenValue() + "\"" + token.inLine());
-}
-
-void	Parser::throw_InvalidValue(const Token& token) const
-{
-	throw std::runtime_error("invalid value \"" + token.getTokenValue() + "\"" + token.inLine());
-}
-
-void	Parser::throw_InvalidErrorpageNbr(const Token& token) const
-{
-	throw std::runtime_error("value \"" + token.getTokenValue() + "\" must be between 300 and 599" + token.inLine());
-}
-
-void	Parser::throw_DirectiveIsNotTerminated(const Token& token) const
-{
-	throw std::runtime_error("directive \"" + token.getTokenValue() + "\" is not terminated by \";\"" + token.inLine());
-}
-
-void	Parser::throw_InvalidReturnCode(const Token& token) const
-{
-	throw std::runtime_error("invalid return code \"" + token.getTokenValue() + "\"" + token.inLine());
 }
