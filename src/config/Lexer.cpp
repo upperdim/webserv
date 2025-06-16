@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 14:26:33 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 11:11:03 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,8 @@ Token	Lexer::nextToken(bool _precededByComment)
 	}
 
 	//	Handle keywords and general parameters
-	if (std::isalpha(c) || c == '/') {
+	//	TODO:	I added '.' '-' and '_' is this ok
+	if (std::isalpha(c) || c == '/' || c == '.' || c == '-' || c == '_') {
 		return readAndClassify();
 	}
 
