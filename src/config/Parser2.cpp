@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 09:19:20 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 09:35:02 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -401,7 +401,9 @@ void	Parser::parseLocationDirective(LocationBlock& location)
 	} else if (directive.keywordType == KeywordType::RETURN) {
 		parseReturnDirective(directive, params, location.returnRoute);
 	} else if (directive.keywordType == KeywordType::AUTOINDEX) {
-		parseAutoIndexDirective(directive, params, location.autoIndex);
+		parseToggleDirective(directive, params, location.autoIndex);
+	} else if (directive.keywordType == KeywordType::ALLOW_UPLOAD) {
+		parseToggleDirective(directive, params, location.allowUpload);
 	} else if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
 		parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize);
 	} else if (directive.keywordType == KeywordType::ROOT) {
@@ -503,16 +505,16 @@ void	Parser::parseReturnDirective(const Token& directive, std::vector<const Toke
 	returnRoute.returnRoute = params[1]->value;
 }
 
-void	Parser::parseAutoIndexDirective(const Token& directive, std::vector<const Token*>& params, bool& autoIndex)
+void	Parser::parseToggleDirective(const Token& directive, std::vector<const Token*>& params, bool& toggle)
 {
 	if (params.size() != 1)
 		Throw::InvalidNumberOfArguments(directive);
 	if (params[0]->type != TokenType::PARAM)
 		Throw::InvalidValue(*params[0]);
 
-	bool toggle = false;
-	if (!Validator::isValidToggle(params[0]->value, toggle))
+	bool validToggle = toggle;
+	if (!Validator::isValidToggle(params[0]->value, validToggle))
 		Throw::InvalidValue(*params[0]);
 
-	autoIndex = toggle;
+	toggle = validToggle;
 }
