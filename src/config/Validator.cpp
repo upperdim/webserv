@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/11 11:09:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 17:59:11 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 10:52:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,4 +172,21 @@ bool	Validator::isValidToggle(const std::string& str, bool& toggle)
 		return true;
 	}
 	return false;
+}
+
+bool	Validator::isValidExtension(const std::string& ext)
+{
+	if (ext.empty())
+		return false;
+	if (ext[0] != '.')
+		return false;
+	size_t len = ext.length();
+	if (len < 2 || len > 256)
+		return false;
+	for (size_t i = 1; i < len; ++i ) {
+		char c = ext[i];
+		if (!std::isalnum(c) && c != '-' && c != '_')
+			return false;
+	}
+	return true;
 }
