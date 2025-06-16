@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 10:14:47 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 10:25:14 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,20 +215,14 @@ void	Parser::parseServerDirective(ServerBlock& server)
 	}
 	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
 
-	if (directive.keywordType == KeywordType::LISTEN) {
-		parseListenDirective(directive, params, server);
-	} else if (directive.keywordType == KeywordType::SERVER_NAME) {
-		parseServerNameDirective(directive, params, server);
-	} else if (directive.keywordType == KeywordType::ERROR_PAGE) {
-		parseErrorPageDirective(directive, params, server);
-	} else if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
-		parseClientMaxBodySizeDirective(directive, params, server.clientMaxBodySize);
-	} else if (directive.keywordType == KeywordType::ROOT) {
-		parseUriDirective(directive, params, server.root);
-	} else if (directive.keywordType == KeywordType::INDEX) {
-		parseIndexDirective(directive, params, server.index);
-	} else {
-		Throw::UnknownOrUnsupportedDirective(directive);
+	switch (directive.keywordType) {
+		case KeywordType::LISTEN: 				parseListenDirective(directive, params, server); break;
+		case KeywordType::SERVER_NAME: 			parseServerNameDirective(directive, params, server); break;
+		case KeywordType::ERROR_PAGE: 			parseErrorPageDirective(directive, params, server); break;
+		case KeywordType::CLIENT_MAX_BODY_SIZE: parseClientMaxBodySizeDirective(directive, params, server.clientMaxBodySize); break;
+		case KeywordType::ROOT: 				parseUriDirective(directive, params, server.root); break;
+		case KeywordType::INDEX: 				parseIndexDirective(directive, params, server.index); break;
+		default:								Throw::UnknownOrUnsupportedDirective(directive);
 	}
 }
 
@@ -396,24 +390,16 @@ void	Parser::parseLocationDirective(LocationBlock& location)
 	}
 	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
 
-	if (directive.keywordType == KeywordType::ALLOW_METHODS) {
-		parseAllowMethodsDirective(directive, params, location);
-	} else if (directive.keywordType == KeywordType::RETURN) {
-		parseReturnDirective(directive, params, location.returnRoute);
-	} else if (directive.keywordType == KeywordType::AUTOINDEX) {
-		parseToggleDirective(directive, params, location.autoIndex);
-	} else if (directive.keywordType == KeywordType::ALLOW_UPLOAD) {
-		parseToggleDirective(directive, params, location.allowUpload);
-	} else if (directive.keywordType == KeywordType::UPLOAD_STORE) {
-		parseUriDirective(directive, params, location.uploadDir);
-	} else if (directive.keywordType == KeywordType::CLIENT_MAX_BODY_SIZE) {
-		parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize);
-	} else if (directive.keywordType == KeywordType::ROOT) {
-		parseUriDirective(directive, params, location.root);
-	} else if (directive.keywordType == KeywordType::INDEX) {
-		parseIndexDirective(directive, params, location.index);
-	} else {
-		Throw::UnknownOrUnsupportedDirective(directive);
+	switch (directive.keywordType) {
+		case KeywordType::ALLOW_METHODS:		parseAllowMethodsDirective(directive, params, location); break;
+		case KeywordType::RETURN:				parseReturnDirective(directive, params, location.returnRoute); break;
+		case KeywordType::AUTOINDEX:			parseToggleDirective(directive, params, location.autoIndex); break;
+		case KeywordType::ALLOW_UPLOAD:			parseToggleDirective(directive, params, location.allowUpload); break;
+		case KeywordType::UPLOAD_STORE:			parseUriDirective(directive, params, location.uploadDir); break;
+		case KeywordType::CLIENT_MAX_BODY_SIZE:	parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize); break;
+		case KeywordType::ROOT:					parseUriDirective(directive, params, location.root); break;
+		case KeywordType::INDEX:				parseIndexDirective(directive, params, location.index); break;
+		default:								Throw::UnknownOrUnsupportedDirective(directive);
 	}
 }
 
@@ -456,19 +442,6 @@ void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector
 	value = bodySizeValue;
 }
 
-//	multiscope directive for URI, expects a single URI as param
-void	Parser::parseUriDirective(const Token& directive, std::vector<const Token*>& params, std::string& uri)
-{
-	if (params.size() != 1)
-		Throw::InvalidNumberOfArguments(directive);
-	if (params[0]->type != TokenType::URI)
-		Throw::InvalidValue(*params[0]);
-
-	//	TODO:	we currently accept any URI
-	//			IS this good enough for use ??
-	uri = params[0]->value;
-}
-
 //	multiscope directive method expects the index string, so it can be set in the different scopes
 void	Parser::parseIndexDirective(const Token& directive, std::vector<const Token*>& params, std::string& index)
 {
@@ -505,6 +478,19 @@ void	Parser::parseReturnDirective(const Token& directive, std::vector<const Toke
 		Throw::InvalidReturnCode(*params[0]);
 	returnRoute.returnCode = returnCode;
 	returnRoute.returnRoute = params[1]->value;
+}
+
+//	multiscope directive for URI, expects a single URI as param
+void	Parser::parseUriDirective(const Token& directive, std::vector<const Token*>& params, std::string& uri)
+{
+	if (params.size() != 1)
+		Throw::InvalidNumberOfArguments(directive);
+	if (params[0]->type != TokenType::URI)
+		Throw::InvalidValue(*params[0]);
+
+	//	TODO:	we currently accept any URI
+	//			IS this good enough for use ??
+	uri = params[0]->value;
 }
 
 void	Parser::parseToggleDirective(const Token& directive, std::vector<const Token*>& params, bool& toggle)

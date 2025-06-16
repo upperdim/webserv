@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 10:10:25 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 10:24:57 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,16 +52,17 @@ private:
 	void			parseHttpDirective(Config& config);
 	void			parseServerBlock(ServerBlock& server);
 	void			parseServerDirective(ServerBlock& server);
+	void			parseLocationBlock(LocationBlock& location);
+	void			parseLocationDirective(LocationBlock& location);
+
 	void			parseListenDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseServerNameDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseErrorPageDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
-	void			parseLocationBlock(LocationBlock& location);
-	void			parseLocationDirective(LocationBlock& location);
 	void			parseAllowMethodsDirective(const Token& directive, std::vector<const Token*>& params, LocationBlock& location);
 	void			parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, size_t& value);
-	void			parseUriDirective(const Token& directive, std::vector<const Token*>& params, std::string& root);
 	void			parseIndexDirective(const Token& directive, std::vector<const Token*>& params, std::string& index);
 	void			parseReturnDirective(const Token& directive, std::vector<const Token*>& params, ReturnRoute& returnRoute);
+	void			parseUriDirective(const Token& directive, std::vector<const Token*>& params, std::string& root);
 	void			parseToggleDirective(const Token& directive, std::vector<const Token*>& params, bool& autoIndex);
 
 };
