@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 11:03:55 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 11:58:18 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,9 @@ public:
 	~Parser();
 
 	Config	parse(void);
+
+	Config		mockParseConfig(std::string configFilePath);	//	TODO:	remove 
+	std::string	readConfigFile(std::string configFilePath);		//	TODO:	remove 
 
 private:
 	const std::vector<Token>&	m_tokens;

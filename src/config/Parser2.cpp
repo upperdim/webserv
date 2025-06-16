@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 11:03:49 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 11:58:40 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -519,4 +519,30 @@ void	Parser::parseExtensionDirective(const Token& directive, std::vector<const T
 		Throw::InvalidExtension(*params[0]);
 	
 	ext = params[0]->value;
+}
+
+/* ************************************************************************** */
+/* TODO: DELETE LATER                                                         */
+/* ************************************************************************** */
+
+
+Config Parser::mockParseConfig(std::string configFilePath) {
+	std::string configFile = readConfigFile(configFilePath);
+
+	Config config;
+	std::cout << configFile << std::endl;
+	return config;
+}
+
+std::string Parser::readConfigFile(std::string configFilePath) {
+	std::ifstream configFile(configFilePath);
+	if (!configFile) {
+		throw std::runtime_error("Config file is not found.");
+	}
+
+	std::stringstream buffer;
+	buffer << configFile.rdbuf();
+	configFile.close();
+
+	return buffer.str();
 }
