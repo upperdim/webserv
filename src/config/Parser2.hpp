@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 17:49:11 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 09:19:22 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include "Config.hpp"
 #include "Token.hpp"
 #include "Validator.hpp"
+#include "Throw.hpp"
 #include "Log.hpp"
 
 class Parser
@@ -62,22 +63,6 @@ private:
 	void			parseIndexDirective(const Token& directive, std::vector<const Token*>& params, std::string& index);
 	void			parseReturnDirective(const Token& directive, std::vector<const Token*>& params, ReturnRoute& returnRoute);
 	void			parseAutoIndexDirective(const Token& directive, std::vector<const Token*>& params, bool& autoIndex);
-
-	void			throw_SyntaxError(const std::string& msg) const;
-	void			throw_Unexpected(const Token& token) const;
-	void			throw_UnknownOrUnsupportedDirective(const Token& token) const;
-	void			throw_InvalidNumberOfArguments(const Token& token) const;
-	void			throw_InvalidIPAddr(const Token& token) const;
-	void			throw_HostNotFound(const Token& token) const;
-	void			throw_NoHost(const Token& directive, const Token& token) const;
-	void			throw_InavlidHost(const Token& directive, const Token& token) const;
-	void			throw_InvalidPort(const Token& directive, const Token& portToken) const;
-	void			throw_InvalidParameter(const Token& token) const;
-	void			throw_AccpetsOnlyDomainNames(const Token& token) const;
-	void			throw_InvalidValue(const Token& token) const;
-	void			throw_InvalidErrorpageNbr(const Token& token) const;
-	void			throw_DirectiveIsNotTerminated(const Token& token) const;
-	void			throw_InvalidReturnCode(const Token& token) const;
 
 };
 
