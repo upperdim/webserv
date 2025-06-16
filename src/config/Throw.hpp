@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:07:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 09:16:20 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 10:34:26 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ public:
 	static void	InvalidErrorpageNbr(const Token& token);
 	static void	DirectiveIsNotTerminated(const Token& token);
 	static void	InvalidReturnCode(const Token& token);
+	static void	InvalidExtension(const Token& token);
 
 private:
 	Throw();

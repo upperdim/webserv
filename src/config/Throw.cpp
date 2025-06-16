@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:07:32 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 09:16:29 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 10:34:53 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,4 +93,9 @@ void	Throw::DirectiveIsNotTerminated(const Token& token)
 void	Throw::InvalidReturnCode(const Token& token)
 {
 	throw std::runtime_error("invalid return code \"" + token.getTokenValue() + "\"" + token.inLine());
+}
+
+void	Throw::InvalidExtension(const Token& token)
+{
+	throw std::runtime_error("invalid extension \"" + token.getTokenValue() + "\"" + token.inLine());
 }
