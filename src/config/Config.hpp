@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/15 18:03:55 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 11:25:46 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ public:
 	ReturnRoute					returnRoute		= {0, ""};					//	::	return		TBD: should we name it: redirect
 	bool						autoIndex		= false;					//	::	autoindex
 	std::string					cgiExtension;								//	::	cgi_extension
-	bool						allowUpload;								//	::	allow_upload
+	bool						allowUpload		= false;					//	::	allow_upload
 	std::string					uploadDir;									//	::	upload_store
 
 	// Multiscope options

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/15 18:08:16 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 11:32:21 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,6 +88,18 @@ void	Config::printConfigs(void) const	// TODO: delete me
 
 			print(LIGHTCYAN"\t\tautoindex\t\t" RESET);
 			location.autoIndex ? print(LIGHTMAGENTA "on") : print(LIGHTMAGENTA "off");
+			printLn(GRAY";" RESET);
+
+			print(LIGHTCYAN"\t\tallow_upload\t\t" RESET);
+			location.allowUpload ? print(LIGHTMAGENTA "on") : print(LIGHTMAGENTA "off");
+			printLn(GRAY";" RESET);
+
+			print(LIGHTCYAN"\t\tupload_store\t\t" RESET);
+			print(LIGHTMAGENTA + location.uploadDir);
+			printLn(GRAY";" RESET);
+
+			print(LIGHTCYAN"\t\tcgi_extension\t\t" RESET);
+			print(LIGHTMAGENTA + location.cgiExtension);
 			printLn(GRAY";" RESET);
 
 			if (location.allowMethods.size() > 0) {
