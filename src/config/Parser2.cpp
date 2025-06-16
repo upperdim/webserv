@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 10:25:14 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 10:27:45 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,6 +226,71 @@ void	Parser::parseServerDirective(ServerBlock& server)
 	}
 }
 
+void	Parser::parseLocationBlock(LocationBlock& location)
+{
+	const Token& directive = advance();	//	consumes LOCATION directive
+
+	// grab all parameters
+	std::vector<const Token*>	params;
+	while (m_pos < m_tokens.size() && (
+	       peek().type == TokenType::PARAM ||
+	       peek().type == TokenType::URI ||
+	       peek().type == TokenType::NUMBER ||
+	       peek().type == TokenType::COLON ||
+	       peek().type == TokenType::INVALID)) {
+		const Token& current = advance();
+		params.emplace_back(&current);
+	}
+	expect(TokenType::OPEN_BRACE, directive, "expected \"{\"");
+
+	//	validate PARAMS
+	if (params.size() != 1)
+		Throw::InvalidNumberOfArguments(directive);
+	if (params[0]->type != TokenType::URI)
+		Throw::InvalidValue(directive);
+
+	//	TODO:	do we have to validate this route here???
+	location.route = params[0]->value;
+
+	while (m_pos < m_tokens.size() && !isAtEnd() && peek().type != TokenType::CLOSE_BRACE) {
+		// expect KEYWORD
+		if (!isValidKeyword(peek()))
+			Throw::UnknownOrUnsupportedDirective(peek());
+		parseLocationDirective(location);
+	}
+	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
+}
+
+void	Parser::parseLocationDirective(LocationBlock& location)
+{
+	const Token& directive = advance();	// grab the current directive token
+
+	// grab all parameters
+	std::vector<const Token*>	params;
+	while (m_pos < m_tokens.size() && (
+	       peek().type == TokenType::PARAM ||
+	       peek().type == TokenType::URI ||
+	       peek().type == TokenType::NUMBER ||
+	       peek().type == TokenType::COLON ||
+	       peek().type == TokenType::INVALID)) {
+		const Token& current = advance();
+		params.emplace_back(&current);
+	}
+	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
+
+	switch (directive.keywordType) {
+		case KeywordType::ALLOW_METHODS:		parseAllowMethodsDirective(directive, params, location); break;
+		case KeywordType::RETURN:				parseReturnDirective(directive, params, location.returnRoute); break;
+		case KeywordType::AUTOINDEX:			parseToggleDirective(directive, params, location.autoIndex); break;
+		case KeywordType::ALLOW_UPLOAD:			parseToggleDirective(directive, params, location.allowUpload); break;
+		case KeywordType::UPLOAD_STORE:			parseUriDirective(directive, params, location.uploadDir); break;
+		case KeywordType::CLIENT_MAX_BODY_SIZE:	parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize); break;
+		case KeywordType::ROOT:					parseUriDirective(directive, params, location.root); break;
+		case KeywordType::INDEX:				parseIndexDirective(directive, params, location.index); break;
+		default:								Throw::UnknownOrUnsupportedDirective(directive);
+	}
+}
+
 void	Parser::parseListenDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server)
 {
 	if (params.size() == 0)
@@ -336,71 +401,6 @@ void	Parser::parseErrorPageDirective(const Token& directive, std::vector<const T
 		Throw::InvalidErrorpageNbr(*params[0]);
 
 	server.errorPagePaths[error_nbr] = params[1]->value;
-}
-
-void	Parser::parseLocationBlock(LocationBlock& location)
-{
-	const Token& directive = advance();	//	consumes LOCATION directive
-
-	// grab all parameters
-	std::vector<const Token*>	params;
-	while (m_pos < m_tokens.size() && (
-	       peek().type == TokenType::PARAM ||
-	       peek().type == TokenType::URI ||
-	       peek().type == TokenType::NUMBER ||
-	       peek().type == TokenType::COLON ||
-	       peek().type == TokenType::INVALID)) {
-		const Token& current = advance();
-		params.emplace_back(&current);
-	}
-	expect(TokenType::OPEN_BRACE, directive, "expected \"{\"");
-
-	//	validate PARAMS
-	if (params.size() != 1)
-		Throw::InvalidNumberOfArguments(directive);
-	if (params[0]->type != TokenType::URI)
-		Throw::InvalidValue(directive);
-
-	//	TODO:	do we have to validate this route here???
-	location.route = params[0]->value;
-
-	while (m_pos < m_tokens.size() && !isAtEnd() && peek().type != TokenType::CLOSE_BRACE) {
-		// expect KEYWORD
-		if (!isValidKeyword(peek()))
-			Throw::UnknownOrUnsupportedDirective(peek());
-		parseLocationDirective(location);
-	}
-	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
-}
-
-void	Parser::parseLocationDirective(LocationBlock& location)
-{
-	const Token& directive = advance();	// grab the current directive token
-
-	// grab all parameters
-	std::vector<const Token*>	params;
-	while (m_pos < m_tokens.size() && (
-	       peek().type == TokenType::PARAM ||
-	       peek().type == TokenType::URI ||
-	       peek().type == TokenType::NUMBER ||
-	       peek().type == TokenType::COLON ||
-	       peek().type == TokenType::INVALID)) {
-		const Token& current = advance();
-		params.emplace_back(&current);
-	}
-	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
-
-	switch (directive.keywordType) {
-		case KeywordType::ALLOW_METHODS:		parseAllowMethodsDirective(directive, params, location); break;
-		case KeywordType::RETURN:				parseReturnDirective(directive, params, location.returnRoute); break;
-		case KeywordType::AUTOINDEX:			parseToggleDirective(directive, params, location.autoIndex); break;
-		case KeywordType::ALLOW_UPLOAD:			parseToggleDirective(directive, params, location.allowUpload); break;
-		case KeywordType::UPLOAD_STORE:			parseUriDirective(directive, params, location.uploadDir); break;
-		case KeywordType::CLIENT_MAX_BODY_SIZE:	parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize); break;
-		case KeywordType::ROOT:					parseUriDirective(directive, params, location.root); break;
-		case KeywordType::INDEX:				parseIndexDirective(directive, params, location.index); break;
-		default:								Throw::UnknownOrUnsupportedDirective(directive);
-	}
 }
 
 void	Parser::parseAllowMethodsDirective(const Token& directive, std::vector<const Token*>& params, LocationBlock& location)
