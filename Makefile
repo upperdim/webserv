@@ -14,7 +14,7 @@ SRCS_NO_MAIN=	Config.cpp \
 				Lexer.cpp \
 				Validator.cpp \
 				Throw.cpp \
-				Parser2.cpp \
+				Parser.cpp \
 				EventManager.cpp \
 				Server.cpp \
 				Connection.cpp \
