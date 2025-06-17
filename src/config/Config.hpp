@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/16 11:25:46 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/17 16:08:25 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,12 +21,6 @@
 #include "Http.hpp"
 #include "colors.hpp"
 
-struct ReturnRoute
-{
-	int			returnCode;
-	std::string	returnRoute;
-};
-
 class LocationBlock
 {
 public:
@@ -34,7 +28,7 @@ public:
 	std::vector<HTTP::Method>	allowMethods	= {HTTP::Method::GET,
 	                                               HTTP::Method::POST,
 	                                               HTTP::Method::DELETE};	//	::	allow_methods
-	ReturnRoute					returnRoute		= {0, ""};					//	::	return		TBD: should we name it: redirect
+	std::string					returnRoute;
 	bool						autoIndex		= false;					//	::	autoindex
 	std::string					cgiExtension;								//	::	cgi_extension
 	bool						allowUpload		= false;					//	::	allow_upload

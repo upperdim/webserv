@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/16 11:32:21 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/17 17:03:01 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,10 +79,9 @@ void	Config::printConfigs(void) const	// TODO: delete me
 		for (LocationBlock location : server.locationBlocks) {
 			printLn(LIGHTCYAN"\n\tlocation " LIGHTMAGENTA + location.route +  LIGHTYELLOW " {" RESET);
 
-			if (HTTP::isValidStatusCode(location.returnRoute.returnCode)) {
+			if (!location.returnRoute.empty()) {
 				print(LIGHTCYAN"\t\treturn\t\t\t" RESET);
-				print(LIGHTMAGENTA + std::to_string(location.returnRoute.returnCode));
-				print(MAGENTA " " + location.returnRoute.returnRoute);
+				print(MAGENTA " " + location.returnRoute);
 				printLn(GRAY";" RESET);
 			}
 
