@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 13:44:45 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/17 17:01:01 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,9 +36,6 @@ public:
 
 	Config	parse(void);
 
-	Config		mockParseConfig(std::string configFilePath);	//	TODO:	remove 
-	std::string	readConfigFile(std::string configFilePath);		//	TODO:	remove 
-
 private:
 	const std::vector<Token>&	m_tokens;
 	size_t						m_pos;
@@ -54,9 +51,9 @@ private:
 	void			skipEventsDirective(void);
 	void			parseHttpDirective(Config& config);
 	void			parseServerBlock(ServerBlock& server);
-	void			parseServerDirective(ServerBlock& server);
+	void			parseServerDirectives(ServerBlock& server);
 	void			parseLocationBlock(LocationBlock& location);
-	void			parseLocationDirective(LocationBlock& location);
+	void			parseLocationDirectives(LocationBlock& location);
 
 	void			parseListenDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseServerNameDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
@@ -64,10 +61,9 @@ private:
 	void			parseAllowMethodsDirective(const Token& directive, std::vector<const Token*>& params, LocationBlock& location);
 	void			parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, size_t& value);
 	void			parseIndexDirective(const Token& directive, std::vector<const Token*>& params, std::string& index);
-	void			parseReturnDirective(const Token& directive, std::vector<const Token*>& params, ReturnRoute& returnRoute);
-	void			parseUriDirective(const Token& directive, std::vector<const Token*>& params, std::string& root);
-	void			parseToggleDirective(const Token& directive, std::vector<const Token*>& params, bool& autoIndex);
-	void			parseExtensionDirective(const Token& directive, std::vector<const Token*>& params, std::string& ext);
+	void			parseUri(const Token& directive, std::vector<const Token*>& params, std::string& root);
+	void			parseToggle(const Token& directive, std::vector<const Token*>& params, bool& autoIndex);
+	void			parseExtension(const Token& directive, std::vector<const Token*>& params, std::string& ext);
 
 };
 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 13:44:27 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/17 17:19:08 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,13 +192,13 @@ void	Parser::parseServerBlock(ServerBlock& server)
 			parseLocationBlock(location);
 			server.locationBlocks.emplace_back(location);
 		} else {
-			parseServerDirective(server);
+			parseServerDirectives(server);
 		}
 	}
 	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
 }
 
-void	Parser::parseServerDirective(ServerBlock& server)
+void	Parser::parseServerDirectives(ServerBlock& server)
 {
 	const Token& directive = advance();	// grab the current directive token
 
@@ -220,7 +220,7 @@ void	Parser::parseServerDirective(ServerBlock& server)
 		case KeywordType::SERVER_NAME: 			parseServerNameDirective(directive, params, server); break;
 		case KeywordType::ERROR_PAGE: 			parseErrorPageDirective(directive, params, server); break;
 		case KeywordType::CLIENT_MAX_BODY_SIZE: parseClientMaxBodySizeDirective(directive, params, server.clientMaxBodySize); break;
-		case KeywordType::ROOT: 				parseUriDirective(directive, params, server.root); break;
+		case KeywordType::ROOT: 				parseUri(directive, params, server.root); break;
 		case KeywordType::INDEX: 				parseIndexDirective(directive, params, server.index); break;
 		default:								Throw::UnknownOrUnsupportedDirective(directive);
 	}
@@ -256,12 +256,12 @@ void	Parser::parseLocationBlock(LocationBlock& location)
 		// expect KEYWORD
 		if (!isValidKeyword(peek()))
 			Throw::UnknownOrUnsupportedDirective(peek());
-		parseLocationDirective(location);
+		parseLocationDirectives(location);
 	}
 	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
 }
 
-void	Parser::parseLocationDirective(LocationBlock& location)
+void	Parser::parseLocationDirectives(LocationBlock& location)
 {
 	const Token& directive = advance();	// grab the current directive token
 
@@ -280,13 +280,13 @@ void	Parser::parseLocationDirective(LocationBlock& location)
 
 	switch (directive.keywordType) {
 		case KeywordType::ALLOW_METHODS:		parseAllowMethodsDirective(directive, params, location); break;
-		case KeywordType::RETURN:				parseReturnDirective(directive, params, location.returnRoute); break;
-		case KeywordType::AUTOINDEX:			parseToggleDirective(directive, params, location.autoIndex); break;
-		case KeywordType::CGI_EXTENSION:		parseExtensionDirective(directive, params, location.cgiExtension); break;
-		case KeywordType::ALLOW_UPLOAD:			parseToggleDirective(directive, params, location.allowUpload); break;
-		case KeywordType::UPLOAD_STORE:			parseUriDirective(directive, params, location.uploadDir); break;
+		case KeywordType::RETURN:				parseUri(directive, params, location.returnRoute); break;
+		case KeywordType::AUTOINDEX:			parseToggle(directive, params, location.autoIndex); break;
+		case KeywordType::CGI_EXTENSION:		parseExtension(directive, params, location.cgiExtension); break;
+		case KeywordType::ALLOW_UPLOAD:			parseToggle(directive, params, location.allowUpload); break;
+		case KeywordType::UPLOAD_STORE:			parseUri(directive, params, location.uploadDir); break;
 		case KeywordType::CLIENT_MAX_BODY_SIZE:	parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize); break;
-		case KeywordType::ROOT:					parseUriDirective(directive, params, location.root); break;
+		case KeywordType::ROOT:					parseUri(directive, params, location.root); break;
 		case KeywordType::INDEX:				parseIndexDirective(directive, params, location.index); break;
 		default:								Throw::UnknownOrUnsupportedDirective(directive);
 	}
@@ -410,7 +410,7 @@ void	Parser::parseAllowMethodsDirective(const Token& directive, std::vector<cons
 		Throw::InvalidNumberOfArguments(directive);
 
 	for (size_t i = 0; i < params.size(); ++i) {
-		HTTP::Method method = HTTP::Method::INVALID;
+		HTTP::Method method;
 		if (params[i]->type == TokenType::PARAM && Validator::isValidMethod(params[i]->value, method)) {
 			if (std::find(location.allowMethods.begin(), location.allowMethods.end(), method) == location.allowMethods.end())
 				location.allowMethods.emplace_back(method);
@@ -459,30 +459,8 @@ void	Parser::parseIndexDirective(const Token& directive, std::vector<const Token
 	index = params[0]->value;
 }
 
-//	multiscope directive method expects the returnRoute struct, so it can be set in the different scopes
-void	Parser::parseReturnDirective(const Token& directive, std::vector<const Token*>& params, ReturnRoute& returnRoute)
-{
-	if (params.size() != 2)
-		Throw::InvalidNumberOfArguments(directive);
-	if (params[0]->type != TokenType::NUMBER)
-		Throw::InvalidReturnCode(*params[0]);
-	if (params[1]->type != TokenType::URI)
-		Throw::InvalidValue(*params[1]);
-	
-	int returnCode;
-	try {
-		returnCode = std::stoi(params[0]->value);
-	} catch (...) {
-		Throw::InvalidValue(*params[0]);
-	}
-	if (!HTTP::isValidStatusCode(returnCode))
-		Throw::InvalidReturnCode(*params[0]);
-	returnRoute.returnCode = returnCode;
-	returnRoute.returnRoute = params[1]->value;
-}
-
 //	multiscope directive for URI, expects a single URI as param
-void	Parser::parseUriDirective(const Token& directive, std::vector<const Token*>& params, std::string& uri)
+void	Parser::parseUri(const Token& directive, std::vector<const Token*>& params, std::string& uri)
 {
 	if (params.size() != 1)
 		Throw::InvalidNumberOfArguments(directive);
@@ -494,7 +472,7 @@ void	Parser::parseUriDirective(const Token& directive, std::vector<const Token*>
 	uri = params[0]->value;
 }
 
-void	Parser::parseToggleDirective(const Token& directive, std::vector<const Token*>& params, bool& toggle)
+void	Parser::parseToggle(const Token& directive, std::vector<const Token*>& params, bool& toggle)
 {
 	if (params.size() != 1)
 		Throw::InvalidNumberOfArguments(directive);
@@ -508,7 +486,7 @@ void	Parser::parseToggleDirective(const Token& directive, std::vector<const Toke
 	toggle = validToggle;
 }
 
-void	Parser::parseExtensionDirective(const Token& directive, std::vector<const Token*>& params, std::string& ext)
+void	Parser::parseExtension(const Token& directive, std::vector<const Token*>& params, std::string& ext)
 {
 	if (params.size() != 1)
 		Throw::InvalidNumberOfArguments(directive);
@@ -519,30 +497,4 @@ void	Parser::parseExtensionDirective(const Token& directive, std::vector<const T
 		Throw::InvalidExtension(*params[0]);
 	
 	ext = params[0]->value;
-}
-
-/* ************************************************************************** */
-/* TODO: DELETE LATER                                                         */
-/* ************************************************************************** */
-
-
-Config Parser::mockParseConfig(std::string configFilePath) {
-	std::string configFile = readConfigFile(configFilePath);
-
-	Config config;
-	std::cout << configFile << std::endl;
-	return config;
-}
-
-std::string Parser::readConfigFile(std::string configFilePath) {
-	std::ifstream configFile(configFilePath);
-	if (!configFile) {
-		throw std::runtime_error("Config file is not found.");
-	}
-
-	std::stringstream buffer;
-	buffer << configFile.rdbuf();
-	configFile.close();
-
-	return buffer.str();
 }
