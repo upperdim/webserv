@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 13:44:22 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/17 16:30:49 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,8 +55,6 @@ int	main(int argc, char **argv)
 
 		config = parser.parse();
 		config.printConfigs();
-		// config = parser.mockParseConfig(configFilePath);
-		
 	} catch (const std::exception& e)	{
 		terminate(e.what(), 1);
 	}
