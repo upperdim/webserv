@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/17 17:19:08 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/17 19:19:32 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -317,7 +317,7 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 			int result = inet_pton(AF_INET, ip.c_str(), &addr);
 			if (result == 0)
 				Throw::InvalidIPAddr(*params[0]);
-			server.host = addr.s_addr;
+			server.listenHost = addr.s_addr;
 		} else if (Validator::isDomainName(params[0]->value)) {
 			// we got a DomainName
 			addrinfo hints;
@@ -328,7 +328,7 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 				Throw::HostNotFound(*params[0]);
 			
 			sockaddr_in* ipv4 = reinterpret_cast<sockaddr_in*>(res->ai_addr);
-			server.host = ipv4->sin_addr.s_addr;
+			server.listenHost = ipv4->sin_addr.s_addr;
 			freeaddrinfo(res);
 		} else 
 			Throw::InvalidPort(directive, *params[0]);
@@ -363,7 +363,7 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 			// Throw::InvalidNumberOfArguments(directive);
 		}
 
-		server.host = INADDR_ANY;
+		server.listenHost = INADDR_ANY;
 
 		unsigned int port;
 		if (!Validator::isValidPort(params[0]->value, port))

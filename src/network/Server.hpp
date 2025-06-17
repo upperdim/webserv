@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/18 16:24:16 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/17 19:33:43 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,11 +22,12 @@
 #include "EventManager.hpp"
 #include "IEventHandler.hpp"
 #include "Connection.hpp"
+#include "Config.hpp"
 
 class Server : public IEventHandler
 {
 public:
-	Server();
+	Server(ServerBlock serverBlock);
 	~Server();
 
 	void	accept_connection(EventManager& event_manager);
@@ -36,12 +37,11 @@ public:
 	virtual void handleErrorEvent(EventManager& event_manager);
 	virtual void handleDisConnectEvent(EventManager& event_manager);
 
-	void				setRootDir(const std::string& _root_dir);
 	const std::string	getRootDir(void) const;
 
 private:
-	struct sockaddr_in	m_srv_addr;
-	std::string			m_root_dir;
+	struct sockaddr_in	m_srvAddr;
+	ServerBlock			m_serverBlock;
 
 	Server(const Server& other);
 	Server&	operator=(const Server& rhs);

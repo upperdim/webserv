@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/17 16:08:25 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/17 19:19:32 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ class ServerBlock
 public:
 	// Subject requirement of this scope
 	int							listenPort         = 80;					//	::	listen
-	in_addr_t					host               = 0;						//	assign in Server constructor like: m_srv_addr.sin_addr.s_addr = config.host;
+	in_addr_t					listenHost               = 0;						//	assign in Server constructor like: m_srv_addr.sin_addr.s_addr = config.listenHost;
 	std::vector<std::string>	serverNames;								//	::	server_name
 	std::map<int, std::string>	errorPagePaths;								//	::	error_page
 	size_t						clientMaxBodySize  = 1048576; // 1 MB		//	::	client_max_body_size
@@ -64,11 +64,6 @@ public:
 
 	// Subject requirement of this scope
 	std::vector<ServerBlock>	serverBlocks;		//	::	server
-
-	// Multiscope options
-	size_t						clientMaxBodySize;	//	::	client_max_body_size
-	std::map<int, std::string>	errorPagePaths;		//	::	error_page
-	std::string					index;				//	::	index
 
 	void	printConfigs(void) const;				// TODO: delete me 
 
