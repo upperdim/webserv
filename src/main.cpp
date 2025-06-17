@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/17 16:30:49 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/17 19:42:21 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,9 +61,13 @@ int	main(int argc, char **argv)
 
 	try {
 		EventManager event_manager(g_running);
-		Server* server = new Server();
-
-		event_manager.registerFd(server, POLLIN | POLLERR | POLL_HUP);
+		std::vector<Server*> serverList; // TODO: delete / free
+		
+		for (size_t i = 0; i < config.serverBlocks.size(); ++i) {
+			serverList.push_back(new Server(config.serverBlocks[i]));
+			event_manager.registerFd(serverList[i], POLLIN | POLLERR | POLL_HUP);
+		}
+		
 		event_manager.processPendingRegistrations();
 
 		event_manager.run();

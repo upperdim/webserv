@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/17 17:03:01 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/17 19:19:32 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ void	Config::printConfigs(void) const	// TODO: delete me
 		printLn(LIGHTCYAN"server" LIGHTYELLOW " {" RESET);
 
 		print(LIGHTCYAN"\tlisten\t\t\t" RESET);
-		print(LIGHTMAGENTA + std::to_string(server.host) + ":" + std::to_string(server.listenPort));
+		print(LIGHTMAGENTA + std::to_string(server.listenHost) + ":" + std::to_string(server.listenPort));
 		printLn(GRAY";" RESET);
 
 		print(LIGHTCYAN"\tserver_names\t\t" RESET);

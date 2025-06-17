@@ -3,32 +3,30 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/19 12:08:36 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/17 19:33:29 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-Server::Server()
+Server::Server(ServerBlock serverBlock) 
+	:	m_serverBlock(serverBlock)
 {
-	// configer server
-	m_root_dir = "html";
-
 	// create srv socket
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0); // TODO: add SOCK_NONBLOCK
 	if (socket_fd < 0)
 		throw ( std::runtime_error("failed to create socket for server") );
 
 	// define server address
-	m_srv_addr.sin_family = AF_INET;
-	m_srv_addr.sin_port = htons(80);
-	m_srv_addr.sin_addr.s_addr = INADDR_ANY;
+	m_srvAddr.sin_family = AF_INET;
+	m_srvAddr.sin_port = htons(serverBlock.listenPort);
+	m_srvAddr.sin_addr.s_addr = serverBlock.listenHost;
 
 	// bind srv socket to specific IP and PORT
-	bind(socket_fd, (struct sockaddr*) &m_srv_addr, sizeof(m_srv_addr));
+	bind(socket_fd, (struct sockaddr*) &m_srvAddr, sizeof(m_srvAddr));
 
 	// start listening
 	listen(socket_fd, 5);	// TODO: is 5 a good value here?
@@ -91,12 +89,7 @@ void	Server::handleDisConnectEvent(EventManager& event_manager)
 	(void)event_manager;
 }
 
-void	Server::setRootDir(const std::string& _root_dir)
-{
-	m_root_dir = _root_dir;
-}
-
 const std::string	Server::getRootDir(void) const
 {
-	return (m_root_dir);
+	return m_serverBlock.root;
 }
