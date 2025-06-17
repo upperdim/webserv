@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/09 12:21:17 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/16 11:11:03 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,88 +35,81 @@ Lexer::~Lexer()
 /* ************************************************************************** */
 
 
-Token	Lexer::nextToken(void)
+std::vector<Token>	Lexer::tokenize(void)
 {
-	precededByComment = false;
+	std::vector<Token> tokens;
+
+	while (m_pos < m_input.length()) {
+		Token token = nextToken();
+
+		//	TODO:	decide if we process INVALID tokens or if we just leave them out
+		//			currently I decided to add INVALID tokens to the list… lets see…
+		// if (token.type != TokenType::INVALID)
+			tokens.emplace_back(token);
+	}
+
+	if (tokens.size() == 0 || tokens.back().type != TokenType::END_OF_INPUT)
+		tokens.emplace_back(Token(TokenType::END_OF_INPUT, m_line));
+
+	return tokens;
+}
+
+Token	Lexer::nextToken(bool _precededByComment)
+{
+	precededByComment = _precededByComment;
 	skipWhitespaces();
 
 	if (m_pos >= m_input.length())
-		return ( Token(TokenType::END_OF_INPUT, "") );
+		return Token(TokenType::END_OF_INPUT, m_line);
 
-	char c = nextChar();
+	markStart();
 
-	if (c == '#')
-	{
-		precededByComment = true;
-		while (c != '\n' && m_pos < m_input.length())
-			c = nextChar();
-		if (c == '\n')
-			++m_line;
-		return (nextToken());
+	char c = peek();
+
+	if (c == '#') {
+		skipComment();
+		skipWhitespaces();
+		if (m_pos >= m_input.length())
+			return Token(TokenType::END_OF_INPUT, m_line);
+		return nextToken(true);
 	}
 
-	switch (c)
-	{
-		case '{':
-			return ( Token(TokenType::OPEN_BRACE, m_line) );
-		case '}':
-			return ( Token(TokenType::CLOSE_BRACE, m_line) );
-		case ';':
-			return ( Token(TokenType::SEMICOLON, m_line) );
+	switch (c) {
 		case ':':
-			return ( Token(TokenType::COLON, m_line) );
-		case '/':
-		{
-			// URI
-			std::string uri(1, c);
-			std::string validCharacters("-_.~/?#[]=&%");
-			while ( std::isalnum(m_input[m_pos]) || validCharacters.find(m_input[m_pos]) != std::string::npos )
-				uri += nextChar();
-			return ( Token(TokenType::URI, uri) );
-		}
-		default:
-			if (std::isalpha(c))
-			{
-				// KEYWORD or PARAM/STRING
-				std::string word(1, c);
-				std::string validCharacters(".");
-				while ( std::isalpha(m_input[m_pos]) || validCharacters.find(m_input[m_pos]) != std::string::npos )
-					word += nextChar();
-
-				// check for keyword
-				if (word == "events")
-					return ( Token(TokenType::EVENTS, m_line) );
-				if (word == "http")
-					return ( Token(TokenType::HTTP, m_line) );
-				if (word == "server")
-					return ( Token(TokenType::SERVER, m_line) );
-				if (word == "location")
-					return ( Token(TokenType::LOCATION, m_line) );
-				if (word == "listen")
-					return ( Token(TokenType::LISTEN, m_line) );
-
-				return ( Token(TokenType::STRING, word, m_line) );
-			}
-			else if ( std::isdigit(c) )
-			{
-				// NUMBER or IP
-				std::string num(1, c);
-				size_t      epos = isIPAddress(m_pos - 1);
-				if (epos)
-				{
-					num = m_input.substr(m_pos - 1, epos - m_pos);
-					m_pos = epos;
-					return ( Token(TokenType::IP, num) );
-				}
-
-				while ( std::isdigit(m_input[m_pos]) )
-					num += nextChar();
-				return ( Token(TokenType::NUMBER, num) );
-			}
+			advance();
+			return Token(TokenType::COLON, ":", m_line);
+		case ';':
+			advance();
+			return Token(TokenType::SEMICOLON, ";", m_line);
+		case '{':
+			advance();
+			return Token(TokenType::OPEN_BRACE, "{", m_line);
+		case '}':
+			advance();
+			return Token(TokenType::CLOSE_BRACE, "}", m_line);
 	}
 
-	m_pos = m_input.length();	// TODO: delete me
-	return ( Token(TokenType::ERROR, "Unexpected character") );
+	//	Handle numbers
+	if (std::isdigit(c)) {
+		if (isMixedAlphanumeric())
+			return readAndClassify();	//	Domain/address starting with digit
+		return readNumber();
+	}
+
+	//	Handle keywords and general parameters
+	//	TODO:	I added '.' '-' and '_' is this ok
+	if (std::isalpha(c) || c == '/' || c == '.' || c == '-' || c == '_') {
+		return readAndClassify();
+	}
+
+	advance();
+	return Token(TokenType::INVALID, std::string(1, c), m_line);
+}
+
+void	Lexer::printTokens(std::vector<Token>& tokens)
+{
+	for (const Token& token : tokens)
+		std::cout << token << std::endl;
 }
 
 
@@ -124,57 +117,98 @@ Token	Lexer::nextToken(void)
 /* ************************************************************************** */
 
 
-char	Lexer::nextChar(void)
+void	Lexer::markStart(void)
 {
-	if (m_pos < m_input.length())
-		return (m_input[m_pos++]);
-	return ('\0');
+	m_startPos = m_pos;
+}
+
+char	Lexer::peek(size_t offset) const
+{
+	size_t idx = m_pos + offset;
+	return  idx < m_input.length() ? m_input[idx] : '\0';
+}
+
+char	Lexer::advance(void)
+{
+	if (m_pos < m_input.length()) {
+		char c = m_input[m_pos++];
+		if (c == '\n')
+			++m_line;
+		return c;
+	}
+	return '\0';
+}
+
+std::string Lexer::getCurrentLexeme() const
+{
+	return m_input.substr(m_startPos, m_pos - m_startPos);
+}
+
+KeywordType	Lexer::getKeywordType(const std::string& _keyword) const
+{
+	if (directives.find(_keyword) != directives.end()) {
+		return directives.at(_keyword);
+	}
+	return KeywordType::NONE;
 }
 
 void	Lexer::skipWhitespaces(void)
 {
-	while (m_pos < m_input.length() && std::isspace(m_input[m_pos]))
-	{
-		if (m_input[m_pos] == '\n')
-			++m_line;
-		m_pos++;
-	}
+	while (m_pos < m_input.length() && std::isspace(peek()))
+		advance();
 }
 
-size_t	Lexer::isIPAddress(size_t start) const
+void	Lexer::skipComment(void)
 {
-	size_t	cpos = start;
-	int		octetCount = 0;
-	int		currentOctet;
+	precededByComment = true;
+	advance();	//	consume '#'
+	while (m_pos < m_input.length() && peek() != '\n')
+		advance();
+	if (peek() == '\n')
+		advance();
+}
 
-	if (cpos + 7 > m_input.length())
-		return (0);
+bool	Lexer::isMixedAlphanumeric() const
+{
+	size_t	lookAhead = 0;
 
-	while (cpos < m_input.length() && octetCount < 4)
-	{
-		currentOctet = 0;
-		int digits = 0;
-		
-		while (cpos < m_input.length() && std::isdigit(m_input[cpos]) && digits < 3)
-		{
-			currentOctet = currentOctet * 10 + (m_input[cpos++] - '0');
-			++digits;
-		}
-
-		if (currentOctet > 255)
-			return (0);
-		
-		if (octetCount < 3)
-		{
-			if (cpos >= m_input.length() || m_input[cpos] != '.')
-				return (0);
-			++cpos;
-		}
-
-		++octetCount;
+	// skip inital digits
+	while (m_pos + lookAhead < m_input.length() && std::isdigit(peek(lookAhead)))
+		++lookAhead;
+	
+	//	check if followed by IPv4 domain/address aka isalpha, '-', '.'
+	if (m_pos + lookAhead < m_input.length()) {
+		char nextChar = peek(lookAhead);
+		return (std::isalpha(nextChar) || nextChar == '-' || nextChar == '.');
 	}
 
-	if ( octetCount == 4 && (cpos == m_input.length() || std::isdigit(m_input[cpos]) == false) )
-		return (cpos);
-	return (0);
+	return false;
+}
+
+Token	Lexer::readNumber()
+{
+	while (m_pos < m_input.length() && (std::isdigit(peek()) || peek() == '.'))
+		advance();
+	return Token(TokenType::NUMBER, getCurrentLexeme(), m_line);
+}
+
+Token	Lexer::readAndClassify()
+{
+	while (m_pos < m_input.length() &&
+			(std::isalnum(peek()) || peek() == '.' || peek() == '/' || peek() == '_' || peek() == '-')) {
+		advance();
+	}
+
+	std::string lexeme = getCurrentLexeme();
+
+	// check if it is a supported directive aka KEYWORD or URI
+	KeywordType keywordType = getKeywordType(lexeme);
+	if (keywordType != KeywordType::NONE) {
+		return Token(TokenType::KEYWORD, keywordType, lexeme, m_line);
+	} else if (lexeme[0] == '/') {
+		return Token(TokenType::URI, lexeme, m_line);
+	}
+
+	// By default we return a PARAM
+	return Token(TokenType::PARAM, lexeme, m_line);
 }

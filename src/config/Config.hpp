@@ -6,47 +6,54 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/09 17:57:27 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/17 16:08:25 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
+#include <iostream>			// TODO: delete me if we delete the print functions
 #include <string>
 #include <vector>
 #include <map>
 #include <netinet/in.h>		// for in_addr
 #include "Http.hpp"
+#include "colors.hpp"
 
 class LocationBlock
 {
 public:
-	std::string					route;
-	size_t 						clientMaxBodySize;
-	std::vector<HTTP::Method>	allowMethods;
+	std::string					route;										//	path after location
+	std::vector<HTTP::Method>	allowMethods	= {HTTP::Method::GET,
+	                                               HTTP::Method::POST,
+	                                               HTTP::Method::DELETE};	//	::	allow_methods
 	std::string					returnRoute;
-	std::string					root;
-	bool						autoIndex;
-	std::string					index;
-	std::string					cgiExtension;
-	bool						allowUpload;
-	std::string					uploadsDir;
+	bool						autoIndex		= false;					//	::	autoindex
+	std::string					cgiExtension;								//	::	cgi_extension
+	bool						allowUpload		= false;					//	::	allow_upload
+	std::string					uploadDir;									//	::	upload_store
+
+	// Multiscope options
+	size_t 						clientMaxBodySize;	//	::	client_max_body_size
+	std::string					index;				//	::	index
+	std::string					root;				//	::	root
 };
 
 class ServerBlock
 {
 public:
 	// Subject requirement of this scope
-	int listenPort;
-	in_addr_t host;		// assign in Server constructor like: m_srv_addr.sin_addr.s_addr = config.host;
-	std::vector<std::string> serverNames;
-	std::map<int, std::string>	errorPagePaths;
-	size_t clientMaxBodySize;
-	
+	int							listenPort         = 80;					//	::	listen
+	in_addr_t					host               = 0;						//	assign in Server constructor like: m_srv_addr.sin_addr.s_addr = config.host;
+	std::vector<std::string>	serverNames;								//	::	server_name
+	std::map<int, std::string>	errorPagePaths;								//	::	error_page
+	size_t						clientMaxBodySize  = 1048576; // 1 MB		//	::	client_max_body_size
+	std::vector<LocationBlock>	locationBlocks;
+
 	// Multiscope options
-	std::string root;
-	std::string index;
+	std::string root;								//	::	root
+	std::string index = "index.html";				//	::	index
 };
 
 class Config
@@ -56,12 +63,18 @@ public:
 	~Config();
 
 	// Subject requirement of this scope
-	std::vector<ServerBlock> serverBlocks;
+	std::vector<ServerBlock>	serverBlocks;		//	::	server
 
 	// Multiscope options
-	size_t clientMaxBodySize;
-	std::string index;
-	std::map<int, std::string> errorPagePaths;
+	size_t						clientMaxBodySize;	//	::	client_max_body_size
+	std::map<int, std::string>	errorPagePaths;		//	::	error_page
+	std::string					index;				//	::	index
+
+	void	printConfigs(void) const;				// TODO: delete me 
+
+private:
+	void	print(const std::string& str) const;	// TODO: delete me 
+	void	printLn(const std::string& str) const;	// TODO: delete me 
 };
 
 #endif

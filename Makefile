@@ -12,6 +12,8 @@ VPATH		=	$(SRC_FOLDERS)
 SRCS_NO_MAIN=	Config.cpp \
 				Token.cpp \
 				Lexer.cpp \
+				Validator.cpp \
+				Throw.cpp \
 				Parser.cpp \
 				EventManager.cpp \
 				Server.cpp \
@@ -41,7 +43,7 @@ INCLUDE_FLAG	=	$(addprefix -I, $(INCLUDES_DIRS))
 # Compilation
 NAME		=	webserv
 CPP			=	c++
-CPPFLAGS	=	-Wall -Wextra -Werror -std=c++11 -g -fsanitize=address
+CPPFLAGS	=	-Wall -Wextra -Werror -std=c++11 #-g -fsanitize=address
 
 OBJS_DIR	=	obj
 OBJS		=	$(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))
@@ -65,6 +67,6 @@ fclean: clean
 re: fclean all
 
 t: $(NAME)
-	@./$(NAME)
+	@./$(NAME) default.conf
 
 ret: re t

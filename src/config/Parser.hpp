@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/21 11:05:43 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/08 17:16:32 by nmihaile         ###   ########.fr       */
+/*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
+/*   Updated: 2025/06/17 17:01:01 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,44 +14,57 @@
 #define PARSER_HPP
 
 #include <string>
-#include <fstream>
-#include <stdexcept>
-#include <arpa/inet.h>	// for inet_pton()
-#include <sys/types.h>	// for getaddrinfo()
-#include <sys/socket.h>	// for getaddrinfo()
-#include <netdb.h>		// for getaddrinfo()
+#include <vector>
+#include <arpa/inet.h>		// for inet_pton()
+#include <sys/types.h>		// for getaddrinfo()
+#include <sys/socket.h>		// for getaddrinfo()
+#include <netdb.h>			// for getaddrinfo()
+#include <algorithm>		// for std::find in parseAllowMethodsDirective() method
+#include "colors.hpp"
+#include "Http.hpp"
 #include "Config.hpp"
 #include "Token.hpp"
-#include "Lexer.hpp"
+#include "Validator.hpp"
+#include "Throw.hpp"
 #include "Log.hpp"
 
 class Parser
 {
 public:
-	Parser(const Lexer& _lexer);
+	Parser(const std::vector<Token>& _tokens);
 	~Parser();
 
 	Config	parse(void);
-	Config	mockParseConfig(std::string configFilePath);		// TODO: remove 
-	
+
 private:
-	Parser(const Parser& other);
-	Parser&	operator=(const Parser& rhs);
+	const std::vector<Token>&	m_tokens;
+	size_t						m_pos;
 
-	ServerBlock		parseServer(void);
-	void			parseListenDirective(ServerBlock& serverBlock);
-	void			parsePortAfterHost(ServerBlock& serverBlock);
-	
-	void			consume(TokenType _type, std::string msg = "");
-	void			ensureDirectiveTermination(const std::string& name);
+	const Token&	prev(void) const;
+	const Token&	peek(void) const;
+	const Token&	advance(void);
+	bool			isAtEnd(void) const;
+	bool			isValidKeyword(const Token& token) const;
+	void			expect(TokenType _type, const Token& directive, const std::string& msg);
+	void			expectNoArguments(void);
 
-	unsigned int	validatePort(const std::string& _port);
+	void			skipEventsDirective(void);
+	void			parseHttpDirective(Config& config);
+	void			parseServerBlock(ServerBlock& server);
+	void			parseServerDirectives(ServerBlock& server);
+	void			parseLocationBlock(LocationBlock& location);
+	void			parseLocationDirectives(LocationBlock& location);
 
-	std::string		readConfigFile(std::string configFilePath);		// TODO: remove 
+	void			parseListenDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
+	void			parseServerNameDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
+	void			parseErrorPageDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
+	void			parseAllowMethodsDirective(const Token& directive, std::vector<const Token*>& params, LocationBlock& location);
+	void			parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, size_t& value);
+	void			parseIndexDirective(const Token& directive, std::vector<const Token*>& params, std::string& index);
+	void			parseUri(const Token& directive, std::vector<const Token*>& params, std::string& root);
+	void			parseToggle(const Token& directive, std::vector<const Token*>& params, bool& autoIndex);
+	void			parseExtension(const Token& directive, std::vector<const Token*>& params, std::string& ext);
 
-	Lexer	m_lexer;
-	Token	m_currentToken;
-	Config	m_config;
 };
 
 #endif

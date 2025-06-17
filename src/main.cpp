@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/09 17:31:22 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/17 16:30:49 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,12 +48,13 @@ int	main(int argc, char **argv)
 	Config config;
 
 	try	{
-		Lexer	lexer(readFile(configFilePath));
-		Parser	parser(lexer);
+		Lexer lexer(readFile(configFilePath));
+		std::vector<Token> tokens = lexer.tokenize();
+		// lexer.printTokens(tokens);
+		Parser	parser(tokens);
 
-		// config = parser.parse();
-		// config = parser.mockParseConfig(configFilePath);
-		
+		config = parser.parse();
+		config.printConfigs();
 	} catch (const std::exception& e)	{
 		terminate(e.what(), 1);
 	}
