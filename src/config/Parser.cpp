@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/17 19:19:32 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/18 12:43:25 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,17 +48,10 @@ Config	Parser::parse(void)
 
 		const Token& directive = peek();
 		switch (directive.keywordType) {
-			case KeywordType::EVENTS:
-				skipEventsDirective();
-				break ;
-			case KeywordType::HTTP:
-				parseHttpDirective(config);
-				break ;
+			case KeywordType::EVENTS:	skipEventsDirective(); break;
+			case KeywordType::HTTP:		parseHttpDirective(config);	break;
 			// add any global supported directive here
-			default:
-				Throw::UnknownOrUnsupportedDirective(peek());
-				// advance();	//	TODO: delete me later if not needed!!!!
-				break ;
+			default:					Throw::UnknownOrUnsupportedDirective(peek()); break;
 		}
 	}
 
@@ -117,7 +110,8 @@ void	Parser::expectNoArguments(void)
 	// throw if param is available
 	if (peek().type == TokenType::PARAM ||
 	    peek().type == TokenType::URI ||
-	    peek().type == TokenType::NUMBER)
+	    peek().type == TokenType::NUMBER ||
+	    peek().type == TokenType::INVALID)
 		Throw::InvalidNumberOfArguments(prev());
 }
 
@@ -249,7 +243,6 @@ void	Parser::parseLocationBlock(LocationBlock& location)
 	if (params[0]->type != TokenType::URI)
 		Throw::InvalidValue(directive);
 
-	//	TODO:	do we have to validate this route here???
 	location.route = params[0]->value;
 
 	while (m_pos < m_tokens.size() && !isAtEnd() && peek().type != TokenType::CLOSE_BRACE) {
@@ -356,12 +349,8 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 		}
 	} else if (params[0]->type == TokenType::NUMBER) {
 		// we got a PORT
-		if (params.size() > 1) {
-			//	TODO: clean up the comments below, they are an old condition for a different throw method
-			// if (params[1]->type == TokenType::URI)
-				Throw::InvalidParameter(*params[1]);
-			// Throw::InvalidNumberOfArguments(directive);
-		}
+		if (params.size() > 1)
+			Throw::InvalidParameter(*params[1]);
 
 		server.listenHost = INADDR_ANY;
 

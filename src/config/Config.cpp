@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/17 19:19:32 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/18 12:10:28 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ Config::~Config()
 /* ************************************************************************** */
 
 
-void	Config::printConfigs(void) const	// TODO: delete me 
+void	Config::printConfigs(void) const
 {
 
 	printLn(LIGHTGREEN"\nPRINT CONFIG");
@@ -141,12 +141,12 @@ void	Config::printConfigs(void) const	// TODO: delete me
 /* ************************************************************************** */
 
 
-void	Config::print(const std::string& str) const	// TODO: delete me 
+void	Config::print(const std::string& str) const
 {
 	std::cout << str;
 }
 
-void	Config::printLn(const std::string& str) const	// TODO: delete me 
+void	Config::printLn(const std::string& str) const
 {
 	print(str);
 	print("\n");
