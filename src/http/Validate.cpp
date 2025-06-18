@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Validate.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:00:15 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 16:30:31 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 20:47:09 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,31 +29,23 @@ bool	Validate::sstream(bool failed, int& _status_code)
 	return (false);
 }
 
-bool	Validate::method(std::string& str, HTTP::Method& method, int& _status_code)
+bool	Validate::validateHttpMethod(std::string& methodStr, HTTP::Method& dest, int& _status_code)
 {
-	if (str == "GET\0") {
-		method = HTTP::Method::GET;
+	if (Validator::isValidMethod(methodStr, dest))
 		return true;
-	} else if (str == "POST\0") {
-		method = HTTP::Method::POST;
-		return true;
-	} else if  (str == "DELETE\0") {
-		method = HTTP::Method::DELETE;
-		return true;
-	}
 
-	std::string ustr = str;
+	std::string ustr = methodStr;
 	std::transform(ustr.begin(), ustr.end(), ustr.begin(), [](char c){
 		return (std::toupper(c));
 	});
 
 	if (ustr == "GET\0" || ustr == "POST\0" || ustr == "DELETE\0") {
-		method = HTTP::strToMethod(str);
+		dest = HTTP::strToMethod(methodStr);
 		setStatusCode(_status_code, WSSC_BAD_REQUEST);
 		return false;
 	}
 		
-	method = HTTP::Method::GET;
+	dest = HTTP::Method::GET;
 	setStatusCode(_status_code, WSSC_METHOD_NOT_ALLOWED);
 	return false;
 }

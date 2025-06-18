@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:36 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 14:37:15 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 22:24:08 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,8 @@
 #include "EventManager.hpp"
 #include "IEventHandler.hpp"
 #include "Request.hpp"
-#include "Router.hpp"
-#include "AHandler.hpp"
 #include "Response.hpp"
+#include "Utils.hpp"
 
 class Connection : public IEventHandler
 {
@@ -46,7 +45,14 @@ private:
 	Connection();
 	Connection(const Connection& other);
 	Connection&	operator=(const Connection& rhs);
-	
+
+	Response	handleGetRequest(const Request& request);
+	std::string	fetchErrorPage(int _status_code) const;
+	void		createErrorResponse(Response& response, int _status_code);
+	Response	handleErrorRequest(const Request& request);
+	Response	handlePostRequest(const Request& request);
+	Response	handleDeleteRequest(const Request& request);
+
 	bool				m_done;
 	const ServerBlock&	m_serverBlock;
 };

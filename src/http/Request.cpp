@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:49 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 16:59:47 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 22:26:30 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,7 +130,7 @@ void	Request::parseRequestLine(void)
 
 	std::string methodStr;
 	ss >> methodStr;
-	if (Validate::sstream(ss.fail(), m_status_code) || !Validate::method(methodStr, m_method, m_status_code))
+	if (Validate::sstream(ss.fail(), m_status_code) || !Validate::validateHttpMethod(methodStr, m_method, m_status_code))
 		m_state = State::ERROR;
 
 	ss >> m_request_target;
