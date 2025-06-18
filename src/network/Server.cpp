@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/17 19:33:29 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/18 16:43:15 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ void	Server::accept_connection(EventManager& event_manager)
 
 	LOG_SUCCESS("Connection established fd: " + std::to_string(cli_socket));
 
-	Connection* connection = new Connection(cli_socket, *this);
+	Connection* connection = new Connection(cli_socket, m_serverBlock);
 
 	event_manager.registerFd(connection, POLLIN | POLLERR | POLLHUP);
 }
@@ -87,9 +87,4 @@ void	Server::handleDisConnectEvent(EventManager& event_manager)
 {
 	LOG_MSG("[handleDisConnectEvent] ", std::string("Server fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 	(void)event_manager;
-}
-
-const std::string	Server::getRootDir(void) const
-{
-	return m_serverBlock.root;
 }

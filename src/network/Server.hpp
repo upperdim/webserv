@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/17 19:33:43 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/18 16:42:58 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,6 @@ public:
 	virtual void handleWriteEvent(EventManager& event_manager);
 	virtual void handleErrorEvent(EventManager& event_manager);
 	virtual void handleDisConnectEvent(EventManager& event_manager);
-
-	const std::string	getRootDir(void) const;
 
 private:
 	struct sockaddr_in	m_srvAddr;
