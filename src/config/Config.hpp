@@ -3,17 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/17 19:19:32 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/18 12:10:49 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-#include <iostream>			// TODO: delete me if we delete the print functions
+#include <iostream>
 #include <string>
 #include <vector>
 #include <map>
@@ -65,11 +65,11 @@ public:
 	// Subject requirement of this scope
 	std::vector<ServerBlock>	serverBlocks;		//	::	server
 
-	void	printConfigs(void) const;				// TODO: delete me 
+	void	printConfigs(void) const;
 
 private:
-	void	print(const std::string& str) const;	// TODO: delete me 
-	void	printLn(const std::string& str) const;	// TODO: delete me 
+	void	print(const std::string& str) const;
+	void	printLn(const std::string& str) const;
 };
 
 #endif
