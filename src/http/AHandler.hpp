@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:36:57 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/14 18:33:48 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 14:38:22 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,15 +15,14 @@
 
 #include <fstream>
 #include "Http.hpp"
+#include "Config.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
-
-class Server;
 
 class AHandler
 {
 public:
-	AHandler(const Server& _server);
+	AHandler(const ServerBlock& _serverBlock);
 	virtual	~AHandler();
 
 	virtual Response	handle(const Request& request) =0;
@@ -31,7 +30,7 @@ public:
 	virtual std::string	fetchErrorPage(int _status_code) const;
 
 protected:
-	const Server&	m_server;
+	const ServerBlock&	m_serverBlock;
 };
 
 #endif

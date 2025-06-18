@@ -6,14 +6,14 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/09 17:47:24 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/15 18:59:07 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 14:38:33 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "AHandler.hpp"
 
-AHandler::AHandler(const Server& _server)
-	:	m_server(_server)
+AHandler::AHandler(const ServerBlock& _serverBlock)
+	:	m_serverBlock(_serverBlock)
 {
 }
 
