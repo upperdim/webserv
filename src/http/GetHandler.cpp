@@ -6,13 +6,14 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:03 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/21 12:53:18 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 14:58:03 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "GetHandler.hpp"
 
-GetHandler::GetHandler(const Server& _server) : AHandler(_server)
+GetHandler::GetHandler(const ServerBlock& _serverBlock)
+	:	AHandler(_serverBlock)
 {
 }
 
@@ -60,7 +61,7 @@ Response	GetHandler::handle(const Request& request)
 
 std::string	GetHandler::sanitizePath(const Request& request, Response& response)
 {
-	std::string	root_path	= m_server.getRootDir();
+	std::string	root_path	= m_serverBlock.root; //getRootDir()
 	std::string path		= request.getRequestTarget();
 
 	(void)response;	// TODO: delete me
