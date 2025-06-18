@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:05 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 14:39:34 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 18:08:56 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 #include "AHandler.hpp"
 #include "Server.hpp"
 #include "Response.hpp"
-#include "Http.hpp"
+#include "HTTP.hpp"
 
 class GetHandler : public AHandler
 {

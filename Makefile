@@ -27,7 +27,7 @@ SRCS_NO_MAIN=	Config.cpp \
 				ErrorHandler.cpp \
 				GetHandler.cpp \
 				signal.cpp \
-				Http.cpp \
+				HTTP.cpp \
 				Log.cpp \
 				startsEndsWith.cpp \
 				trimWhitespaces.cpp \

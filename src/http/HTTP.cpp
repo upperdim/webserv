@@ -6,11 +6,11 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/03 13:04:46 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 16:32:30 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 18:09:04 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Http.hpp"
+#include "HTTP.hpp"
 
 const std::map<int, std::string>	HTTP::m_status_messages = {
 	{100,	"Continue"},
