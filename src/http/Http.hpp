@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Http.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:09:01 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/17 17:21:07 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/18 16:32:26 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,6 +99,8 @@ public:
 	static std::string	getMimeType(const std::string& path);
 	static std::string	getErrorPageTemplate(const int& status_code);
 	static bool			isValidStatusCode(int& statusCode);
+	static std::string	methodToString(const HTTP::Method& method);
+	static HTTP::Method	strToMethod(const std::string& str);
 
 private:
 	static const std::map<int, std::string>			m_status_messages;
