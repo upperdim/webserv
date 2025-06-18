@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:35:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/11 20:58:32 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 10:54:13 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,9 @@
 
 #include <string>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
+#include "colors.hpp"
 
 enum class TokenType
 {
@@ -74,7 +77,11 @@ private:
 	std::string	tokenTypeToString(void) const;
 	std::string	tokenKeywordTypeToString(void) const;
 
-	static std::string lowerCase(const std::string& str);
+	static std::string	lowerCase(const std::string& str);
+	size_t				countDigits(size_t nbr);
+
+	static size_t		m_maxLineDigits;
+
 };
 
 std::ostream&  operator << (std::ostream& os, const Token& token);

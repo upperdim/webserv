@@ -6,11 +6,14 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 15:46:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 12:41:46 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 10:56:58 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Token.hpp"
+
+// we have to define the default value of this shared membervariable in the source file so that ot compiles
+size_t	Token::m_maxLineDigits = 0;
 
 Token::Token(const TokenType& _type, const KeywordType& _keywordType, const std::string& _value, size_t _line)
 	:	type(_type),
@@ -18,6 +21,7 @@ Token::Token(const TokenType& _type, const KeywordType& _keywordType, const std:
 		value(_value),
 		line(_line)
 {
+	m_maxLineDigits = countDigits(line);
 }
 
 Token::Token(const TokenType& _type, const std::string& _value, size_t _line)
@@ -26,6 +30,7 @@ Token::Token(const TokenType& _type, const std::string& _value, size_t _line)
 		value(_value),
 		line(_line)
 {
+	m_maxLineDigits = countDigits(line);
 }
 
 Token::Token(const TokenType& _type, size_t _line)
@@ -34,6 +39,7 @@ Token::Token(const TokenType& _type, size_t _line)
 		value(""),
 		line(_line)
 {
+	m_maxLineDigits = countDigits(line);
 }
 
 Token::Token(const Token& other)
@@ -42,6 +48,7 @@ Token::Token(const Token& other)
 		value(other.value),
 		line(other.line)
 {
+	m_maxLineDigits = countDigits(line);
 }
 
 Token::~Token()
@@ -59,9 +66,12 @@ std::string	Token::toString(void) const
 	if (type == TokenType::KEYWORD)
 		directive = " " + tokenKeywordTypeToString();
 
-	std::string tokenStr = std::string("\033[32m[\033[92m") + std::to_string(line) + "\033[32m] \033[96m";
-	tokenStr += tokenTypeToString() + "\033[91m" + directive;
-	tokenStr += " \033[33m\033[93m" + value + "\033[0m";
+	std::stringstream lineStr;
+    lineStr << std::setw(m_maxLineDigits) << std::setfill('0') << line;
+
+	std::string tokenStr = std::string(GREEN"[" LIGHTGREEN) + lineStr.str() + GREEN"] " LIGHTCYAN;
+	tokenStr += tokenTypeToString() + LIGHTRED + directive;
+	tokenStr += std::string(" ") + LIGHTYELLOW + value + DEFAULT;
 	return (tokenStr);
 }
 
@@ -84,7 +94,7 @@ std::string	Token::getTokenValue(void) const
 
 std::string	Token::inLine(void) const
 {
-	return (std::string(" in line \033[96m") + std::to_string(line));
+	return (std::string(" in line " LIGHTCYAN) + std::to_string(line) + DEFAULT);
 }
 
 
@@ -139,6 +149,19 @@ std::string Token::lowerCase(const std::string& str)
 	for (std::string::const_iterator it = str.cbegin(); it < str.cend(); ++it)
 		lower += std::tolower(*it);
 	return (lower);	
+}
+
+size_t	Token::countDigits(size_t nbr)
+{
+	if (nbr == 0)
+		return 1;
+
+	size_t count = 0;
+	while (nbr != 0) {
+		++count;
+		nbr /= 10;
+	}
+	return count;
 }
 
 
