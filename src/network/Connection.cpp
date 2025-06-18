@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 14:37:23 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 22:25:34 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,14 +54,99 @@ void Connection::handleReadEvent(EventManager& event_manager)
 	{
 		LOG_SUCCESS("DONE READING **********************************************************");
 		
-		Router router(m_serverBlock);			// TODO: should the Router class be a Utility-Class like Log ???
-		AHandler* handler = router.route(request);
-		response = handler->handle(request);
-		delete (handler);
-
+		if (request.error()) {
+			response = handleErrorRequest(request);
+		} else {
+			switch (request.getMethod()) {
+				case HTTP::Method::GET:
+					response = handleGetRequest(request);
+					break;
+				case HTTP::Method::POST:
+					response = handlePostRequest(request);
+					break;
+				case HTTP::Method::DELETE:
+					response = handleDeleteRequest(request);
+					break;
+			}
+		}
 		event_manager.setFdEvents(socket_fd, POLLOUT | POLLERR | POLLHUP);
 	}
 }
+
+/************************************************************************ */
+
+Response	Connection::handleGetRequest(const Request& request)
+{
+	Response response;
+
+	if (request.error())
+	{
+		createErrorResponse(response, request.getStatusCode());
+		return (response);
+	}
+
+	// TODO: restructure:
+	// sanitize path
+	std::string path = Utils::sanitizePath(request, response, m_serverBlock);
+	LOG_DEBUG("PATH ----> " + path);
+
+	// does the path resource exist
+	if (Utils::resourceExist(path))
+	{
+		// fetch content
+		response.addHeader("Content-Type", HTTP::getMimeType(path));
+		response.setBodyFileBufferReader(path);
+	}
+	else
+		createErrorResponse(response, WSSC_I_M_A_TEAPOT);
+
+	return (response);
+}
+
+std::string	Connection::fetchErrorPage(int _status_code) const
+{
+	return (HTTP::getErrorPageTemplate(_status_code));
+}
+
+void	Connection::createErrorResponse(Response& response, int _status_code)
+{
+	response.setProtokoll("HTTP/1.1");
+	response.setStatus(_status_code, HTTP::getStatusMessage(_status_code));
+	response.addHeader("Content-Type", HTTP::getMimeType(".html"));
+	response.setBodyString(fetchErrorPage(_status_code));
+}
+
+Response	Connection::handleErrorRequest(const Request& request)
+{
+	Response	response;
+	int			status_code = request.getStatusCode();
+
+	if (status_code < WSSC_BAD_REQUEST)
+		status_code = WSSC_INTERNAL_SERVER_ERROR;
+
+	createErrorResponse(response, status_code);
+	return (response);
+}
+
+Response	Connection::handlePostRequest(const Request& request)
+{
+	(void) request;
+	throw std::runtime_error("Work in progress...");
+}
+
+Response	Connection::handleDeleteRequest(const Request& request)
+{
+	(void) request;
+	throw std::runtime_error("Work in progress...");
+}
+
+
+
+
+
+
+/************************************************************************ */
+
 
 void Connection::handleWriteEvent(EventManager& event_manager)
 {

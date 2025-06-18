@@ -19,19 +19,16 @@ SRCS_NO_MAIN=	Config.cpp \
 				Server.cpp \
 				Connection.cpp \
 				Request.cpp \
-				Router.cpp \
 				FileBufferReader.cpp \
 				Response.cpp \
 				Validate.cpp \
-				AHandler.cpp \
-				ErrorHandler.cpp \
-				GetHandler.cpp \
 				signal.cpp \
 				HTTP.cpp \
 				Log.cpp \
 				startsEndsWith.cpp \
 				trimWhitespaces.cpp \
 				readFile.cpp \
+				Utils.cpp \
 
 
 SRCS		=	main.cpp $(SRCS_NO_MAIN)

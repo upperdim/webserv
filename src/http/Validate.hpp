@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Validate.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:00:17 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 18:09:20 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 20:47:19 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <string>
 #include <algorithm>
 #include "HTTP.hpp"
+#include "Validator.hpp"
 
 class Validate
 {
@@ -23,7 +24,7 @@ public:
 	~Validate();
 
 	static bool	sstream(bool failed, int& status_code);
-	static bool	method(std::string& str, HTTP::Method& method, int& status_code);
+	static bool	validateHttpMethod(std::string& methodStr, HTTP::Method& dest, int& status_code);
 	
 private:
 	Validate();
