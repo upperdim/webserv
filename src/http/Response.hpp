@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 11:29:40 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/17 19:10:02 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 18:09:12 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 #include "webserv.hpp"
 #include "Request.hpp"
 #include "FileBufferReader.hpp"
-#include "Http.hpp"
+#include "HTTP.hpp"
 
 class Response
 {

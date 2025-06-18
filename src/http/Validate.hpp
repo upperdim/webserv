@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:00:17 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 16:25:31 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 18:09:20 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 #include <string>
 #include <algorithm>
-#include "Http.hpp"
+#include "HTTP.hpp"
 
 class Validate
 {

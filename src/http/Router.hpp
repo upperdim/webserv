@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:26:27 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 14:48:46 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 18:09:16 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 #include <map>
 #include <functional>
-#include "Http.hpp"
+#include "HTTP.hpp"
 #include "AHandler.hpp"
 #include "ErrorHandler.hpp"
 #include "GetHandler.hpp"

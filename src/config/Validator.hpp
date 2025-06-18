@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/11 11:08:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 10:33:29 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 18:08:34 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #define VALIDATOR_HPP
 
 #include <string>
-#include "Http.hpp"
+#include "HTTP.hpp"
 
 class Validator
 {

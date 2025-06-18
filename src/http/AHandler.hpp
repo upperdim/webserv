@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:36:57 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 14:38:22 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 18:08:47 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #define AHANDLER_HPP
 
 #include <fstream>
-#include "Http.hpp"
+#include "HTTP.hpp"
 #include "Config.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
