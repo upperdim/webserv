@@ -6,24 +6,23 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:40:05 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/18 16:30:01 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 14:39:34 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef GETHANDLER_HPP
 #define GETHANDLER_HPP
 
+#include "Config.hpp"
 #include "AHandler.hpp"
 #include "Server.hpp"
 #include "Response.hpp"
 #include "Http.hpp"
 
-class Server;
-
 class GetHandler : public AHandler
 {
 public:
-	GetHandler(const Server& _server);
+	GetHandler(const ServerBlock& _serverBlock);
 	virtual ~GetHandler();
 
 	virtual Response	handle(const Request& request);

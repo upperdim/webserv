@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/03 13:04:46 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/15 17:14:02 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 16:32:30 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -220,4 +220,26 @@ bool	HTTP::isValidStatusCode(int& statusCode)
 	if (m_status_messages.find(statusCode) != m_status_messages.end())
 		return true;
 	return false;
+}
+
+std::string	HTTP::methodToString(const HTTP::Method& method)
+{
+    switch (method)
+    {
+        case Method::GET:		return "GET";
+        case Method::POST:		return "POST";
+        case Method::DELETE:	return "DELETE";
+        default:				return "UNKNOWN_METHOD";
+    }
+}
+
+HTTP::Method	HTTP::strToMethod(const std::string& str)
+{
+	if (str == "GET\0")
+		return HTTP::Method::GET;
+	else if (str == "POST\0")
+		return HTTP::Method::POST;
+	else if (str == "DELETE\0")
+		return HTTP::Method::DELETE;
+	return HTTP::Method::GET;
 }

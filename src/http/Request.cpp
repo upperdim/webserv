@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:49 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/13 17:08:37 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 16:59:47 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,8 @@
 
 Request::Request()
 	:	m_state(State::READING_REQUEST_LINE),
-		m_status_code(200)
+		m_status_code(200),
+		m_method(HTTP::Method::GET)
 {
 }
 
@@ -57,7 +58,7 @@ std::string	Request::getRequest(void) const
 
 std::string	Request::getRequestLine(void) const
 {
-	std::string	req = m_method + " "
+	std::string	req = HTTP::methodToString(m_method) + " "
 					+ m_request_target
 					+ " " + m_HTTP_version;
 	return (req);
@@ -68,7 +69,7 @@ int	Request::getStatusCode(void) const
 	return (m_status_code);
 }
 
-std::string	Request::getMethod(void) const
+HTTP::Method	Request::getMethod(void) const
 {
 	return (m_method);
 }
@@ -127,8 +128,9 @@ void	Request::parseRequestLine(void)
 
 	std::stringstream ss(m_raw_request);
 
-	ss >> m_method;
-	if (Validate::sstream(ss.fail(), m_status_code) || Validate::method(m_method, m_status_code))
+	std::string methodStr;
+	ss >> methodStr;
+	if (Validate::sstream(ss.fail(), m_status_code) || !Validate::method(methodStr, m_method, m_status_code))
 		m_state = State::ERROR;
 
 	ss >> m_request_target;
@@ -139,7 +141,7 @@ void	Request::parseRequestLine(void)
 	if (Validate::sstream(ss.fail(), m_status_code))
 		m_state = State::ERROR;
 
-	LOG_DEBUG(std::string("parseRequestLine: ") + LIGHTRED + m_method + " " + LIGHTGREEN + m_request_target + " " + LIGHTBLUE + m_HTTP_version);
+	LOG_DEBUG(std::string("parseRequestLine: ") + LIGHTRED + HTTP::methodToString(m_method) + " " + LIGHTGREEN + m_request_target + " " + LIGHTBLUE + m_HTTP_version);
 
 	m_raw_request.erase(0, pos + 2);
 	m_state = State::READING_HEADERS;

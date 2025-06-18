@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:26:27 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/14 16:37:52 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 14:48:46 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,31 +15,30 @@
 
 #include <map>
 #include <functional>
-#include "Server.hpp"
+#include "Http.hpp"
 #include "AHandler.hpp"
 #include "ErrorHandler.hpp"
 #include "GetHandler.hpp"
 
-class Server;
 class AHandler;
 
 class Router
 {
 public:
-	Router(const Server& _server);
+	Router(const ServerBlock& _serverBlock);
 	~Router();
 
 	AHandler*	route(const Request& request);
 
 private:
-	static const std::map<std::string, std::function<AHandler*(const Server&)>>	m_handlers;
-	const Server&																m_server;
+	static const std::map<HTTP::Method, std::function<AHandler*(const ServerBlock&)>>	m_handlers;
+	const ServerBlock&																	m_serverBlock;
 
 	Router(const Router& other);
 	Router&	operator=(const Router& rhs);
 
-	static AHandler*	createErrorHandler(const Server& _server);
-	static AHandler*	createGetHandler(const Server& _server);
+	static AHandler*	createErrorHandler(const ServerBlock& _serverBlock);
+	static AHandler*	createGetHandler(const ServerBlock& _serverBlock);
 };
 
 #endif

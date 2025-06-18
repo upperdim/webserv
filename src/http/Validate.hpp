@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:00:17 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/11 12:01:23 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 16:25:31 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ public:
 	~Validate();
 
 	static bool	sstream(bool failed, int& status_code);
-	static bool	method(std::string& str, int& status_code);
+	static bool	method(std::string& str, HTTP::Method& method, int& status_code);
 	
 private:
 	Validate();
