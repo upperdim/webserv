@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/14 11:40:40 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/18 15:00:19 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <utility>
 #include <stdexcept>
 #include "webserv.hpp"
+#include "Http.hpp"
 #include "Validate.hpp"
 
 class Request
@@ -35,29 +36,29 @@ public:
 	Request();
 	~Request();
 
-	void		append(char buf[REQUEST_BUFFER_SIZE], size_t bytes_read);
-	bool		complete(void) const;
-	int			error(void) const;
+	void			append(char buf[REQUEST_BUFFER_SIZE], size_t bytes_read);
+	bool			complete(void) const;
+	int				error(void) const;
 
-	std::string	getRequest(void) const;			// TODO: delete because just used for debugging
-	std::string	getRequestLine(void) const;		// TODO: delete because just used for debugging
+	std::string		getRequest(void) const;			// TODO: delete because just used for debugging
+	std::string		getRequestLine(void) const;		// TODO: delete because just used for debugging
 
-	int			getStatusCode(void) const;
-	std::string	getMethod(void) const;
-	std::string	getRequestTarget(void) const;
-	void		setComplete();
-	void		setError(int _status_code);
+	int				getStatusCode(void) const;
+	HTTP::Method	getMethod(void) const;
+	std::string		getRequestTarget(void) const;
+	void			setComplete();
+	void			setError(int _status_code);
 
 private:
-	State		m_state;
-	int			m_status_code;
+	State			m_state;
+	int				m_status_code;
 
-	std::string	m_raw_request;
-	std::string	m_method;
-	std::string	m_request_target;
-	std::string	m_HTTP_version;
-	HeaderMap	m_headers;
-	std::string	m_body;
+	std::string		m_raw_request;
+	HTTP::Method	m_method;
+	std::string		m_request_target;
+	std::string		m_HTTP_version;
+	HeaderMap		m_headers;
+	std::string		m_body;
 
 	Request(const Request& other);
 	Request&	operator=(const Request& rhs);
