@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 18:09:08 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/19 16:49:15 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <stdexcept>
 #include "webserv.hpp"
 #include "HTTP.hpp"
+#include "Config.hpp"
 #include "Validate.hpp"
 
 class Request
@@ -36,18 +37,19 @@ public:
 	Request();
 	~Request();
 
-	void			append(char buf[REQUEST_BUFFER_SIZE], size_t bytes_read);
-	bool			complete(void) const;
-	int				error(void) const;
+	void					append(char buf[REQUEST_BUFFER_SIZE], size_t bytes_read);
+	bool					complete(void) const;
+	int						error(void) const;
 
-	std::string		getRequest(void) const;			// TODO: delete because just used for debugging
-	std::string		getRequestLine(void) const;		// TODO: delete because just used for debugging
+	std::string				getRequest(void) const;			// TODO: delete because just used for debugging
+	std::string				getRequestLine(void) const;		// TODO: delete because just used for debugging
 
-	int				getStatusCode(void) const;
-	HTTP::Method	getMethod(void) const;
-	std::string		getRequestTarget(void) const;
-	void			setComplete();
-	void			setError(int _status_code);
+	int						getStatusCode(void) const;
+	HTTP::Method			getMethod(void) const;
+	std::string				getRequestTarget(void) const;
+	const LocationBlock&	getLocation(const ServerBlock& serverBlock) const;
+	void					setComplete();
+	void					setError(int _status_code);
 
 private:
 	State			m_state;
@@ -55,7 +57,7 @@ private:
 
 	std::string		m_raw_request;
 	HTTP::Method	m_method;
-	std::string		m_request_target;
+	std::string		m_requestTarget;
 	std::string		m_HTTP_version;
 	HeaderMap		m_headers;
 	std::string		m_body;
