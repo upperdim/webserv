@@ -57,16 +57,22 @@ void Connection::handleReadEvent(EventManager& event_manager)
 		if (request.error()) {
 			response = handleErrorRequest(request);
 		} else {
-			switch (request.getMethod()) {
-				case HTTP::Method::GET:
-					response = handleGetRequest(request);
-					break;
-				case HTTP::Method::POST:
-					response = handlePostRequest(request);
-					break;
-				case HTTP::Method::DELETE:
-					response = handleDeleteRequest(request);
-					break;
+			if (request.getRequestTarget().empty()) {
+				response.setStatus(WSSC_NOT_FOUND);
+			} else if (!Utils::isAllowedMethod(request.getMethod(), request.getLocation(m_serverBlock).allowMethods)) {
+				response.setStatus(WSSC_METHOD_NOT_ALLOWED);
+			} else {
+				switch (request.getMethod()) {
+					case HTTP::Method::GET:
+						response = handleGetRequest(request);
+						break;
+					case HTTP::Method::POST:
+						response = handlePostRequest(request);
+						break;
+					case HTTP::Method::DELETE:
+						response = handleDeleteRequest(request);
+						break;
+				}
 			}
 		}
 		event_manager.setFdEvents(socket_fd, POLLOUT | POLLERR | POLLHUP);
@@ -81,6 +87,7 @@ Response	Connection::handleGetRequest(const Request& request)
 
 	Response response;
 
+	// TODO: repetitive?
 	if (request.error())
 	{
 		createErrorResponse(response, request.getStatusCode());
@@ -144,25 +151,15 @@ Response	Connection::handleDeleteRequest(const Request& request)
 	LOG_MSG("[handle DELETE Request] ", "...", LIGHTMAGENTA, DEFAULT);
 	Response response;
 
-	if (request.getRequestTarget().empty()) {
-		response.setStatus(WSSC_NOT_FOUND);
-		return response;
-	}
-	//	is allowed method
-	if (!Utils::isAllowedMethod(request.getMethod(), request.getLocation(m_serverBlock).allowMethods)) {
-		response.setStatus(WSSC_METHOD_NOT_ALLOWED);
-		return response;
-	}
-
-	std::__fs::filesystem::path resourcePath(Utils::sanitizePath(request, m_serverBlock));
-	if (!(std::__fs::filesystem::exists(resourcePath) && std::__fs::filesystem::is_regular_file(resourcePath))) {
+	std::filesystem::path resourcePath(Utils::sanitizePath(request, m_serverBlock));
+	if (!(std::filesystem::exists(resourcePath) && std::filesystem::is_regular_file(resourcePath))) {
 		// resourcePath NOT FOUND
 		response.setStatus(WSSC_NOT_FOUND);
 		return response;
 	}
 
 	LOG_WARNING_LM("DELETING", resourcePath.c_str());
-	if (!std::__fs::filesystem::remove(resourcePath)) {
+	if (!std::filesystem::remove(resourcePath)) {
 		// failed to remove
 		response.setStatus(WSSC_INTERNAL_SERVER_ERROR);
 		return response;
@@ -173,13 +170,7 @@ Response	Connection::handleDeleteRequest(const Request& request)
 	return response;
 }
 
-
-
-
-
-
 /************************************************************************ */
-
 
 void Connection::handleWriteEvent(EventManager& event_manager)
 {
