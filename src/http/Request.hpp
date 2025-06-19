@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/19 16:49:15 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/19 17:19:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,12 +53,12 @@ public:
 
 private:
 	State			m_state;
-	int				m_status_code;
+	int				m_statusCode;
 
-	std::string		m_raw_request;
+	std::string		m_rawRequest;
 	HTTP::Method	m_method;
 	std::string		m_requestTarget;
-	std::string		m_HTTP_version;
+	std::string		m_HTTPversion;
 	HeaderMap		m_headers;
 	std::string		m_body;
 
