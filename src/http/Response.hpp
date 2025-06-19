@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 11:29:40 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 18:09:12 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/19 14:54:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ public:
 	Response&	operator=(Response&& rhs);
 
 	void		setProtokoll(const std::string& _protokoll);
-	void		setStatus(const int& _status_code, const std::string& _status_msg);
+	void		setStatus(const int& _status_code);
 	void		addHeader(const std::string& key, const std::string& value);
 	void		setBodyString(const std::string& _body);
 	void		setBodyFileBufferReader(std::string path);

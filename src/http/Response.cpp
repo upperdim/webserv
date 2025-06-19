@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 11:29:39 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/17 19:11:37 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/19 14:54:47 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,10 +87,10 @@ void	Response::setProtokoll(const std::string& _protokoll)
 	m_protokoll = _protokoll;
 }
 
-void	Response::setStatus(const int& _status_code, const std::string& _status_msg)	// TODO: HERE I could just accept the status_code and set the msg in the func
+void	Response::setStatus(const int& _status_code)
 {
 	m_status_code = _status_code;
-	m_status_msg = _status_msg;
+	m_status_msg = HTTP::getStatusMessage(_status_code);
 }
 
 void	Response::addHeader(const std::string& key, const std::string& value)
