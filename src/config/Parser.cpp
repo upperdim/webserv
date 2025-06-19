@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 12:43:25 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/19 18:18:12 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -397,6 +397,8 @@ void	Parser::parseAllowMethodsDirective(const Token& directive, std::vector<cons
 {
 	if (params.size() == 0)
 		Throw::InvalidNumberOfArguments(directive);
+
+	location.allowMethods.clear();
 
 	for (size_t i = 0; i < params.size(); ++i) {
 		HTTP::Method method;
