@@ -103,36 +103,16 @@ void	EventManager::handleFdEvents(int max_events)
 {
 	int counted = 0;
 
-	for (auto it = m_pollfds.begin(); it < m_pollfds.end(); ++it)
-	{
-		bool count_me = false;
-
-		if (it->revents & POLLERR)
-		{
-			count_me = true;
-			m_fd_to_EventHandler[it->fd]->handleErrorEvent(*this);
-		}
-		if (it->revents & POLLHUP)
-		{
-			count_me = true;
-			m_fd_to_EventHandler[it->fd]->handleDisConnectEvent(*this);
-		}
-
-		if (it->revents & POLLOUT)
-		{
-			count_me = true;
-			m_fd_to_EventHandler[it->fd]->handleWriteEvent(*this);
-		}
-		if (it->revents & POLLIN)
-		{
-			count_me = true;
-			m_fd_to_EventHandler[it->fd]->handleReadEvent(*this);
-		}
+	for (auto it = m_pollfds.begin(); it < m_pollfds.end(); ++it) {
+		if (it->revents & POLLERR) m_fd_to_EventHandler[it->fd]->handleErrorEvent(*this);
+		if (it->revents & POLLHUP) m_fd_to_EventHandler[it->fd]->handleDisConnectEvent(*this);
+		if (it->revents & POLLOUT) m_fd_to_EventHandler[it->fd]->handleWriteEvent(*this);
+		if (it->revents & POLLIN)  m_fd_to_EventHandler[it->fd]->handleReadEvent(*this);
 		
-		if (count_me)
+		if (it->revents)
 			++counted;
 		if (counted >= max_events)
-			break ;
+			break;
 	}
 }
 
