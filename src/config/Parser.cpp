@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 12:43:25 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/20 21:29:30 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,8 @@ Config	Parser::parse(void)
 			default:					Throw::UnknownOrUnsupportedDirective(peek()); break;
 		}
 	}
+
+	addDefaultLocationBlocks(config.serverBlocks);
 
 	return config;
 }
@@ -398,6 +400,8 @@ void	Parser::parseAllowMethodsDirective(const Token& directive, std::vector<cons
 	if (params.size() == 0)
 		Throw::InvalidNumberOfArguments(directive);
 
+	location.allowMethods.clear();
+
 	for (size_t i = 0; i < params.size(); ++i) {
 		HTTP::Method method;
 		if (params[i]->type == TokenType::PARAM && Validator::isValidMethod(params[i]->value, method)) {
@@ -486,4 +490,15 @@ void	Parser::parseExtension(const Token& directive, std::vector<const Token*>& p
 		Throw::InvalidExtension(*params[0]);
 	
 	ext = params[0]->value;
+}
+
+// Add default location blocks if a ServerBlock is missing it
+void	Parser::addDefaultLocationBlocks(std::vector<ServerBlock>& serverBlocks)
+{
+	for (size_t i = 0; i < serverBlocks.size(); ++i) {
+		if (serverBlocks[i].locationBlocks.empty()) {
+			serverBlocks[i].locationBlocks.push_back(LocationBlock());
+			serverBlocks[i].locationBlocks[0].root = "/";
+		}
+	}
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/25 17:46:49 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 22:26:30 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/19 17:23:41 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 Request::Request()
 	:	m_state(State::READING_REQUEST_LINE),
-		m_status_code(200),
+		m_statusCode(200),
 		m_method(HTTP::Method::GET)
 {
 }
@@ -30,7 +30,7 @@ Request::~Request()
 
 void	Request::append(char buf[REQUEST_BUFFER_SIZE], size_t bytes_read)
 {
-	m_raw_request.append(buf, bytes_read);
+	m_rawRequest.append(buf, bytes_read);
 	parseNext();
 }
 
@@ -44,7 +44,7 @@ bool	Request::complete(void) const
 int	Request::error(void) const
 {
 	if (m_state == State::ERROR)
-		return (m_status_code);
+		return (m_statusCode);
 	return (0);
 }
 
@@ -59,14 +59,14 @@ std::string	Request::getRequest(void) const
 std::string	Request::getRequestLine(void) const
 {
 	std::string	req = HTTP::methodToString(m_method) + " "
-					+ m_request_target
-					+ " " + m_HTTP_version;
+					+ m_requestTarget
+					+ " " + m_HTTPversion;
 	return (req);
 }
 
 int	Request::getStatusCode(void) const
 {
-	return (m_status_code);
+	return (m_statusCode);
 }
 
 HTTP::Method	Request::getMethod(void) const
@@ -76,7 +76,17 @@ HTTP::Method	Request::getMethod(void) const
 
 std::string	Request::getRequestTarget(void) const
 {
-	return (m_request_target);
+	return (m_requestTarget);
+}
+
+const LocationBlock&	Request::getLocation(const ServerBlock& serverBlock) const
+{
+	// Matches the requestTaget to a serverBlock.locationBlock
+	for (const auto& locationBlock : serverBlock.locationBlocks) {
+		if (m_requestTarget == locationBlock.route)
+			return locationBlock;
+	}
+	return serverBlock.locationBlocks.front();
 }
 
 void	Request::setComplete()
@@ -88,7 +98,7 @@ void	Request::setComplete()
 void	Request::setError(int _status_code)
 {
 	m_state = State::ERROR;
-	m_status_code = _status_code;
+	m_statusCode = _status_code;
 }
 
 
@@ -122,28 +132,37 @@ void	Request::parseRequestLine(void)
 {
 	LOG_DEBUG("Request::parseRequestLine");
 
-	size_t	pos = m_raw_request.find("\r\n");
+	size_t	pos = m_rawRequest.find("\r\n");
 	if (pos == std::string::npos)
-		return ;
+		return;
 
-	std::stringstream ss(m_raw_request);
+	std::stringstream ss(m_rawRequest);
 
 	std::string methodStr;
 	ss >> methodStr;
-	if (Validate::sstream(ss.fail(), m_status_code) || !Validate::validateHttpMethod(methodStr, m_method, m_status_code))
+	if (ss.fail() || !Validate::validateHttpMethod(methodStr, m_method, m_statusCode)) {
 		m_state = State::ERROR;
+		m_statusCode = WSSC_INTERNAL_SERVER_ERROR;
+		return;
+	}
 
-	ss >> m_request_target;
-	if (Validate::sstream(ss.fail(), m_status_code))
+	ss >> m_requestTarget;
+	if (ss.fail()) {
 		m_state = State::ERROR;
+		m_statusCode = WSSC_INTERNAL_SERVER_ERROR;
+		return;
+	}
 
-	ss >> m_HTTP_version;
-	if (Validate::sstream(ss.fail(), m_status_code))
+	ss >> m_HTTPversion;
+	if (ss.fail()) {
 		m_state = State::ERROR;
+		m_statusCode = WSSC_INTERNAL_SERVER_ERROR;
+		return;
+	}
 
-	LOG_DEBUG(std::string("parseRequestLine: ") + LIGHTRED + HTTP::methodToString(m_method) + " " + LIGHTGREEN + m_request_target + " " + LIGHTBLUE + m_HTTP_version);
+	LOG_DEBUG(std::string("parseRequestLine: ") + LIGHTRED + HTTP::methodToString(m_method) + " " + LIGHTGREEN + m_requestTarget + " " + LIGHTBLUE + m_HTTPversion);
 
-	m_raw_request.erase(0, pos + 2);
+	m_rawRequest.erase(0, pos + 2);
 	m_state = State::READING_HEADERS;
 }
 
@@ -152,18 +171,16 @@ void	Request::parseHeader(void)
 	size_t	start = 0;
 	size_t	pos, last_pos;
 
-	pos = m_raw_request.find_first_of('\n');
+	pos = m_rawRequest.find_first_of('\n');
 	last_pos = pos;
-	while (pos != std::string::npos)
-	{
-		std::string line = m_raw_request.substr(start, pos - start);
+	while (pos != std::string::npos) {
+		std::string line = m_rawRequest.substr(start, pos - start);
 		trimWhitespaces(line);
 
-		if (line.empty())
-		{
+		if (line.empty()) {
 			// TODO: set STATE to rading body and read body
 			m_state = State::COMPLETE;
-			m_raw_request.clear();
+			m_rawRequest.clear();
 			return;
 		}
 
@@ -174,10 +191,10 @@ void	Request::parseHeader(void)
 
 		last_pos = pos;
 		start = pos + 1;
-		pos = m_raw_request.find_first_of("\n", start);
+		pos = m_rawRequest.find_first_of("\n", start);
 	}
 	if (last_pos != std::string::npos)
-		m_raw_request.erase(0, last_pos + 1);
+		m_rawRequest.erase(0, last_pos + 1);
 }
 
 bool	Request::splitLine(std::string &line, char del, std::pair<std::string, std::string> &headerField)

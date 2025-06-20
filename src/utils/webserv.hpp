@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 13:26:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/14 10:21:55 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/19 14:52:22 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,6 @@ extern bool	g_running;
 
 void		handleAbort(int signum);
 void		trimWhitespaces(std::string& str);
-bool		startsWith(const std::string& str, const std::string& prefix);
-bool		endsWith(const std::string& str, const std::string& suffix);
 std::string readFile(const std::string& filename);
 
 #endif

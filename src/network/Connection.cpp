@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 22:25:34 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/19 17:08:50 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,16 +57,22 @@ void Connection::handleReadEvent(EventManager& event_manager)
 		if (request.error()) {
 			response = handleErrorRequest(request);
 		} else {
-			switch (request.getMethod()) {
-				case HTTP::Method::GET:
-					response = handleGetRequest(request);
-					break;
-				case HTTP::Method::POST:
-					response = handlePostRequest(request);
-					break;
-				case HTTP::Method::DELETE:
-					response = handleDeleteRequest(request);
-					break;
+			if (request.getRequestTarget().empty()) {
+				response.setStatus(WSSC_NOT_FOUND);
+			} else if (!Utils::isAllowedMethod(request.getMethod(), request.getLocation(m_serverBlock).allowMethods)) {
+				response.setStatus(WSSC_METHOD_NOT_ALLOWED);
+			} else {
+				switch (request.getMethod()) {
+					case HTTP::Method::GET:
+						response = handleGetRequest(request);
+						break;
+					case HTTP::Method::POST:
+						response = handlePostRequest(request);
+						break;
+					case HTTP::Method::DELETE:
+						response = handleDeleteRequest(request);
+						break;
+				}
 			}
 		}
 		event_manager.setFdEvents(socket_fd, POLLOUT | POLLERR | POLLHUP);
@@ -77,8 +83,11 @@ void Connection::handleReadEvent(EventManager& event_manager)
 
 Response	Connection::handleGetRequest(const Request& request)
 {
+	LOG_MSG("[handle Get Request] ", "...", LIGHTMAGENTA, DEFAULT);
+
 	Response response;
 
+	// TODO: repetitive?
 	if (request.error())
 	{
 		createErrorResponse(response, request.getStatusCode());
@@ -87,7 +96,7 @@ Response	Connection::handleGetRequest(const Request& request)
 
 	// TODO: restructure:
 	// sanitize path
-	std::string path = Utils::sanitizePath(request, response, m_serverBlock);
+	std::string path = Utils::sanitizePath(request, m_serverBlock);
 	LOG_DEBUG("PATH ----> " + path);
 
 	// does the path resource exist
@@ -111,13 +120,15 @@ std::string	Connection::fetchErrorPage(int _status_code) const
 void	Connection::createErrorResponse(Response& response, int _status_code)
 {
 	response.setProtokoll("HTTP/1.1");
-	response.setStatus(_status_code, HTTP::getStatusMessage(_status_code));
+	response.setStatus(_status_code);
 	response.addHeader("Content-Type", HTTP::getMimeType(".html"));
 	response.setBodyString(fetchErrorPage(_status_code));
 }
 
 Response	Connection::handleErrorRequest(const Request& request)
 {
+	LOG_MSG("[handle Error Request] ", "...", LIGHTMAGENTA, DEFAULT);
+
 	Response	response;
 	int			status_code = request.getStatusCode();
 
@@ -130,23 +141,36 @@ Response	Connection::handleErrorRequest(const Request& request)
 
 Response	Connection::handlePostRequest(const Request& request)
 {
+	LOG_MSG("[handle Post Request] ", "...", LIGHTMAGENTA, DEFAULT);
 	(void) request;
 	throw std::runtime_error("Work in progress...");
 }
 
 Response	Connection::handleDeleteRequest(const Request& request)
 {
-	(void) request;
-	throw std::runtime_error("Work in progress...");
+	LOG_MSG("[handle DELETE Request] ", "...", LIGHTMAGENTA, DEFAULT);
+	Response response;
+
+	std::filesystem::path resourcePath(Utils::sanitizePath(request, m_serverBlock));
+	if (!(std::filesystem::exists(resourcePath) && std::filesystem::is_regular_file(resourcePath))) {
+		// resourcePath NOT FOUND
+		response.setStatus(WSSC_NOT_FOUND);
+		return response;
+	}
+
+	LOG_WARNING_LM("DELETING", resourcePath.c_str());
+	if (!std::filesystem::remove(resourcePath)) {
+		// failed to remove
+		response.setStatus(WSSC_INTERNAL_SERVER_ERROR);
+		return response;
+	}
+	LOG_SUCCESS(std::string("deleted: ") + resourcePath.c_str());
+
+	response.setStatus(WSSC_OK);
+	return response;
 }
 
-
-
-
-
-
 /************************************************************************ */
-
 
 void Connection::handleWriteEvent(EventManager& event_manager)
 {

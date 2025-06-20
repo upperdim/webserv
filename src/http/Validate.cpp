@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Validate.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:00:15 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 20:47:09 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/19 16:27:28 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,14 +20,6 @@ Validate::~Validate()
 /* ************************************************************************** */
 /* ************************************************************************** */
 
-
-bool	Validate::sstream(bool failed, int& _status_code)
-{
-	if (failed == false)
-		return (true);
-	setStatusCode(_status_code, WSSC_INTERNAL_SERVER_ERROR);
-	return (false);
-}
 
 bool	Validate::validateHttpMethod(std::string& methodStr, HTTP::Method& dest, int& _status_code)
 {

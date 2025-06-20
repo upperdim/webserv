@@ -25,7 +25,6 @@ SRCS_NO_MAIN=	Config.cpp \
 				signal.cpp \
 				HTTP.cpp \
 				Log.cpp \
-				startsEndsWith.cpp \
 				trimWhitespaces.cpp \
 				readFile.cpp \
 				Utils.cpp \
@@ -40,7 +39,7 @@ INCLUDE_FLAG	=	$(addprefix -I, $(INCLUDES_DIRS))
 # Compilation
 NAME		=	webserv
 CPP			=	c++
-CPPFLAGS	=	-Wall -Wextra -Werror -std=c++11 #-g -fsanitize=address
+CPPFLAGS	=	-Wall -Wextra -Werror -std=c++17 #-g -fsanitize=address
 
 OBJS_DIR	=	obj
 OBJS		=	$(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))
