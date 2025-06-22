@@ -11,6 +11,7 @@ webserv
 *.ico
 error_pages/
 html*/
+www/
 *.conf
 
 local/
