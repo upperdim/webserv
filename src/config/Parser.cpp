@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/20 21:29:30 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/22 10:10:59 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -306,13 +306,9 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 	if (params[0]->type == TokenType::PARAM) {
 		if (Validator::isIPAddr(params[0]->value)) {
 			// we got an IP
-			std::string ip = (params[0]->value == "localhost" ? "127.0.0.1" : params[0]->value);
-			in_addr	addr;
-
-			int result = inet_pton(AF_INET, ip.c_str(), &addr);
-			if (result == 0)
-				Throw::InvalidIPAddr(*params[0]);
-			server.listenHost = addr.s_addr;
+			server.listenHostStr = params[0]->value;
+			if (server.listenHostStr == "localhost")
+				server.listenHostStr = "127.0.0.1";
 		} else if (Validator::isDomainName(params[0]->value)) {
 			// we got a DomainName
 			addrinfo hints;
@@ -321,16 +317,23 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 			addrinfo* res;						// result
 			if (getaddrinfo(params[0]->value.c_str(), nullptr, &hints, &res) != 0)
 				Throw::HostNotFound(*params[0]);
-			
+
+			// create an IPstring from domain
+			sockaddr_in sockaddr;
 			sockaddr_in* ipv4 = reinterpret_cast<sockaddr_in*>(res->ai_addr);
-			server.listenHost = ipv4->sin_addr.s_addr;
+			sockaddr = *ipv4;
 			freeaddrinfo(res);
+
+			char ipStr[INET_ADDRSTRLEN];
+			if (inet_ntop(AF_INET, &(sockaddr.sin_addr), ipStr, sizeof(ipStr)) == nullptr)
+				Throw::FailedToConvertDomainToIP(*params[0]);
+			server.listenHostStr = ipStr;
 		} else 
 			Throw::InvalidPort(directive, *params[0]);
 
 		if (params.size() > 1 && params[1]->type == TokenType::COLON)
 		{
-			//	we got ":" so we have to check for a give PORT
+			//	we got ":" so we have to check for a given PORT
 			if (params.size() > 2) {
 				if (params[2]->type != TokenType::NUMBER)
 					Throw::InvalidPort(directive, *params[2]);
@@ -354,12 +357,11 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 		if (params.size() > 1)
 			Throw::InvalidParameter(*params[1]);
 
-		server.listenHost = INADDR_ANY;
-
 		unsigned int port;
 		if (!Validator::isValidPort(params[0]->value, port))
 			Throw::InvalidPort(directive, *params[0]);
 		server.listenPort = port;
+		server.listenHostStr = "0.0.0.0";
 	}
 }
 
