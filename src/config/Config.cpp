@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/18 12:10:28 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/22 10:06:57 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ void	Config::printConfigs(void) const
 		printLn(LIGHTCYAN"server" LIGHTYELLOW " {" RESET);
 
 		print(LIGHTCYAN"\tlisten\t\t\t" RESET);
-		print(LIGHTMAGENTA + std::to_string(server.listenHost) + ":" + std::to_string(server.listenPort));
+		print(LIGHTMAGENTA + server.listenHostStr + ":" + std::to_string(server.listenPort));
 		printLn(GRAY";" RESET);
 
 		print(LIGHTCYAN"\tserver_names\t\t" RESET);
