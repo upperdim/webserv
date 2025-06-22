@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/18 18:08:23 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/22 09:52:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ class ServerBlock
 public:
 	// Subject requirement of this scope
 	int							listenPort         = 80;					//	::	listen
-	in_addr_t					listenHost               = 0;						//	assign in Server constructor like: m_srv_addr.sin_addr.s_addr = config.listenHost;
+	std::string					listenHostStr;								//		will be set through parseListenDirective in Parser
 	std::vector<std::string>	serverNames;								//	::	server_name
 	std::map<int, std::string>	errorPagePaths;								//	::	error_page
 	size_t						clientMaxBodySize  = 1048576; // 1 MB		//	::	client_max_body_size
