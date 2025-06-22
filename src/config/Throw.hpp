@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:07:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 10:34:26 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/22 10:06:18 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ public:
 	static void	DirectiveIsNotTerminated(const Token& token);
 	static void	InvalidReturnCode(const Token& token);
 	static void	InvalidExtension(const Token& token);
+	static void	FailedToConvertDomainToIP(const Token& token);
 
 private:
 	Throw();

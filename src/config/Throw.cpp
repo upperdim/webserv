@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:07:32 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 12:04:09 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/22 10:06:22 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,4 +99,9 @@ void	Throw::InvalidReturnCode(const Token& token)
 void	Throw::InvalidExtension(const Token& token)
 {
 	throw std::runtime_error("invalid extension \"" + token.getTokenValue() + "\"" + token.inLine());
+}
+
+void	Throw::FailedToConvertDomainToIP(const Token& token)
+{
+	throw std::runtime_error("Failed to convert \"" + token.getTokenValue() + "\" to IP address" + token.inLine());
 }
