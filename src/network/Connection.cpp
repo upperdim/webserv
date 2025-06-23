@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/19 17:08:50 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/23 12:37:43 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,36 +41,36 @@ void Connection::handleReadEvent(EventManager& event_manager)
 
 	char		request_buf[REQUEST_BUFFER_SIZE] = {0};
 	ssize_t		byetes_read = recv(socket_fd, &request_buf, sizeof(request_buf), 0);
-
 	LOG_INFO_LM("RECIEVED BYTES: ", std::to_string(byetes_read));
-	if (byetes_read == -1)
-		request.setError(WSSC_INTERNAL_SERVER_ERROR);
-	else if (byetes_read == 0)
-		request.setComplete();
-	else if (byetes_read > 0)
-		request.append(request_buf, byetes_read);
 
-	if (request.complete() || request.error())
+	if (byetes_read == -1)
+		requestParser.setError(WSSC_INTERNAL_SERVER_ERROR);
+	else
+		requestParser.append(request_buf, byetes_read);
+
+	if (requestParser.complete() || requestParser.error())
 	{
 		LOG_SUCCESS("DONE READING **********************************************************");
 		
-		if (request.error()) {
-			response = handleErrorRequest(request);
+		requestParser.setError(201);
+
+		if (requestParser.error()) {
+			response = handleErrorRequest(requestParser.request);
 		} else {
-			if (request.getRequestTarget().empty()) {
+			if (requestParser.request.getRequestTarget().empty()) {
 				response.setStatus(WSSC_NOT_FOUND);
-			} else if (!Utils::isAllowedMethod(request.getMethod(), request.getLocation(m_serverBlock).allowMethods)) {
+			} else if (!Utils::isAllowedMethod(requestParser.request.getMethod(), requestParser.request.getLocation(m_serverBlock).allowMethods)) {
 				response.setStatus(WSSC_METHOD_NOT_ALLOWED);
 			} else {
-				switch (request.getMethod()) {
+				switch (requestParser.request.getMethod()) {
 					case HTTP::Method::GET:
-						response = handleGetRequest(request);
+						response = handleGetRequest(requestParser.request);
 						break;
 					case HTTP::Method::POST:
-						response = handlePostRequest(request);
+						response = handlePostRequest(requestParser.request);
 						break;
 					case HTTP::Method::DELETE:
-						response = handleDeleteRequest(request);
+						response = handleDeleteRequest(requestParser.request);
 						break;
 				}
 			}
@@ -88,7 +88,7 @@ Response	Connection::handleGetRequest(const Request& request)
 	Response response;
 
 	// TODO: repetitive?
-	if (request.error())
+	if (request.getStatusCode() >= WSSC_BAD_REQUEST)
 	{
 		createErrorResponse(response, request.getStatusCode());
 		return (response);

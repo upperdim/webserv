@@ -26,7 +26,6 @@ SRCS_NO_MAIN=	Config.cpp \
 				signal.cpp \
 				HTTP.cpp \
 				Log.cpp \
-				trimWhitespaces.cpp \
 				readFile.cpp \
 				Utils.cpp \
 

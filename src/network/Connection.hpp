@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:36 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/19 15:38:49 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/23 10:42:28 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,15 +22,16 @@
 #include "Config.hpp"
 #include "EventManager.hpp"
 #include "IEventHandler.hpp"
-#include "Request.hpp"
+#include "RequestParser.hpp"
+#include "Request2.hpp"
 #include "Response.hpp"
 #include "Utils.hpp"
 
 class Connection : public IEventHandler
 {
 public:
-	Request		request;
-	Response	response;
+	RequestParser	requestParser;
+	Response		response;
 
 	Connection(const int _cli_socket, const ServerBlock& _serverBlock);
 	~Connection();
