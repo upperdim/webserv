@@ -18,7 +18,8 @@ SRCS_NO_MAIN=	Config.cpp \
 				EventManager.cpp \
 				Server.cpp \
 				Connection.cpp \
-				Request.cpp \
+				RequestParser.cpp \
+				Request2.cpp \
 				FileBufferReader.cpp \
 				Response.cpp \
 				Validate.cpp \
