@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/23 12:37:43 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/23 16:56:34 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,8 +52,6 @@ void Connection::handleReadEvent(EventManager& event_manager)
 	{
 		LOG_SUCCESS("DONE READING **********************************************************");
 		
-		requestParser.setError(201);
-
 		if (requestParser.error()) {
 			response = handleErrorRequest(requestParser.request);
 		} else {

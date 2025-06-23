@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/23 11:46:13 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/23 18:51:40 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,9 @@ private:
 	bool	validateHttpMethod(std::string& methodStr);
 	bool	validateRequestTarget(void);
 	bool	validateProtokoll(void);
+
+	bool	percentDecoding(const std::string& requestTarget, std::string& destURI);
+	int		hexToInt(const char c);
 
 	bool	splitLine(std::string& line, char del, std::pair<std::string, std::string>& headerField);
 

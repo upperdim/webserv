@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/23 12:40:16 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/23 19:00:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,6 +196,14 @@ bool	RequestParser::validateHttpMethod(std::string& methodStr)
 
 bool	RequestParser::validateRequestTarget(void)
 {
+	if (!percentDecoding(request.m_requestTarget, request.m_URI)) {
+		setError(WSSC_BAD_REQUEST);
+		return false;
+	}
+	//	TODO:	sanitize URI
+
+	LOG_INFO_LM("request.m_URI", request.m_URI);
+
 	if (request.m_requestTarget.empty())
 		return false;
 	// TODO the rest !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -208,6 +216,36 @@ bool	RequestParser::validateProtokoll(void)
 		return false;
 	// TODO the rest !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	return true;
+}
+
+bool	RequestParser::percentDecoding(const std::string& requestTarget, std::string& destURI)
+{
+	destURI.reserve(requestTarget.size());
+	
+	for (size_t idx = 0; idx < requestTarget.size(); ++idx) {
+		char c = requestTarget[idx];
+		if (c == '%') {
+			if (idx + 2 < requestTarget.size() &&
+			    std::isxdigit(static_cast<unsigned char>(requestTarget[idx + 1])) &&
+			    std::isxdigit(static_cast<unsigned char>(requestTarget[idx + 2]))) {
+					// Valid percent-encoding: decode and append character
+					char hiHex = requestTarget[++idx];
+					char loHex = requestTarget[++idx];
+					destURI += static_cast<char>((hexToInt(hiHex) << 4) | hexToInt(loHex));
+			} else {
+				// invalid Hex character, or to short for valid hex form: xFF
+				return false;
+			}
+		} else {
+			destURI += c;
+		}	
+	}
+	return true;
+}
+
+int	RequestParser::hexToInt(const char c)
+{
+	return std::isdigit(c) ? c - '0' : std::tolower(c) - 'a' + 10;
 }
 
 bool	RequestParser::splitLine(std::string &line, char del, std::pair<std::string, std::string> &headerField)

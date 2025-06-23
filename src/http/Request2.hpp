@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/23 12:13:23 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/23 18:53:05 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,11 +37,13 @@ public:
 
 private:
 	int												m_statusCode;
+	
+	HTTP::Method									m_method;
 	std::string										m_requestTarget;
 	std::string										m_protokoll;
-
-	HTTP::Method									m_method;
 	std::unordered_map<std::string, std::string>	m_headers;
+
+	std::string										m_URI;		//	decoded and sanatized requesttarget
 
 	friend class RequestParser;
 };
