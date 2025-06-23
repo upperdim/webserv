@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/23 09:53:42 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/23 12:40:16 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,10 +27,44 @@ RequestParser::~RequestParser()
 /* ************************************************************************** */
 
 
-void	RequestParser::append(const char *buf, const size_t bytes_read)
+void	RequestParser::append(const char *buf, const size_t bytesRead)
 {
-	m_rawRequest.append(buf, bytes_read);
+	if (bytesRead > 0)
+		m_rawRequest.append(buf, bytesRead);
 	parseNext();
+	if (bytesRead == 0 && m_state != State::COMPLETE)
+		m_state = State::COMPLETE;
+}
+
+void	RequestParser::reset(void)
+{
+	//	TODO
+	//	Reset: RequestParser and Request
+	request = Request();
+}
+
+void	RequestParser::setError(int statusCode)
+{
+	// would here a good practice be to use assert
+	// since statusCode should here never be below 400
+	// like assert(statusCode < 400)
+	assert(statusCode >= 400);		//	TODO: delete
+
+	if (!m_error) {
+		m_error = true;
+		if (request.m_statusCode < WSSC_BAD_REQUEST)
+			request.m_statusCode = statusCode;
+	}
+}
+
+bool	RequestParser::error(void)
+{
+	return m_error;
+}
+
+bool	RequestParser::complete(void)
+{
+	return m_state == State::COMPLETE;
 }
 
 
@@ -66,40 +100,35 @@ void	RequestParser::parseRequestLine(void)
 		return;
 
 	// read the elements of the requestLine
-	std::istringstream lineStream(m_rawRequest.substr(0, pos));
+	std::istringstream lineStream(m_rawRequest.substr(0, pos).c_str());
 	std::string methodStr;
 	if (!std::getline(lineStream, methodStr, ' ') ||
-	    !std::getline(lineStream, m_requestTarget, ' ') ||
-		!std::getline(lineStream, m_HTTPversion, ' ')) {
+	    !std::getline(lineStream, request.m_requestTarget, ' ') ||
+		!std::getline(lineStream, request.m_protokoll, ' ')) {
 		request.m_statusCode = WSSC_INTERNAL_SERVER_ERROR;
-		m_state = State::ERROR;
+		m_error = true;
 		return;
 	}
 
-	if (!validateHttpMethod(methodStr, m_request.m_method, m_request.m_statusCode)) {
-		request.m_statusCode = WSSC_INTERNAL_SERVER_ERROR;
-		m_state = State::ERROR;
+	if (!validateHttpMethod(methodStr)) {
+		if (request.m_statusCode == WSSC_OK) request.m_statusCode = WSSC_INTERNAL_SERVER_ERROR;	//	is this overkill -> unnecessary check?
+		m_error = true;
 		return;
 	}
 
-	//	TODO next: OLD CODE BELOW FROM REQUEST TO ADD
-	//	REQUEST_TARGET, PROTOKOLL VALIDATIONS
-
-	// isLine >> m_requestTarget;
-	if (isLine.fail()) {
-		m_state = State::ERROR;
-		m_statusCode = WSSC_INTERNAL_SERVER_ERROR;
+	if (!validateRequestTarget()) {
+		if (request.m_statusCode == WSSC_OK) request.m_statusCode = WSSC_INTERNAL_SERVER_ERROR;	//	is this overkill -> unnecessary check?
+		m_error = true;
 		return;
 	}
 
-	// isLine >> m_HTTPversion;
-	if (isLine.fail()) {
-		m_state = State::ERROR;
-		m_statusCode = WSSC_INTERNAL_SERVER_ERROR;
+	if (!validateProtokoll()) {
+		if (request.m_statusCode == WSSC_OK) request.m_statusCode = WSSC_INTERNAL_SERVER_ERROR;	//	is this overkill -> unnecessary check?
+		m_error = true;
 		return;
 	}
 
-	LOG_DEBUG(std::string("parseRequestLine: ") + LIGHTRED + HTTP::methodToString(m_method) + " " + LIGHTGREEN + m_requestTarget + " " + LIGHTBLUE + m_HTTPversion);
+	LOG_DEBUG(std::string("parseRequestLine: ") + LIGHTRED + HTTP::methodToString(request.m_method) + " " + LIGHTGREEN + request.m_requestTarget + " " + LIGHTBLUE + request.m_protokoll);
 
 	m_rawRequest.erase(0, pos + 2);
 	m_state = State::READING_HEADERS;
@@ -114,7 +143,7 @@ void	RequestParser::parseHeader(void)
 	last_pos = pos;
 	while (pos != std::string::npos) {
 		std::string line = m_rawRequest.substr(start, pos - start);
-		trimWhitespaces(line);
+		Utils::trimWhitespaces(line);
 
 		if (line.empty()) {
 			// TODO: set STATE to rading body and read body
@@ -126,7 +155,7 @@ void	RequestParser::parseHeader(void)
 		std::pair<std::string, std::string> headerField;
 		if (splitLine(line, ':', headerField))
 			throw( std::runtime_error("Error: Request::splitLine() could not find delimiter ':'") ); // TODO: better error handling
-		m_headers[headerField.first] = headerField.second;
+		request.m_headers[headerField.first] = headerField.second;
 
 		last_pos = pos;
 		start = pos + 1;
@@ -136,9 +165,9 @@ void	RequestParser::parseHeader(void)
 		m_rawRequest.erase(0, last_pos + 1);
 }
 
-bool	RequestParser::validateHttpMethod(std::string& methodStr, HTTP::Method& dest, int& statusCode)
+bool	RequestParser::validateHttpMethod(std::string& methodStr)
 {
-	if (Validator::isValidMethod(methodStr, dest))
+	if (Validator::isValidMethod(methodStr, request.m_method))
 		return true;
 
 	std::string ustr = methodStr;
@@ -147,15 +176,15 @@ bool	RequestParser::validateHttpMethod(std::string& methodStr, HTTP::Method& des
 	});
 
 	if (ustr == "GET\0" || ustr == "POST\0" || ustr == "DELETE\0") {
-		dest = HTTP::strToMethod(methodStr);
+		request.m_method = HTTP::strToMethod(methodStr);
 		// setStatusCode(_status_code, WSSC_BAD_REQUEST);
-		statusCode = WSSC_BAD_REQUEST;
+		request.m_statusCode = WSSC_BAD_REQUEST;
 		return false;
 	}
 		
-	dest = HTTP::Method::GET;
+	// request.m_method = HTTP::Method::GET;
 	// setStatusCode(_status_code, WSSC_METHOD_NOT_ALLOWED);
-	statusCode = WSSC_METHOD_NOT_ALLOWED;
+	request.m_statusCode = WSSC_METHOD_NOT_ALLOWED;
 	return false;
 }
 
@@ -165,6 +194,22 @@ bool	RequestParser::validateHttpMethod(std::string& methodStr, HTTP::Method& des
 // 		_status_code = _new_status;
 // }
 
+bool	RequestParser::validateRequestTarget(void)
+{
+	if (request.m_requestTarget.empty())
+		return false;
+	// TODO the rest !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	return true;
+}
+
+bool	RequestParser::validateProtokoll(void)
+{
+	if (request.m_protokoll.empty())
+		return false;
+	// TODO the rest !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	return true;
+}
+
 bool	RequestParser::splitLine(std::string &line, char del, std::pair<std::string, std::string> &headerField)
 {
 	size_t	pos = line.find(del);
@@ -173,8 +218,8 @@ bool	RequestParser::splitLine(std::string &line, char del, std::pair<std::string
 
 	headerField.first = line.substr(0, pos);
 	headerField.second = line.substr(pos + 1);
-	trimWhitespaces(headerField.first);
-	trimWhitespaces(headerField.second);
+	Utils::trimWhitespaces(headerField.first);
+	Utils::trimWhitespaces(headerField.second);
 
 	return (false);
 }
