@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 12:36:20 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 12:55:17 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,11 +45,6 @@ void	RequestParser::reset(void)
 
 void	RequestParser::setError(int statusCode)
 {
-	// would here a good practice be to use assert
-	// since statusCode should here never be below 400
-	// like assert(statusCode < 400)
-	assert(statusCode >= 400);		//	TODO: delete
-
 	if (!m_error) {
 		m_error = true;
 		if (request.m_statusCode < WSSC_BAD_REQUEST)
