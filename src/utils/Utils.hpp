@@ -2,8 +2,9 @@
 #define UTILS_HPP
 
 #include <string>
+#include <vector>
+#include "HTTP.hpp"
 #include "Request.hpp"
-#include "Response.hpp"
 #include "Config.hpp"
 
 class Utils
@@ -15,6 +16,7 @@ public:
 	static bool			startsWith(const std::string& str, const std::string& prefix);
 	static void			trimWhitespaces(std::string& str);
 	static bool			isAllowedMethod(HTTP::Method method, const std::vector<HTTP::Method> allowdMethods);
+	static std::string	charToHex(char c);
 };
 
 #endif

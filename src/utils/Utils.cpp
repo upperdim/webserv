@@ -1,4 +1,5 @@
 #include "Utils.hpp"
+#include <iomanip>
 
 std::string	Utils::sanitizePath(const Request& request, const ServerBlock serverBlock)
 {
@@ -56,4 +57,11 @@ void	Utils::trimWhitespaces(std::string& str)
 bool	Utils::isAllowedMethod(HTTP::Method method, const std::vector<HTTP::Method> allowedMethods)
 {
 	return std::find(allowedMethods.begin(), allowedMethods.end(), method) != allowedMethods.end();
+}
+
+std::string	Utils::charToHex(char c)
+{
+	std::ostringstream os;
+	os << "0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(c);
+	return os.str();
 }

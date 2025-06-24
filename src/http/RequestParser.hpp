@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 10:02:08 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 11:04:47 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,23 +41,26 @@ public:
 	bool	complete(void);
 
 private:
-	void	parseNext(void);
-	void	parseRequestLine(void);
-	void	parseHeader(void);
+	void				parseNext(void);
+	void				parseRequestLine(void);
+	void				parseHeader(void);
 
-	bool	validateHttpMethod(std::string& methodStr);
-	bool	validateRequestTarget(void);
-	bool	validateProtokoll(void);
+	bool				validateHttpMethod(std::string& methodStr);
+	bool				validateRequestTarget(void);
+	bool				validateProtokoll(void);
 
-	bool	percentDecoding(const std::string& requestTarget, std::string& destURI);
-	int		hexToInt(const char c);
+	bool				validRawCharacters(const std::string& requestTarget);
+	bool				validDecodedCharacters(const std::string& uri);
+	const std::string	truncateQueryAndFragments(const std::string& requestTarget);
+	bool				percentDecoding(const std::string& requestTarget, std::string& destURI);
+	int					hexToInt(const char c);
 
-	bool	isRelativeForm_EnsureLeadingSlash(std::string& uri);
-	bool	removeDotSegments(std::string& uri);
-	void	popLastSeqment(std::string& oBuf);
-	bool	collapseDuplicateSlashes(std::string& oBuf);
+	bool				isRelativeForm_EnsureLeadingSlash(std::string& uri);
+	bool				removeDotSegments(std::string& uri);
+	void				popLastSegment(std::string& oBuf);
+	bool				collapseDuplicateSlashes(std::string& oBuf);
 
-	bool	splitLine(std::string& line, char del, std::pair<std::string, std::string>& headerField);
+	bool				splitLine(std::string& line, char del, std::pair<std::string, std::string>& headerField);
 
 	enum class State {
 		READING_REQUEST_LINE,

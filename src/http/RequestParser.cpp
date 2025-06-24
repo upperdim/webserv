@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 10:08:25 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 11:59:35 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,7 +192,7 @@ bool	RequestParser::validateHttpMethod(std::string& methodStr)
 
 bool	RequestParser::validateRequestTarget(void)
 {
-	// reject asterisk-form and absolute-form
+	// reject asterisk-form and absolute-form and return early if we don't have a '/'
 	if (request.m_requestTarget == "*" ||
 		request.m_requestTarget.find("://") != std::string::npos ||
 		request.m_requestTarget.find('/') != 0) {
@@ -200,7 +200,9 @@ bool	RequestParser::validateRequestTarget(void)
 		return false;
 	}
 
-	if (!percentDecoding(request.m_requestTarget, request.m_URI) ||
+	if (!validRawCharacters(request.m_requestTarget) ||
+		!percentDecoding(request.m_requestTarget, request.m_URI) ||
+		!validDecodedCharacters(request.m_URI) ||
 	    !isRelativeForm_EnsureLeadingSlash(request.m_URI) ||
 	    !removeDotSegments(request.m_URI) ||
 		!collapseDuplicateSlashes(request.m_URI)) {
@@ -227,25 +229,64 @@ bool	RequestParser::validateProtokoll(void)
 	return true;
 }
 
+bool	RequestParser::validRawCharacters(const std::string& requestTarget)
+{
+	for (auto it = requestTarget.cbegin(); it < requestTarget.cend(); ++it) {
+		if (*it <= 0x1F || *it == 0x7F || *it == ' ') {
+			LOG_DEBUG("failed validRawCharacters(): " + Utils::charToHex(*it));
+			return false;
+		}
+	}
+	return true;
+}
+
+bool	RequestParser::validDecodedCharacters(const std::string& uri)
+{
+	for (auto it = uri.cbegin(); it < uri.cend(); ++it) {
+		if (*it <= 0x1F || *it == 0x7F || *it == '\\') {
+			LOG_DEBUG("failed validDecodedCharacters(): " + Utils::charToHex(*it));
+			return false;
+		}
+
+		// This is very strict because of filesystem restrictions, but RFC 3986 2.2 allows
+		if (*it == '\"' || *it == '<' || *it == '>' ||
+			*it == '^' || *it == '`' || *it == '{' || *it == '}' ||
+			*it == '|') {
+			LOG_DEBUG("failed validDecodedCharacters(): " + Utils::charToHex(*it));
+			return false;
+		}
+	}
+	return true;
+}
+
+const std::string	RequestParser::truncateQueryAndFragments(const std::string& requestTarget)
+{
+	size_t pos = requestTarget.find_first_of("?#");
+	if (pos != std::string::npos)
+		return requestTarget.substr(0, pos);
+	return requestTarget;
+}
+
 bool	RequestParser::percentDecoding(const std::string& requestTarget, std::string& destURI)
 {
-	destURI.reserve(requestTarget.size());
+	const std::string truncTarget = truncateQueryAndFragments(requestTarget);
+	destURI.reserve(truncTarget.size());
 	
-	for (size_t idx = 0; idx < requestTarget.size(); ++idx) {
-		if (requestTarget[idx] == '%') {
-			if (idx + 2 < requestTarget.size() &&
-			    std::isxdigit(static_cast<unsigned char>(requestTarget[idx + 1])) &&
-			    std::isxdigit(static_cast<unsigned char>(requestTarget[idx + 2]))) {
+	for (size_t idx = 0; idx < truncTarget.size(); ++idx) {
+		if (truncTarget[idx] == '%') {
+			if (idx + 2 < truncTarget.size() &&
+			    std::isxdigit(static_cast<unsigned char>(truncTarget[idx + 1])) &&
+			    std::isxdigit(static_cast<unsigned char>(truncTarget[idx + 2]))) {
 					// Valid percent-encoding: decode and append character
-					char hiHex = requestTarget[++idx];
-					char loHex = requestTarget[++idx];
+					char hiHex = truncTarget[++idx];
+					char loHex = truncTarget[++idx];
 					destURI += static_cast<char>((hexToInt(hiHex) << 4) | hexToInt(loHex));
 			} else {
-				// invalid Hex character, or to short for valid hex form: xFF
+				// invalid Hex character, or too short for valid hex form: xFF
 				return false;
 			}
 		} else {
-			destURI += requestTarget[idx];
+			destURI += truncTarget[idx];
 		}	
 	}
 	return true;
@@ -291,11 +332,11 @@ bool	RequestParser::removeDotSegments(std::string& uri)
 			iBuf.replace(0, 2, "/");
 		} else if (Utils::startsWith(iBuf,"/../")) {
 			iBuf.replace(0, 4, "/");
-			popLastSeqment(oBuf);
+			popLastSegment(oBuf);
 		} else if (Utils::startsWith(iBuf,"/..") &&
 		           (iBuf.size() == 3 || iBuf[3] == '/')) {
 			iBuf.replace(0, 3, "/");
-			popLastSeqment(oBuf);
+			popLastSegment(oBuf);
 		} else if (iBuf == "." || iBuf == "..") {
 			iBuf.clear();
 		} else {
@@ -321,7 +362,7 @@ bool	RequestParser::removeDotSegments(std::string& uri)
 	return true;
 }
 
-void	RequestParser::popLastSeqment(std::string& oBuf)
+void	RequestParser::popLastSegment(std::string& oBuf)
 {
 	size_t pos = oBuf.rfind("/");
 	if (pos != std::string::npos) {
