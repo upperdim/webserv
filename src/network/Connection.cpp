@@ -6,11 +6,12 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 16:43:13 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 17:00:30 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Connection.hpp"
+#include "HTTP.hpp"
 #include "RequestParser.hpp"
 
 Connection::Connection(const int _cli_socket, const ServerBlock& _serverBlock)
@@ -41,7 +42,7 @@ void Connection::handleReadEvent(EventManager& event_manager)
 	LOG_MSG("[handleReadEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 
 	char		requestBuf[REQUEST_BUFFER_SIZE] = {0};
-	ssize_t		byetesRead = recv(socket_fd, &request_buf, sizeof(request_buf), 0);
+	ssize_t		byetesRead = recv(socket_fd, &requestBuf, sizeof(requestBuf), 0);
 
 	if (byetesRead > 0) {
 		LOG_INFO_LM("RECIEVED BYTES: ", std::to_string(byetesRead));
@@ -51,33 +52,33 @@ void Connection::handleReadEvent(EventManager& event_manager)
 		//				request.setComplet();
 	} else if (byetesRead < 0) {
 		LOG_ERROR("recieved bytes: -1 ---> socket error");
-		requestParser.setError(WSSC_INTERNAL_SERVER_ERROR);
+		request.setError(WSSC_INTERNAL_SERVER_ERROR);
 	} else if (byetesRead == 0) {
 		LOG_SUCCESS("Done reading from socket fd: " + std::to_string(socket_fd));
 		request.setComplete();
 	}
 
-	if (requestParser.complete() || requestParser.error())
+	if (request.complete() || request.error())
 	{
 		LOG_SUCCESS("DONE READING **********************************************************");
 		
-		if (requestParser.error()) {
-			response = handleErrorRequest(requestParser.request);
+		if (request.error()) {
+			response = handleErrorRequest(request);
 		} else {
-			if (requestParser.request.getRequestTarget().empty()) {
+			if (request.getRequestTarget().empty()) {
 				response.setStatus(WSSC_NOT_FOUND);
-			} else if (!Utils::isAllowedMethod(requestParser.request.getMethod(), requestParser.request.getLocation(m_serverBlock).allowMethods)) {
+			} else if (!Utils::isAllowedMethod(request.getMethod(), request.getLocation(m_serverBlock).allowMethods)) {
 				response.setStatus(WSSC_METHOD_NOT_ALLOWED);
 			} else {
-				switch (requestParser.request.getMethod()) {
+				switch (request.getMethod()) {
 					case HTTP::Method::GET:
-						response = handleGetRequest(requestParser.request);
+						response = handleGetRequest(request);
 						break;
 					case HTTP::Method::POST:
-						response = handlePostRequest(requestParser.request);
+						response = handlePostRequest(request);
 						break;
 					case HTTP::Method::DELETE:
-						response = handleDeleteRequest(requestParser.request);
+						response = handleDeleteRequest(request);
 						break;
 				}
 			}
