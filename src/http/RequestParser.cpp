@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 17:28:35 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 18:07:54 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,8 +62,8 @@ void	RequestParser::parseRequestLine(Request& request)
 	std::istringstream lineStream(request.rawRequest.substr(0, pos).c_str());
 	std::string methodStr;
 	if (!std::getline(lineStream, methodStr, ' ') ||
-	    !std::getline(lineStream, request.m_requestTarget, ' ') ||
-		!std::getline(lineStream, request.m_protokoll, ' ')) {
+	    !std::getline(lineStream, request.requestTarget, ' ') ||
+		!std::getline(lineStream, request.protokoll, ' ')) {
 		request.setError(WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
@@ -75,7 +75,7 @@ void	RequestParser::parseRequestLine(Request& request)
 		return;
 	}
 
-	LOG_DEBUG(std::string("RAW       ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.method) + " " + LIGHTGREEN + request.m_requestTarget + " " + LIGHTBLUE + request.m_protokoll);
+	LOG_DEBUG(std::string("RAW       ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.method) + " " + LIGHTGREEN + request.requestTarget + " " + LIGHTBLUE + request.protokoll);
 
 	if (!validateHttpMethod(methodStr, request)) {
 		request.setError(WSSC_BAD_REQUEST);
@@ -92,7 +92,7 @@ void	RequestParser::parseRequestLine(Request& request)
 		return;
 	}
 
-	LOG_DEBUG(std::string("validated ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.method) + " " + LIGHTGREEN + request.m_URI + " " + LIGHTBLUE + request.m_protokoll);
+	LOG_DEBUG(std::string("validated ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.method) + " " + LIGHTGREEN + request.URI + " " + LIGHTBLUE + request.protokoll);
 
 	request.rawRequest.erase(0, pos + 2);
 	request.setState(Request::State::READING_HEADERS);
@@ -119,7 +119,7 @@ void	RequestParser::parseHeader(Request& request)
 		std::pair<std::string, std::string> headerField;
 		if (splitLine(line, ':', headerField))
 			throw( std::runtime_error("Error: Request::splitLine() could not find delimiter ':'") ); // TODO: better error handling
-		request.m_headers[headerField.first] = headerField.second;
+		request.headers[headerField.first] = headerField.second;
 
 		last_pos = pos;
 		start = pos + 1;
@@ -152,27 +152,27 @@ bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
 bool	RequestParser::validateRequestTarget(Request& request)
 {
 	// reject asterisk-form and absolute-form and return early if we don't have a '/'
-	if (request.m_requestTarget == "*" ||
-		request.m_requestTarget.find("://") != std::string::npos ||
-		request.m_requestTarget.find('/') != 0) {
+	if (request.requestTarget == "*" ||
+		request.requestTarget.find("://") != std::string::npos ||
+		request.requestTarget.find('/') != 0) {
 		request.setError(WSSC_BAD_REQUEST);
 		return false;
 	}
 
-	if (!validRawCharacters(request.m_requestTarget) ||
-		!percentDecoding(request.m_requestTarget, request.m_URI) ||
-		!validDecodedCharacters(request.m_URI) ||
-	    !isRelativeForm_EnsureLeadingSlash(request.m_URI) ||
-	    !removeDotSegments(request.m_URI) ||
-		!collapseDuplicateSlashes(request.m_URI)) {
+	if (!validRawCharacters(request.requestTarget) ||
+		!percentDecoding(request.requestTarget, request.URI) ||
+		!validDecodedCharacters(request.URI) ||
+	    !isRelativeForm_EnsureLeadingSlash(request.URI) ||
+	    !removeDotSegments(request.URI) ||
+		!collapseDuplicateSlashes(request.URI)) {
 		request.setError(WSSC_BAD_REQUEST);
 		return false;
 	}
 
 	const int MAX_URI_LENGTH = 2048;
-	if (request.m_URI.empty() ||
-		request.m_URI.size() > MAX_URI_LENGTH ||
-		request.m_URI.find('\\') != std::string::npos) {
+	if (request.URI.empty() ||
+		request.URI.size() > MAX_URI_LENGTH ||
+		request.URI.find('\\') != std::string::npos) {
 		request.setError(WSSC_BAD_REQUEST);
 		return false;
 	}
@@ -182,11 +182,11 @@ bool	RequestParser::validateRequestTarget(Request& request)
 
 bool	RequestParser::validateProtokoll(Request& request)
 {
-	if (request.m_protokoll == "HTTP/1.1")
+	if (request.protokoll == "HTTP/1.1")
 		return true;
 
-	if (request.m_protokoll == "HTTP/1.0") {
-		request.m_protokoll = "HTTP/1.1";
+	if (request.protokoll == "HTTP/1.0") {
+		request.protokoll = "HTTP/1.1";
 		return true;
 	}
 	return false;

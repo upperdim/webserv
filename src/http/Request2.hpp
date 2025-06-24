@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 17:45:47 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 18:07:24 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,6 @@
 #include <unordered_map>
 #include "HTTP.hpp"
 #include "Config.hpp"
-
-// Forward declaration
-class RequestParser;
 
 class Request
 {
@@ -43,7 +40,7 @@ public:
 	Request::State	getState(void);
 	void			setState(State state);
 
-	void			setError(int statusCode);
+	void			setError(int _statusCode);
 	bool			error(void);
 
 	void			setComplete(void);
@@ -53,22 +50,18 @@ public:
 	std::string				getRequestTarget(void) const;
 	const LocationBlock&	getLocation(const ServerBlock& serverBlock) const;
 
-	std::string				rawRequest;
-	HTTP::Method			method;
+	std::string										rawRequest;
+
+	HTTP::Method									method;
+	int												statusCode;
+	std::string										requestTarget;
+	std::string										URI;		//	decoded and sanatized requesttarget
+	std::string										protokoll;
+	std::unordered_map<std::string, std::string>	headers;
 
 private:
 	State											m_state;
 	bool											m_error;
-
-	int												m_statusCode;
-
-	std::string										m_requestTarget;
-	std::string										m_protokoll;
-	std::unordered_map<std::string, std::string>	m_headers;
-
-	std::string										m_URI;		//	decoded and sanatized requesttarget
-
-	friend class RequestParser;
 };
 
 #endif
