@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 11:59:35 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 12:36:20 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,7 @@ void	RequestParser::parseRequestLine(void)
 	}
 
 	if (!validateProtokoll()) {
-		setError(WSSC_BAD_REQUEST);
+		setError(WSSC_HTTP_VERSION_NOT_SUPPORTED);
 		return;
 	}
 
@@ -223,10 +223,14 @@ bool	RequestParser::validateRequestTarget(void)
 
 bool	RequestParser::validateProtokoll(void)
 {
-	if (request.m_protokoll.empty())
-		return false;
-	// TODO the rest !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	return true;
+	if (request.m_protokoll == "HTTP/1.0")
+		return true;
+
+	if (request.m_protokoll == "HTTP/1.0") {
+		request.m_protokoll = "HTTP/1.1";
+		return true;
+	}
+	return false;
 }
 
 bool	RequestParser::validRawCharacters(const std::string& requestTarget)
