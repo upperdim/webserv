@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 17:00:30 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 17:51:11 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,10 +67,10 @@ void Connection::handleReadEvent(EventManager& event_manager)
 		} else {
 			if (request.getRequestTarget().empty()) {
 				response.setStatus(WSSC_NOT_FOUND);
-			} else if (!Utils::isAllowedMethod(request.getMethod(), request.getLocation(m_serverBlock).allowMethods)) {
+			} else if (!Utils::isAllowedMethod(request.method, request.getLocation(m_serverBlock).allowMethods)) {
 				response.setStatus(WSSC_METHOD_NOT_ALLOWED);
 			} else {
-				switch (request.getMethod()) {
+				switch (request.method) {
 					case HTTP::Method::GET:
 						response = handleGetRequest(request);
 						break;
