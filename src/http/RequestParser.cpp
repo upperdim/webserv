@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/23 19:00:55 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 10:08:25 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,30 +105,35 @@ void	RequestParser::parseRequestLine(void)
 	if (!std::getline(lineStream, methodStr, ' ') ||
 	    !std::getline(lineStream, request.m_requestTarget, ' ') ||
 		!std::getline(lineStream, request.m_protokoll, ' ')) {
-		request.m_statusCode = WSSC_INTERNAL_SERVER_ERROR;
-		m_error = true;
+		setError(WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
 
+	// Don't allow extra garbage after the protokoll in the request line
+	std::string someExtraGarbage;
+	if (lineStream >> someExtraGarbage) {
+		setError(WSSC_BAD_REQUEST);
+		return;
+	}
+
+	LOG_DEBUG(std::string("RAW       ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.m_method) + " " + LIGHTGREEN + request.m_requestTarget + " " + LIGHTBLUE + request.m_protokoll);
+
 	if (!validateHttpMethod(methodStr)) {
-		if (request.m_statusCode == WSSC_OK) request.m_statusCode = WSSC_INTERNAL_SERVER_ERROR;	//	is this overkill -> unnecessary check?
-		m_error = true;
+		setError(WSSC_BAD_REQUEST);
 		return;
 	}
 
 	if (!validateRequestTarget()) {
-		if (request.m_statusCode == WSSC_OK) request.m_statusCode = WSSC_INTERNAL_SERVER_ERROR;	//	is this overkill -> unnecessary check?
-		m_error = true;
+		setError(WSSC_BAD_REQUEST);
 		return;
 	}
 
 	if (!validateProtokoll()) {
-		if (request.m_statusCode == WSSC_OK) request.m_statusCode = WSSC_INTERNAL_SERVER_ERROR;	//	is this overkill -> unnecessary check?
-		m_error = true;
+		setError(WSSC_BAD_REQUEST);
 		return;
 	}
 
-	LOG_DEBUG(std::string("parseRequestLine: ") + LIGHTRED + HTTP::methodToString(request.m_method) + " " + LIGHTGREEN + request.m_requestTarget + " " + LIGHTBLUE + request.m_protokoll);
+	LOG_DEBUG(std::string("validated ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.m_method) + " " + LIGHTGREEN + request.m_URI + " " + LIGHTBLUE + request.m_protokoll);
 
 	m_rawRequest.erase(0, pos + 2);
 	m_state = State::READING_HEADERS;
@@ -177,36 +182,40 @@ bool	RequestParser::validateHttpMethod(std::string& methodStr)
 
 	if (ustr == "GET\0" || ustr == "POST\0" || ustr == "DELETE\0") {
 		request.m_method = HTTP::strToMethod(methodStr);
-		// setStatusCode(_status_code, WSSC_BAD_REQUEST);
-		request.m_statusCode = WSSC_BAD_REQUEST;
-		return false;
-	}
-		
-	// request.m_method = HTTP::Method::GET;
-	// setStatusCode(_status_code, WSSC_METHOD_NOT_ALLOWED);
-	request.m_statusCode = WSSC_METHOD_NOT_ALLOWED;
-	return false;
-}
-
-// void	RequestParser::setStatusCode(int& _status_code, int _new_status)
-// {
-// 	if (_status_code == 0)
-// 		_status_code = _new_status;
-// }
-
-bool	RequestParser::validateRequestTarget(void)
-{
-	if (!percentDecoding(request.m_requestTarget, request.m_URI)) {
 		setError(WSSC_BAD_REQUEST);
 		return false;
 	}
-	//	TODO:	sanitize URI
+		
+	setError(WSSC_METHOD_NOT_ALLOWED);
+	return false;
+}
 
-	LOG_INFO_LM("request.m_URI", request.m_URI);
-
-	if (request.m_requestTarget.empty())
+bool	RequestParser::validateRequestTarget(void)
+{
+	// reject asterisk-form and absolute-form
+	if (request.m_requestTarget == "*" ||
+		request.m_requestTarget.find("://") != std::string::npos ||
+		request.m_requestTarget.find('/') != 0) {
+		setError(WSSC_BAD_REQUEST);
 		return false;
-	// TODO the rest !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	}
+
+	if (!percentDecoding(request.m_requestTarget, request.m_URI) ||
+	    !isRelativeForm_EnsureLeadingSlash(request.m_URI) ||
+	    !removeDotSegments(request.m_URI) ||
+		!collapseDuplicateSlashes(request.m_URI)) {
+		setError(WSSC_BAD_REQUEST);
+		return false;
+	}
+
+	const int MAX_URI_LENGTH = 2048;
+	if (request.m_URI.empty() ||
+		request.m_URI.size() > MAX_URI_LENGTH ||
+		request.m_URI.find('\\') != std::string::npos) {
+		setError(WSSC_BAD_REQUEST);
+		return false;
+	}
+		
 	return true;
 }
 
@@ -223,8 +232,7 @@ bool	RequestParser::percentDecoding(const std::string& requestTarget, std::strin
 	destURI.reserve(requestTarget.size());
 	
 	for (size_t idx = 0; idx < requestTarget.size(); ++idx) {
-		char c = requestTarget[idx];
-		if (c == '%') {
+		if (requestTarget[idx] == '%') {
 			if (idx + 2 < requestTarget.size() &&
 			    std::isxdigit(static_cast<unsigned char>(requestTarget[idx + 1])) &&
 			    std::isxdigit(static_cast<unsigned char>(requestTarget[idx + 2]))) {
@@ -237,7 +245,7 @@ bool	RequestParser::percentDecoding(const std::string& requestTarget, std::strin
 				return false;
 			}
 		} else {
-			destURI += c;
+			destURI += requestTarget[idx];
 		}	
 	}
 	return true;
@@ -246,6 +254,102 @@ bool	RequestParser::percentDecoding(const std::string& requestTarget, std::strin
 int	RequestParser::hexToInt(const char c)
 {
 	return std::isdigit(c) ? c - '0' : std::tolower(c) - 'a' + 10;
+}
+
+bool	RequestParser::isRelativeForm_EnsureLeadingSlash(std::string& uri)
+{
+	if (Utils::startsWith(uri, "http://") || Utils::startsWith(uri, "https://"))
+		return false;
+
+	// make URI absolute per RFC 7230: Section 5.3.1
+	if (!uri.empty() && uri[0] != '/')
+		uri.insert(0, "/");
+
+	return true;
+}
+
+//	RFC:	5.2.4.  Remove Dot Segments
+bool	RequestParser::removeDotSegments(std::string& uri)
+{
+	// ensure we have an absolute path startiung with '/'
+	if (uri.empty() || uri[0] != '/')
+		return false;
+	
+	std::string iBuf = uri;
+	std::string oBuf;
+	oBuf.reserve(uri.size());
+
+	while (!iBuf.empty()) {
+		if (Utils::startsWith(iBuf, "../")) {
+			iBuf.erase(0, 3);
+		} else if (Utils::startsWith(iBuf, "./")) {
+			iBuf.erase(0, 2);
+		} else if (Utils::startsWith(iBuf, "/./")) {
+			iBuf.replace(0, 3, "/");
+		} else if (Utils::startsWith(iBuf, "/.") &&
+		           (iBuf.size() == 2 || iBuf[2] == '/')) {
+			iBuf.replace(0, 2, "/");
+		} else if (Utils::startsWith(iBuf,"/../")) {
+			iBuf.replace(0, 4, "/");
+			popLastSeqment(oBuf);
+		} else if (Utils::startsWith(iBuf,"/..") &&
+		           (iBuf.size() == 3 || iBuf[3] == '/')) {
+			iBuf.replace(0, 3, "/");
+			popLastSeqment(oBuf);
+		} else if (iBuf == "." || iBuf == "..") {
+			iBuf.clear();
+		} else {
+			// move first seg from iBuf to oBuf
+			size_t pos;
+			if (iBuf[0] == '/') {
+				if ((pos = iBuf.find("/", 1)) != std::string::npos) {
+					oBuf += iBuf.substr(0, pos);
+					iBuf.erase(0, pos);
+				} else {
+					oBuf += iBuf;
+					iBuf.clear();
+				}
+			} else {
+				// Unexpected uri segment without leading '/' => _400_BAD_REQUEST
+				return false;
+			}
+		}
+	}
+	if (oBuf.empty())
+		oBuf = "/";
+	uri = oBuf;
+	return true;
+}
+
+void	RequestParser::popLastSeqment(std::string& oBuf)
+{
+	size_t pos = oBuf.rfind("/");
+	if (pos != std::string::npos) {
+		if (pos == 0)
+			oBuf = "/";
+		else
+			oBuf.erase(pos);
+	}
+}
+
+bool	RequestParser::collapseDuplicateSlashes(std::string& oBuf)
+{
+	size_t write = 0;
+	bool prevWasSlash = false;
+
+	for (size_t read = 0; read < oBuf.size(); ++read) {
+		if (oBuf[read] == '/') {
+			if (!prevWasSlash) {
+				oBuf[write++] = '/';
+				prevWasSlash = true;
+			}
+		} else {
+			oBuf[write++] = oBuf[read];
+			prevWasSlash = false;
+		}
+	}
+	oBuf.resize(write);
+	return true;
 }
 
 bool	RequestParser::splitLine(std::string &line, char del, std::pair<std::string, std::string> &headerField)

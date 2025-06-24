@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/23 18:51:40 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 10:02:08 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,10 +33,10 @@ public:
 	void	append(const char *buf, const size_t bytes_read);
 	void	reset(void);
 
-	// setters
+	//		setters
 	void	setError(int statusCode);
 
-	// getters
+	//		state checks
 	bool	error(void);
 	bool	complete(void);
 
@@ -51,6 +51,11 @@ private:
 
 	bool	percentDecoding(const std::string& requestTarget, std::string& destURI);
 	int		hexToInt(const char c);
+
+	bool	isRelativeForm_EnsureLeadingSlash(std::string& uri);
+	bool	removeDotSegments(std::string& uri);
+	void	popLastSeqment(std::string& oBuf);
+	bool	collapseDuplicateSlashes(std::string& oBuf);
 
 	bool	splitLine(std::string& line, char del, std::pair<std::string, std::string>& headerField);
 
