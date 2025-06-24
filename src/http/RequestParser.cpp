@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 12:55:17 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 14:35:34 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -218,7 +218,7 @@ bool	RequestParser::validateRequestTarget(void)
 
 bool	RequestParser::validateProtokoll(void)
 {
-	if (request.m_protokoll == "HTTP/1.0")
+	if (request.m_protokoll == "HTTP/1.1")
 		return true;
 
 	if (request.m_protokoll == "HTTP/1.0") {

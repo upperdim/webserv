@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/23 12:13:52 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 13:13:19 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ Request&	Request::operator=(Request&& rhs)
 /* ************************************************************************** */
 /* ************************************************************************** */
 
+
 int	Request::getStatusCode(void) const
 {
 	return (m_statusCode);
@@ -64,4 +65,3 @@ const LocationBlock&	Request::getLocation(const ServerBlock& serverBlock) const
 	}
 	return serverBlock.locationBlocks.front();
 }
-
