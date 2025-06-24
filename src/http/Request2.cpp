@@ -6,14 +6,16 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 13:13:19 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 16:25:48 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request2.hpp"
 
 Request::Request()
-	:	m_statusCode(200),
+	:	m_state(State::READING_REQUEST_LINE),
+		m_error(false),
+		m_statusCode(200),
 		m_method(HTTP::Method::GET)
 {
 }
@@ -39,6 +41,26 @@ Request&	Request::operator=(Request&& rhs)
 /* ************************************************************************** */
 /* ************************************************************************** */
 
+
+void	Request::append(const char *buf, const size_t bytesRead)
+{
+	m_rawRequest.append(buf, bytes_read);
+}
+
+void	Request::reset(void)
+{
+	//	TODO:	reset the Request
+	request = Request();
+}
+
+void	Request::setError(int statusCode)
+{
+	if (!m_error) {
+		m_error = true;
+		if (request.m_statusCode < WSSC_BAD_REQUEST)
+			request.m_statusCode = statusCode;
+	}
+}
 
 int	Request::getStatusCode(void) const
 {

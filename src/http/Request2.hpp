@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 13:14:43 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 16:25:06 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,12 +30,29 @@ public:
 	// move assignment operator
 	Request&	operator=(Request&& rhs);
 
+	void		append(const char *buf, const size_t bytes_read);
+	void		reset(void);
+
+	//			setters
+	void		setError(int statusCode);
+
 	int						getStatusCode(void) const;
 	HTTP::Method			getMethod(void) const;
 	std::string				getRequestTarget(void) const;
 	const LocationBlock&	getLocation(const ServerBlock& serverBlock) const;
 
 private:
+	enum class State {
+		READING_REQUEST_LINE,
+		READING_HEADERS,
+		READING_BODY,
+		COMPLETE
+	};
+
+	State											m_state;
+	std::string										m_rawRequest;
+	bool											m_error;
+
 	int												m_statusCode;
 	
 	HTTP::Method									m_method;
