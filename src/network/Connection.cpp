@@ -6,11 +6,12 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/23 16:56:34 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 16:43:13 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Connection.hpp"
+#include "RequestParser.hpp"
 
 Connection::Connection(const int _cli_socket, const ServerBlock& _serverBlock)
 	:	m_done(false),
@@ -39,14 +40,22 @@ void Connection::handleReadEvent(EventManager& event_manager)
 {
 	LOG_MSG("[handleReadEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 
-	char		request_buf[REQUEST_BUFFER_SIZE] = {0};
-	ssize_t		byetes_read = recv(socket_fd, &request_buf, sizeof(request_buf), 0);
-	LOG_INFO_LM("RECIEVED BYTES: ", std::to_string(byetes_read));
+	char		requestBuf[REQUEST_BUFFER_SIZE] = {0};
+	ssize_t		byetesRead = recv(socket_fd, &request_buf, sizeof(request_buf), 0);
 
-	if (byetes_read == -1)
+	if (byetesRead > 0) {
+		LOG_INFO_LM("RECIEVED BYTES: ", std::to_string(byetesRead));
+		request.append(requestBuf, byetesRead);
+		RequestParser::parseNext(request);
+		// TODO:	if (request.checkifComplete())
+		//				request.setComplet();
+	} else if (byetesRead < 0) {
+		LOG_ERROR("recieved bytes: -1 ---> socket error");
 		requestParser.setError(WSSC_INTERNAL_SERVER_ERROR);
-	else
-		requestParser.append(request_buf, byetes_read);
+	} else if (byetesRead == 0) {
+		LOG_SUCCESS("Done reading from socket fd: " + std::to_string(socket_fd));
+		request.setComplete();
+	}
 
 	if (requestParser.complete() || requestParser.error())
 	{
