@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 16:25:48 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 16:47:08 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,16 @@ void	Request::setError(int statusCode)
 		if (request.m_statusCode < WSSC_BAD_REQUEST)
 			request.m_statusCode = statusCode;
 	}
+}
+
+bool	Request::error(void)
+{
+	return m_error;
+}
+
+bool	Request::complete(void)
+{
+	return m_state == State::COMPLETE;
 }
 
 int	Request::getStatusCode(void) const

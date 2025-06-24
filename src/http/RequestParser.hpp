@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 11:04:47 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 16:48:13 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,64 +14,38 @@
 #define REQUESTPARSER_HPP
 
 #include <string>
-#include <sstream>
-#include "HTTP.hpp"
 #include "colors.hpp"
 #include "Request2.hpp"
-#include "Validator.hpp"
-#include "Log.hpp"
-#include "Utils.hpp"
 
 class RequestParser
 {
 public:
-	RequestParser();
 	~RequestParser();
 
-	Request	request;
-
-	void	append(const char *buf, const size_t bytes_read);
-	void	reset(void);
-
-	//		setters
-	void	setError(int statusCode);
-
-	//		state checks
-	bool	error(void);
-	bool	complete(void);
+	static void	parseNext(Request& request);
 
 private:
-	void				parseNext(void);
-	void				parseRequestLine(void);
-	void				parseHeader(void);
+	RequestParser();
+	
+	static void					parseRequestLine(void);
+	staticvoid					parseHeader(void);
 
-	bool				validateHttpMethod(std::string& methodStr);
-	bool				validateRequestTarget(void);
-	bool				validateProtokoll(void);
+	static bool					validateHttpMethod(std::string& methodStr);
+	static bool					validateRequestTarget(void);
+	static bool					validateProtokoll(void);
 
-	bool				validRawCharacters(const std::string& requestTarget);
-	bool				validDecodedCharacters(const std::string& uri);
-	const std::string	truncateQueryAndFragments(const std::string& requestTarget);
-	bool				percentDecoding(const std::string& requestTarget, std::string& destURI);
-	int					hexToInt(const char c);
+	static bool					validRawCharacters(const std::string& requestTarget);
+	static bool					validDecodedCharacters(const std::string& uri);
+	static const std::string	truncateQueryAndFragments(const std::string& requestTarget);
+	static bool					percentDecoding(const std::string& requestTarget, std::string& destURI);
+	static int					hexToInt(const char c);
 
-	bool				isRelativeForm_EnsureLeadingSlash(std::string& uri);
-	bool				removeDotSegments(std::string& uri);
-	void				popLastSegment(std::string& oBuf);
-	bool				collapseDuplicateSlashes(std::string& oBuf);
+	static bool					isRelativeForm_EnsureLeadingSlash(std::string& uri);
+	static bool					removeDotSegments(std::string& uri);
+	static void					popLastSegment(std::string& oBuf);
+	static bool					collapseDuplicateSlashes(std::string& oBuf);
 
-	bool				splitLine(std::string& line, char del, std::pair<std::string, std::string>& headerField);
-
-	enum class State {
-		READING_REQUEST_LINE,
-		READING_HEADERS,
-		READING_BODY,
-		COMPLETE
-	};
-
-	bool		m_error;
-	State		m_state;
-	std::string	m_rawRequest;
+	static bool					splitLine(std::string& line, char del, std::pair<std::string, std::string>& headerField);
 	
 };
 

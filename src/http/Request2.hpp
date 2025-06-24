@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 16:25:06 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 16:46:44 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,10 @@ public:
 
 	//			setters
 	void		setError(int statusCode);
+
+	//			state checks
+	bool		error(void);
+	bool		complete(void);
 
 	int						getStatusCode(void) const;
 	HTTP::Method			getMethod(void) const;

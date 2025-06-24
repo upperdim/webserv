@@ -6,60 +6,19 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 14:35:34 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 16:48:06 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RequestParser.hpp"
-
-RequestParser::RequestParser()
-	:	m_error(false),
-		m_state(State::READING_REQUEST_LINE)
-{
-}
+#include <sstream>
+#include "HTTP.hpp"
+#include "Validator.hpp"
+#include "Log.hpp"
+#include "Utils.hpp"
 
 RequestParser::~RequestParser()
 {
-}
-
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
-
-void	RequestParser::append(const char *buf, const size_t bytesRead)
-{
-	if (bytesRead > 0)
-		m_rawRequest.append(buf, bytesRead);
-	parseNext();
-	if (bytesRead == 0 && m_state != State::COMPLETE)
-		m_state = State::COMPLETE;
-}
-
-void	RequestParser::reset(void)
-{
-	//	TODO
-	//	Reset: RequestParser and Request
-	request = Request();
-}
-
-void	RequestParser::setError(int statusCode)
-{
-	if (!m_error) {
-		m_error = true;
-		if (request.m_statusCode < WSSC_BAD_REQUEST)
-			request.m_statusCode = statusCode;
-	}
-}
-
-bool	RequestParser::error(void)
-{
-	return m_error;
-}
-
-bool	RequestParser::complete(void)
-{
-	return m_state == State::COMPLETE;
 }
 
 
@@ -85,6 +44,11 @@ void	RequestParser::parseNext(void)
 		LOG_DEBUG("===> REQUEST COMPLETE");
 	}
 }
+
+
+/* ************************************************************************** */
+/* ************************************************************************** */
+
 
 void	RequestParser::parseRequestLine(void)
 {
