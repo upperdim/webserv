@@ -6,17 +6,17 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 16:47:08 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 17:45:21 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request2.hpp"
 
 Request::Request()
-	:	m_state(State::READING_REQUEST_LINE),
+	:	method(HTTP::Method::GET),
+		m_state(State::READING_REQUEST_LINE),
 		m_error(false),
-		m_statusCode(200),
-		m_method(HTTP::Method::GET)
+		m_statusCode(200)		
 {
 }
 
@@ -31,7 +31,7 @@ Request&	Request::operator=(Request&& rhs)
 		m_statusCode	= rhs.m_statusCode;
 		m_requestTarget	= std::move(rhs.m_requestTarget);
 		m_protokoll		= std::move(rhs.m_protokoll);
-		m_method		= rhs.m_method;
+		method			= rhs.method;
 		m_headers		= std::move(rhs.m_headers);
 	}
 	return *this;
@@ -44,13 +44,22 @@ Request&	Request::operator=(Request&& rhs)
 
 void	Request::append(const char *buf, const size_t bytesRead)
 {
-	m_rawRequest.append(buf, bytes_read);
+	rawRequest.append(buf, bytesRead);
 }
 
 void	Request::reset(void)
 {
 	//	TODO:	reset the Request
-	request = Request();
+}
+
+Request::State	Request::getState(void)
+{
+	return m_state;
+}
+
+void	Request::setState(State state)
+{
+	m_state = state;
 }
 
 void	Request::setError(int statusCode)
@@ -60,6 +69,11 @@ void	Request::setError(int statusCode)
 		if (request.m_statusCode < WSSC_BAD_REQUEST)
 			request.m_statusCode = statusCode;
 	}
+}
+
+void	Request::setComplete()
+{
+	m_state = State::COMPLETE;
 }
 
 bool	Request::error(void)
@@ -75,11 +89,6 @@ bool	Request::complete(void)
 int	Request::getStatusCode(void) const
 {
 	return (m_statusCode);
-}
-
-HTTP::Method	Request::getMethod(void) const
-{
-	return (m_method);
 }
 
 std::string	Request::getRequestTarget(void) const

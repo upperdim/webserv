@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 16:46:44 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 17:45:47 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,25 +27,6 @@ public:
 	Request();
 	~Request();
 
-	// move assignment operator
-	Request&	operator=(Request&& rhs);
-
-	void		append(const char *buf, const size_t bytes_read);
-	void		reset(void);
-
-	//			setters
-	void		setError(int statusCode);
-
-	//			state checks
-	bool		error(void);
-	bool		complete(void);
-
-	int						getStatusCode(void) const;
-	HTTP::Method			getMethod(void) const;
-	std::string				getRequestTarget(void) const;
-	const LocationBlock&	getLocation(const ServerBlock& serverBlock) const;
-
-private:
 	enum class State {
 		READING_REQUEST_LINE,
 		READING_HEADERS,
@@ -53,13 +34,34 @@ private:
 		COMPLETE
 	};
 
+	// move assignment operator
+	Request&		operator=(Request&& rhs);
+
+	void			append(const char *buf, const size_t bytes_read);
+	void			reset(void);
+
+	Request::State	getState(void);
+	void			setState(State state);
+
+	void			setError(int statusCode);
+	bool			error(void);
+
+	void			setComplete(void);
+	bool			complete(void);
+
+	int						getStatusCode(void) const;
+	std::string				getRequestTarget(void) const;
+	const LocationBlock&	getLocation(const ServerBlock& serverBlock) const;
+
+	std::string				rawRequest;
+	HTTP::Method			method;
+
+private:
 	State											m_state;
-	std::string										m_rawRequest;
 	bool											m_error;
 
 	int												m_statusCode;
-	
-	HTTP::Method									m_method;
+
 	std::string										m_requestTarget;
 	std::string										m_protokoll;
 	std::unordered_map<std::string, std::string>	m_headers;

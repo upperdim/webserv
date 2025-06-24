@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 16:48:06 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/24 17:28:35 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,21 +26,21 @@ RequestParser::~RequestParser()
 /* ************************************************************************** */
 
 
-void	RequestParser::parseNext(void)
+void	RequestParser::parseNext(Request& request)
 {
 	LOG_DEBUG("Request::parseNext");
-	if (m_state == State::READING_REQUEST_LINE) {
+	if (request.getState() == Request::State::READING_REQUEST_LINE) {
 		LOG_DEBUG("===> REQUEST READING_REQUEST_LINE");
-		parseRequestLine();
+		parseRequestLine(request);
 	}
-	if (m_state == State::READING_HEADERS) {
+	if (request.getState() == Request::State::READING_HEADERS) {
 		LOG_DEBUG("===> REQUEST READING_HEADERS");
-		parseHeader();
+		parseHeader(request);
 	}
-	if (m_state == State::READING_BODY) {
+	if (request.getState() == Request::State::READING_BODY) {
 		LOG_DEBUG("===> REQUEST READING_BODY");
 	}
-	if (m_state == State::COMPLETE) {
+	if (request.getState() == Request::State::COMPLETE) {
 		LOG_DEBUG("===> REQUEST COMPLETE");
 	}
 }
@@ -50,69 +50,69 @@ void	RequestParser::parseNext(void)
 /* ************************************************************************** */
 
 
-void	RequestParser::parseRequestLine(void)
+void	RequestParser::parseRequestLine(Request& request)
 {
 	LOG_DEBUG("Request::parseRequestLine");
 
-	size_t	pos = m_rawRequest.find("\r\n");
+	size_t	pos = request.rawRequest.find("\r\n");
 	if (pos == std::string::npos)
 		return;
 
 	// read the elements of the requestLine
-	std::istringstream lineStream(m_rawRequest.substr(0, pos).c_str());
+	std::istringstream lineStream(request.rawRequest.substr(0, pos).c_str());
 	std::string methodStr;
 	if (!std::getline(lineStream, methodStr, ' ') ||
 	    !std::getline(lineStream, request.m_requestTarget, ' ') ||
 		!std::getline(lineStream, request.m_protokoll, ' ')) {
-		setError(WSSC_INTERNAL_SERVER_ERROR);
+		request.setError(WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
 
 	// Don't allow extra garbage after the protokoll in the request line
 	std::string someExtraGarbage;
 	if (lineStream >> someExtraGarbage) {
-		setError(WSSC_BAD_REQUEST);
+		request.setError(WSSC_BAD_REQUEST);
 		return;
 	}
 
-	LOG_DEBUG(std::string("RAW       ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.m_method) + " " + LIGHTGREEN + request.m_requestTarget + " " + LIGHTBLUE + request.m_protokoll);
+	LOG_DEBUG(std::string("RAW       ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.method) + " " + LIGHTGREEN + request.m_requestTarget + " " + LIGHTBLUE + request.m_protokoll);
 
-	if (!validateHttpMethod(methodStr)) {
-		setError(WSSC_BAD_REQUEST);
+	if (!validateHttpMethod(methodStr, request)) {
+		request.setError(WSSC_BAD_REQUEST);
 		return;
 	}
 
-	if (!validateRequestTarget()) {
-		setError(WSSC_BAD_REQUEST);
+	if (!validateRequestTarget(request)) {
+		request.setError(WSSC_BAD_REQUEST);
 		return;
 	}
 
-	if (!validateProtokoll()) {
-		setError(WSSC_HTTP_VERSION_NOT_SUPPORTED);
+	if (!validateProtokoll(request)) {
+		request.setError(WSSC_HTTP_VERSION_NOT_SUPPORTED);
 		return;
 	}
 
-	LOG_DEBUG(std::string("validated ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.m_method) + " " + LIGHTGREEN + request.m_URI + " " + LIGHTBLUE + request.m_protokoll);
+	LOG_DEBUG(std::string("validated ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.method) + " " + LIGHTGREEN + request.m_URI + " " + LIGHTBLUE + request.m_protokoll);
 
-	m_rawRequest.erase(0, pos + 2);
-	m_state = State::READING_HEADERS;
+	request.rawRequest.erase(0, pos + 2);
+	request.setState(Request::State::READING_HEADERS);
 }
 
-void	RequestParser::parseHeader(void)
+void	RequestParser::parseHeader(Request& request)
 {
 	size_t	start = 0;
 	size_t	pos, last_pos;
 
-	pos = m_rawRequest.find_first_of('\n');
+	pos = request.rawRequest.find_first_of('\n');
 	last_pos = pos;
 	while (pos != std::string::npos) {
-		std::string line = m_rawRequest.substr(start, pos - start);
+		std::string line = request.rawRequest.substr(start, pos - start);
 		Utils::trimWhitespaces(line);
 
 		if (line.empty()) {
 			// TODO: set STATE to rading body and read body
-			m_state = State::COMPLETE;
-			m_rawRequest.clear();
+			request.setState(Request::State::COMPLETE);
+			request.rawRequest.clear();
 			return;
 		}
 
@@ -123,15 +123,15 @@ void	RequestParser::parseHeader(void)
 
 		last_pos = pos;
 		start = pos + 1;
-		pos = m_rawRequest.find_first_of("\n", start);
+		pos = request.rawRequest.find_first_of("\n", start);
 	}
 	if (last_pos != std::string::npos)
-		m_rawRequest.erase(0, last_pos + 1);
+		request.rawRequest.erase(0, last_pos + 1);
 }
 
-bool	RequestParser::validateHttpMethod(std::string& methodStr)
+bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
 {
-	if (Validator::isValidMethod(methodStr, request.m_method))
+	if (Validator::isValidMethod(methodStr, request.method))
 		return true;
 
 	std::string ustr = methodStr;
@@ -140,22 +140,22 @@ bool	RequestParser::validateHttpMethod(std::string& methodStr)
 	});
 
 	if (ustr == "GET\0" || ustr == "POST\0" || ustr == "DELETE\0") {
-		request.m_method = HTTP::strToMethod(methodStr);
-		setError(WSSC_BAD_REQUEST);
+		request.method = HTTP::strToMethod(methodStr);
+		request.setError(WSSC_BAD_REQUEST);
 		return false;
 	}
-		
-	setError(WSSC_METHOD_NOT_ALLOWED);
+
+	request.setError(WSSC_METHOD_NOT_ALLOWED);
 	return false;
 }
 
-bool	RequestParser::validateRequestTarget(void)
+bool	RequestParser::validateRequestTarget(Request& request)
 {
 	// reject asterisk-form and absolute-form and return early if we don't have a '/'
 	if (request.m_requestTarget == "*" ||
 		request.m_requestTarget.find("://") != std::string::npos ||
 		request.m_requestTarget.find('/') != 0) {
-		setError(WSSC_BAD_REQUEST);
+		request.setError(WSSC_BAD_REQUEST);
 		return false;
 	}
 
@@ -165,7 +165,7 @@ bool	RequestParser::validateRequestTarget(void)
 	    !isRelativeForm_EnsureLeadingSlash(request.m_URI) ||
 	    !removeDotSegments(request.m_URI) ||
 		!collapseDuplicateSlashes(request.m_URI)) {
-		setError(WSSC_BAD_REQUEST);
+		request.setError(WSSC_BAD_REQUEST);
 		return false;
 	}
 
@@ -173,14 +173,14 @@ bool	RequestParser::validateRequestTarget(void)
 	if (request.m_URI.empty() ||
 		request.m_URI.size() > MAX_URI_LENGTH ||
 		request.m_URI.find('\\') != std::string::npos) {
-		setError(WSSC_BAD_REQUEST);
+		request.setError(WSSC_BAD_REQUEST);
 		return false;
 	}
-		
+
 	return true;
 }
 
-bool	RequestParser::validateProtokoll(void)
+bool	RequestParser::validateProtokoll(Request& request)
 {
 	if (request.m_protokoll == "HTTP/1.1")
 		return true;
@@ -234,7 +234,7 @@ bool	RequestParser::percentDecoding(const std::string& requestTarget, std::strin
 {
 	const std::string truncTarget = truncateQueryAndFragments(requestTarget);
 	destURI.reserve(truncTarget.size());
-	
+
 	for (size_t idx = 0; idx < truncTarget.size(); ++idx) {
 		if (truncTarget[idx] == '%') {
 			if (idx + 2 < truncTarget.size() &&
@@ -250,7 +250,7 @@ bool	RequestParser::percentDecoding(const std::string& requestTarget, std::strin
 			}
 		} else {
 			destURI += truncTarget[idx];
-		}	
+		}
 	}
 	return true;
 }
@@ -278,7 +278,7 @@ bool	RequestParser::removeDotSegments(std::string& uri)
 	// ensure we have an absolute path startiung with '/'
 	if (uri.empty() || uri[0] != '/')
 		return false;
-	
+
 	std::string iBuf = uri;
 	std::string oBuf;
 	oBuf.reserve(uri.size());
