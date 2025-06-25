@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/22 09:52:55 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/23 12:08:59 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,7 @@ class LocationBlock
 {
 public:
 	std::string					route;										//	path after location
-	std::vector<HTTP::Method>	allowMethods	= {HTTP::Method::GET,
-	                                               HTTP::Method::POST,
-	                                               HTTP::Method::DELETE};	//	::	allow_methods
+	std::vector<HTTP::Method>	allowMethods	= {HTTP::Method::GET};		//	::	allow_methods
 	std::string					returnRoute;
 	bool						autoIndex		= false;					//	::	autoindex
 	std::string					cgiExtension;								//	::	cgi_extension

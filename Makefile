@@ -18,6 +18,7 @@ SRCS_NO_MAIN=	Config.cpp \
 				EventManager.cpp \
 				Server.cpp \
 				Connection.cpp \
+				RequestParser.cpp \
 				Request.cpp \
 				FileBufferReader.cpp \
 				Response.cpp \
@@ -25,7 +26,6 @@ SRCS_NO_MAIN=	Config.cpp \
 				signal.cpp \
 				HTTP.cpp \
 				Log.cpp \
-				trimWhitespaces.cpp \
 				readFile.cpp \
 				Utils.cpp \
 
@@ -66,3 +66,7 @@ t: $(NAME)
 	@./$(NAME) default.conf
 
 ret: re t
+
+dbg: fclean
+dbg: CPPFLAGS += -g
+dbg: $(NAME)

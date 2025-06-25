@@ -6,14 +6,17 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/19 17:08:50 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/25 17:22:34 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Connection.hpp"
+#include "HTTP.hpp"
+#include "RequestParser.hpp"
 
 Connection::Connection(const int _cli_socket, const ServerBlock& _serverBlock)
-	:	m_done(false),
+	:	request(_serverBlock),
+		m_done(false),
 		m_serverBlock(_serverBlock)
 {
 	socket_fd = _cli_socket;
@@ -39,16 +42,22 @@ void Connection::handleReadEvent(EventManager& event_manager)
 {
 	LOG_MSG("[handleReadEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 
-	char		request_buf[REQUEST_BUFFER_SIZE] = {0};
-	ssize_t		byetes_read = recv(socket_fd, &request_buf, sizeof(request_buf), 0);
+	char		buffer[REQUEST_BUFFER_SIZE] = {0};
+	ssize_t		byetesRead = recv(socket_fd, &buffer, sizeof(buffer), 0);
 
-	LOG_INFO_LM("RECIEVED BYTES: ", std::to_string(byetes_read));
-	if (byetes_read == -1)
+	if (byetesRead > 0) {
+		LOG_INFO_LM("RECIEVED BYTES: ", std::to_string(byetesRead));
+		request.append(buffer, byetesRead);
+		RequestParser::parseNext(request);
+		// TODO:	if (request.checkifComplete())
+		//				request.setComplet();
+	} else if (byetesRead < 0) {
+		LOG_ERROR("recieved bytes: -1 ---> socket error");
 		request.setError(WSSC_INTERNAL_SERVER_ERROR);
-	else if (byetes_read == 0)
+	} else if (byetesRead == 0) {
+		LOG_SUCCESS("Done reading from socket fd: " + std::to_string(socket_fd));
 		request.setComplete();
-	else if (byetes_read > 0)
-		request.append(request_buf, byetes_read);
+	}
 
 	if (request.complete() || request.error())
 	{
@@ -59,10 +68,10 @@ void Connection::handleReadEvent(EventManager& event_manager)
 		} else {
 			if (request.getRequestTarget().empty()) {
 				response.setStatus(WSSC_NOT_FOUND);
-			} else if (!Utils::isAllowedMethod(request.getMethod(), request.getLocation(m_serverBlock).allowMethods)) {
+			} else if (!request.isAllowedMethod()) {
 				response.setStatus(WSSC_METHOD_NOT_ALLOWED);
 			} else {
-				switch (request.getMethod()) {
+				switch (request.method) {
 					case HTTP::Method::GET:
 						response = handleGetRequest(request);
 						break;
@@ -88,7 +97,7 @@ Response	Connection::handleGetRequest(const Request& request)
 	Response response;
 
 	// TODO: repetitive?
-	if (request.error())
+	if (request.getStatusCode() >= WSSC_BAD_REQUEST)
 	{
 		createErrorResponse(response, request.getStatusCode());
 		return (response);
