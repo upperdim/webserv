@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 17:20:24 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/25 09:42:40 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 #include <string>
 #include "colors.hpp"
-#include "Request2.hpp"
+#include "Request.hpp"
 
 class RequestParser
 {

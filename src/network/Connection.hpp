@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:36 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 16:37:53 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/25 09:42:04 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 #include "Config.hpp"
 #include "EventManager.hpp"
 #include "IEventHandler.hpp"
-#include "Request2.hpp"
+#include "Request.hpp"
 #include "Response.hpp"
 #include "Utils.hpp"
 
