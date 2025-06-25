@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:42:38 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/22 11:03:05 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/25 17:12:49 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,10 +21,7 @@ Server::Server(ServerBlock serverBlock)
 		throw std::runtime_error("failed to create socket for server");
 
 	//	set socket to non-blocking mode
-	int flags = fcntl(socket_fd, F_GETFL, 0);
-	if (flags < 0) 
-		throw std::runtime_error("failed to get socket flags with fcntl");
-	if (fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK) < 0)
+	if (fcntl(socket_fd, F_SETFL, O_NONBLOCK) < 0)
 		throw std::runtime_error("failed to set socket to non-blocking mode with fcntl");
 
 	//	set socket options
