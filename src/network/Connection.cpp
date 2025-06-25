@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 17:51:11 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/25 11:07:45 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,8 @@
 #include "RequestParser.hpp"
 
 Connection::Connection(const int _cli_socket, const ServerBlock& _serverBlock)
-	:	m_done(false),
+	:	request(_serverBlock),
+		m_done(false),
 		m_serverBlock(_serverBlock)
 {
 	socket_fd = _cli_socket;
@@ -67,7 +68,7 @@ void Connection::handleReadEvent(EventManager& event_manager)
 		} else {
 			if (request.getRequestTarget().empty()) {
 				response.setStatus(WSSC_NOT_FOUND);
-			} else if (!Utils::isAllowedMethod(request.method, request.getLocation(m_serverBlock).allowMethods)) {
+			} else if (!request.isAllowedMethod()) {
 				response.setStatus(WSSC_METHOD_NOT_ALLOWED);
 			} else {
 				switch (request.method) {

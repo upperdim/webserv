@@ -1,22 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Request2.cpp                                       :+:      :+:    :+:   */
+/*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/25 09:36:38 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/25 11:11:58 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Request2.hpp"
+#include "Request.hpp"
 
-Request::Request()
+Request::Request(const ServerBlock& _serverBlock)
 	:	method(HTTP::Method::GET),
 		statusCode(200),
+		serverBlock(_serverBlock),
 		m_state(State::READING_REQUEST_LINE),
-		m_error(false)
+		m_error(false),
+		m_locationBlock(nullptr)
 {
 }
 
@@ -100,13 +102,23 @@ std::string	Request::getRequestTarget(void) const
 	return (requestTarget);
 }
 
-const LocationBlock&	Request::getLocation(const ServerBlock& serverBlock) const
+const LocationBlock&	Request::locationBlock()
 {
-	// Matches the requestTaget to a serverBlock.locationBlock
-	// TODO:	more needs o be done
-	for (const auto& locationBlock : serverBlock.locationBlocks) {
-		if (requestTarget == locationBlock.route)
-			return locationBlock;
+	if (m_locationBlock == nullptr) {
+		// Matches the requestTaget to a serverBlock.locationBlock
+		// TODO:	more needs o be done
+		for (const LocationBlock& locationBlock : serverBlock.locationBlocks) {
+			if (locationBlock.route == URI) {
+				m_locationBlock = const_cast<LocationBlock*>(&locationBlock);
+				return *m_locationBlock;
+			}
+		}
+		m_locationBlock = const_cast<LocationBlock*>(&serverBlock.locationBlocks.front());
 	}
-	return serverBlock.locationBlocks.front();
+	return *m_locationBlock;
+}
+
+bool	Request::isAllowedMethod(void)
+{
+	return std::find(locationBlock().allowMethods.begin(), locationBlock().allowMethods.end(), method) != locationBlock().allowMethods.end();
 }
