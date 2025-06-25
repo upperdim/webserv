@@ -6,12 +6,13 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 18:07:54 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/25 15:23:45 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RequestParser.hpp"
 #include <sstream>
+#include <unordered_set>
 #include "HTTP.hpp"
 #include "Validator.hpp"
 #include "Log.hpp"
@@ -28,7 +29,7 @@ RequestParser::~RequestParser()
 
 void	RequestParser::parseNext(Request& request)
 {
-	LOG_DEBUG("Request::parseNext");
+	LOG_DEBUG("---> RequestParser::parseNext");
 	if (request.getState() == Request::State::READING_REQUEST_LINE) {
 		LOG_DEBUG("===> REQUEST READING_REQUEST_LINE");
 		parseRequestLine(request);
@@ -39,8 +40,11 @@ void	RequestParser::parseNext(Request& request)
 	}
 	if (request.getState() == Request::State::READING_BODY) {
 		LOG_DEBUG("===> REQUEST READING_BODY");
+		//	TODO:	skipping for now
+		request.setState(Request::State::COMPLETE);
 	}
 	if (request.getState() == Request::State::COMPLETE) {
+		//	TODO:	delete, just as an indication that the request is complete
 		LOG_DEBUG("===> REQUEST COMPLETE");
 	}
 }
@@ -107,18 +111,25 @@ void	RequestParser::parseHeader(Request& request)
 	last_pos = pos;
 	while (pos != std::string::npos) {
 		std::string line = request.rawRequest.substr(start, pos - start);
-		Utils::trimWhitespaces(line);
+
+		// clean trailing '\r' character
+		if (!line.empty() && line.back() == '\r')
+			line.pop_back();
 
 		if (line.empty()) {
-			// TODO: set STATE to rading body and read body
-			request.setState(Request::State::COMPLETE);
-			request.rawRequest.clear();
+			request.setState(Request::State::READING_BODY);
+			//	TODO:	OLD is this still a good idea??
+			// request.rawRequest.clear();
 			return;
 		}
 
 		std::pair<std::string, std::string> headerField;
-		if (splitLine(line, ':', headerField))
-			throw( std::runtime_error("Error: Request::splitLine() could not find delimiter ':'") ); // TODO: better error handling
+		if (!splitHeaderField(line, headerField)) {
+			LOG_WARNING("failed to split Header-Field: " + line);
+			request.setError(WSSC_BAD_REQUEST);
+			return;
+		}
+
 		request.headers[headerField.first] = headerField.second;
 
 		last_pos = pos;
@@ -356,16 +367,48 @@ bool	RequestParser::collapseDuplicateSlashes(std::string& oBuf)
 	return true;
 }
 
-bool	RequestParser::splitLine(std::string &line, char del, std::pair<std::string, std::string> &headerField)
+bool	RequestParser::splitHeaderField(std::string& line, std::pair<std::string, std::string>& headerField)
 {
-	size_t	pos = line.find(del);
-	if (pos == std::string::npos)
-		return (true);
+	// no whitespace allowed before the field-name
+	if (line.size() > 0 && std::isspace(line[0]))
+		return false;
 
+	// has valid ':'
+	size_t pos = line.find_first_of(":");
+	if (pos == std::string::npos)
+		return false;
+	
+	// check if field-name has valid chars of tchar: RFC 7230: 3.2.6.
+	for (size_t i = 0; i < pos; ++i) {
+		if (!isValidFieldNameChar(line[i]))
+			return false;		              
+	}
+	
 	headerField.first = line.substr(0, pos);
 	headerField.second = line.substr(pos + 1);
-	Utils::trimWhitespaces(headerField.first);
-	Utils::trimWhitespaces(headerField.second);
 
-	return (false);
+	// trim whitespaces from front and back ONLY for field-value
+	Utils::trimWhitespaces(headerField.second);
+	// validate field-value after trimming
+	for (auto it = headerField.second.cbegin(); it < headerField.second.cend(); ++it) {
+		if (!isValidFieldValueChar(*it))
+			return false;		              
+	}
+
+	return true;
+}
+
+bool	RequestParser::isValidFieldNameChar(const char c)
+{
+	static const std::unordered_set<char> tChars = {
+		'!', '#' , '$', '%', '&', '\'', '*', '+',
+		'-', '.' , '^', '_', '`', '|',  '~'
+	};
+	return std::isalnum(static_cast<unsigned char>(c)) || tChars.count(c);
+}
+
+bool	RequestParser::isValidFieldValueChar(const char c)
+{
+	const unsigned char uc = static_cast<unsigned char>(c);
+	return (uc >= ' ' && uc <= '~') || uc == '\t';
 }

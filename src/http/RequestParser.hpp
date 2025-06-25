@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/25 09:42:40 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/25 12:57:11 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,9 @@ private:
 	static void					popLastSegment(std::string& oBuf);
 	static bool					collapseDuplicateSlashes(std::string& oBuf);
 
-	static bool					splitLine(std::string& line, char del, std::pair<std::string, std::string>& headerField);
+	static bool					splitHeaderField(std::string& line, std::pair<std::string, std::string>& headerField);
+	static bool					isValidFieldNameChar(const char c);
+	static bool					isValidFieldValueChar(const char c);
 
 };
 
