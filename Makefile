@@ -66,3 +66,7 @@ t: $(NAME)
 	@./$(NAME) default.conf
 
 ret: re t
+
+dbg: fclean
+dbg: CPPFLAGS += -g
+dbg: $(NAME)
