@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/24 18:19:37 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/25 09:36:38 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,12 +66,12 @@ void	Request::setState(State state)
 	m_state = state;
 }
 
-void	Request::setError(int _statusCode)
+void	Request::setError(int errorStatusCode)
 {
 	if (!m_error) {
 		m_error = true;
 		if (statusCode < WSSC_BAD_REQUEST)
-			statusCode = _statusCode;
+			statusCode = errorStatusCode;
 	}
 }
 
