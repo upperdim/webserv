@@ -5,17 +5,20 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/25 17:46:49 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/19 17:23:41 by nmihaile         ###   ########.fr       */
+/*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
+/*   Updated: 2025/06/25 11:27:32 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
-Request::Request()
-	:	m_state(State::READING_REQUEST_LINE),
-		m_statusCode(200),
-		m_method(HTTP::Method::GET)
+Request::Request(const ServerBlock& _serverBlock)
+	:	method(HTTP::Method::GET),
+		statusCode(200),
+		serverBlock(_serverBlock),
+		m_state(State::READING_REQUEST_LINE),
+		m_error(false),
+		m_locationBlock(nullptr)
 {
 }
 
@@ -23,190 +26,101 @@ Request::~Request()
 {
 }
 
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
-
-void	Request::append(char buf[REQUEST_BUFFER_SIZE], size_t bytes_read)
+// move assignment operator
+Request&	Request::operator=(Request&& rhs)
 {
-	m_rawRequest.append(buf, bytes_read);
-	parseNext();
-}
-
-bool	Request::complete(void) const
-{
-	if (m_state == State::COMPLETE)
-		return (true);
-	return (false);
-}
-
-int	Request::error(void) const
-{
-	if (m_state == State::ERROR)
-		return (m_statusCode);
-	return (0);
-}
-
-std::string	Request::getRequest(void) const
-{
-	std::string req = getRequestLine();
-	for (auto it = m_headers.begin(); it != m_headers.end(); ++it)
-		req += "\n" + it->first + ": " + it->second;
-	return (req);
-}
-
-std::string	Request::getRequestLine(void) const
-{
-	std::string	req = HTTP::methodToString(m_method) + " "
-					+ m_requestTarget
-					+ " " + m_HTTPversion;
-	return (req);
-}
-
-int	Request::getStatusCode(void) const
-{
-	return (m_statusCode);
-}
-
-HTTP::Method	Request::getMethod(void) const
-{
-	return (m_method);
-}
-
-std::string	Request::getRequestTarget(void) const
-{
-	return (m_requestTarget);
-}
-
-const LocationBlock&	Request::getLocation(const ServerBlock& serverBlock) const
-{
-	// Matches the requestTaget to a serverBlock.locationBlock
-	for (const auto& locationBlock : serverBlock.locationBlocks) {
-		if (m_requestTarget == locationBlock.route)
-			return locationBlock;
+	if (this != &rhs) {
+		rawRequest		= std::move(rhs.rawRequest);
+		method			= rhs.method;
+		statusCode		= rhs.statusCode;
+		requestTarget	= std::move(rhs.requestTarget);
+		URI				= std::move(rhs.URI);
+		protokoll		= std::move(rhs.protokoll);
+		headers			= std::move(rhs.headers);
+		m_state			= rhs.m_state;
+		m_error			= rhs.m_error;
 	}
-	return serverBlock.locationBlocks.front();
+	return *this;
+}
+
+
+/* ************************************************************************** */
+/* ************************************************************************** */
+
+
+void	Request::append(const char *buf, const size_t bytesRead)
+{
+	rawRequest.append(buf, bytesRead);
+}
+
+void	Request::reset(void)
+{
+	//	TODO:	reset the Request
+}
+
+Request::State	Request::getState(void)
+{
+	return m_state;
+}
+
+void	Request::setState(State state)
+{
+	m_state = state;
+}
+
+void	Request::setError(int errorStatusCode)
+{
+	if (!m_error) {
+		m_error = true;
+		if (statusCode < WSSC_BAD_REQUEST)
+			statusCode = errorStatusCode;
+	}
 }
 
 void	Request::setComplete()
 {
-	if (m_state < State::COMPLETE)
-		m_state = State::COMPLETE;
+	m_state = State::COMPLETE;
 }
 
-void	Request::setError(int _status_code)
+bool	Request::error(void)
 {
-	m_state = State::ERROR;
-	m_statusCode = _status_code;
+	return m_error;
 }
 
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
-
-void	Request::parseNext(void)
+bool	Request::complete(void)
 {
-	LOG_DEBUG("Request::parseNext");
-	if (m_state == State::READING_REQUEST_LINE) {
-		LOG_DEBUG("===> REQUEST READING_REQUEST_LINE");
-		parseRequestLine();
-	}
-	if (m_state == State::READING_HEADERS) {
-		LOG_DEBUG("===> REQUEST READING_HEADERS");
-		parseHeader();
-	}
-	if (m_state == State::READING_BODY) {
-		LOG_DEBUG("===> REQUEST READING_BODY");
-	}
-	if (m_state == State::COMPLETE) {
-		LOG_DEBUG("===> REQUEST COMPLETE");
-	}
-	if (m_state == State::ERROR) {
-		LOG_DEBUG("===> ERROR");
-	}
+	return m_state == State::COMPLETE;
 }
 
-void	Request::parseRequestLine(void)
+int	Request::getStatusCode(void) const
 {
-	LOG_DEBUG("Request::parseRequestLine");
-
-	size_t	pos = m_rawRequest.find("\r\n");
-	if (pos == std::string::npos)
-		return;
-
-	std::stringstream ss(m_rawRequest);
-
-	std::string methodStr;
-	ss >> methodStr;
-	if (ss.fail() || !Validate::validateHttpMethod(methodStr, m_method, m_statusCode)) {
-		m_state = State::ERROR;
-		m_statusCode = WSSC_INTERNAL_SERVER_ERROR;
-		return;
-	}
-
-	ss >> m_requestTarget;
-	if (ss.fail()) {
-		m_state = State::ERROR;
-		m_statusCode = WSSC_INTERNAL_SERVER_ERROR;
-		return;
-	}
-
-	ss >> m_HTTPversion;
-	if (ss.fail()) {
-		m_state = State::ERROR;
-		m_statusCode = WSSC_INTERNAL_SERVER_ERROR;
-		return;
-	}
-
-	LOG_DEBUG(std::string("parseRequestLine: ") + LIGHTRED + HTTP::methodToString(m_method) + " " + LIGHTGREEN + m_requestTarget + " " + LIGHTBLUE + m_HTTPversion);
-
-	m_rawRequest.erase(0, pos + 2);
-	m_state = State::READING_HEADERS;
+	return (statusCode);
 }
 
-void	Request::parseHeader(void)
+std::string	Request::getRequestTarget(void) const
 {
-	size_t	start = 0;
-	size_t	pos, last_pos;
+	return (requestTarget);
+}
 
-	pos = m_rawRequest.find_first_of('\n');
-	last_pos = pos;
-	while (pos != std::string::npos) {
-		std::string line = m_rawRequest.substr(start, pos - start);
-		trimWhitespaces(line);
-
-		if (line.empty()) {
-			// TODO: set STATE to rading body and read body
-			m_state = State::COMPLETE;
-			m_rawRequest.clear();
-			return;
+const LocationBlock&	Request::locationBlock()
+{
+	if (m_locationBlock == nullptr) {
+		// Matches the requestTaget to a serverBlock.locationBlock
+		// TODO:	more needs o be done
+		for (const LocationBlock& locationBlock : serverBlock.locationBlocks) {
+			if (locationBlock.route == URI) {
+				m_locationBlock = const_cast<LocationBlock*>(&locationBlock);
+				return *m_locationBlock;
+			}
 		}
-
-		std::pair<std::string, std::string> headerField;
-		if (splitLine(line, ':', headerField))
-			throw( std::runtime_error("Error: Request::splitLine() could not find delimiter ':'") ); // TODO: better error handling
-		m_headers[headerField.first] = headerField.second;
-
-		last_pos = pos;
-		start = pos + 1;
-		pos = m_rawRequest.find_first_of("\n", start);
+		m_locationBlock = const_cast<LocationBlock*>(&serverBlock.locationBlocks.front());
 	}
-	if (last_pos != std::string::npos)
-		m_rawRequest.erase(0, last_pos + 1);
+	return *m_locationBlock;
 }
 
-bool	Request::splitLine(std::string &line, char del, std::pair<std::string, std::string> &headerField)
+bool	Request::isAllowedMethod(void)
 {
-	size_t	pos = line.find(del);
-	if (pos == std::string::npos)
-		return (true);
-
-	headerField.first = line.substr(0, pos);
-	headerField.second = line.substr(pos + 1);
-	trimWhitespaces(headerField.first);
-	trimWhitespaces(headerField.second);
-
-	return (false);
+	//	TODO:	should we protect this methode here and only accept it if the
+	//			request is complete or has an error????
+	return std::find(locationBlock().allowMethods.begin(), locationBlock().allowMethods.end(), method) != locationBlock().allowMethods.end();
 }

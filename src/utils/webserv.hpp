@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 13:26:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/19 14:52:22 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/23 10:29:08 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,6 @@ typedef std::unordered_map<std::string, std::string> HeaderMap;
 extern bool	g_running;
 
 void		handleAbort(int signum);
-void		trimWhitespaces(std::string& str);
 std::string readFile(const std::string& filename);
 
 #endif

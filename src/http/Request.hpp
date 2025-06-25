@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/25 17:46:51 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/19 17:19:55 by nmihaile         ###   ########.fr       */
+/*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
+/*   Updated: 2025/06/25 11:07:12 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,62 +14,70 @@
 #define REQUEST_HPP
 
 #include <string>
-#include <sstream>
-#include <utility>
-#include <stdexcept>
-#include "webserv.hpp"
+#include <unordered_map>
 #include "HTTP.hpp"
 #include "Config.hpp"
-#include "Validate.hpp"
 
 class Request
 {
 public:
-	enum class State
-	{
+	Request(const ServerBlock& _serverBlock);
+	~Request();
+
+	enum class State {
 		READING_REQUEST_LINE,
 		READING_HEADERS,
 		READING_BODY,
-		COMPLETE,
-		ERROR
+		COMPLETE
 	};
 
-	Request();
-	~Request();
+	// move assignment operator
+	Request&		operator=(Request&& rhs);
 
-	void					append(char buf[REQUEST_BUFFER_SIZE], size_t bytes_read);
-	bool					complete(void) const;
-	int						error(void) const;
+	void			append(const char *buf, const size_t bytes_read);
+	void			reset(void);
 
-	std::string				getRequest(void) const;			// TODO: delete because just used for debugging
-	std::string				getRequestLine(void) const;		// TODO: delete because just used for debugging
+	Request::State	getState(void);
+	void			setState(State state);
+
+	void			setError(int _statusCode);
+	bool			error(void);
+
+	void			setComplete(void);
+	bool			complete(void);
 
 	int						getStatusCode(void) const;
-	HTTP::Method			getMethod(void) const;
 	std::string				getRequestTarget(void) const;
-	const LocationBlock&	getLocation(const ServerBlock& serverBlock) const;
-	void					setComplete();
-	void					setError(int _status_code);
+
+	// here I use some OOP trickery and uses locationBlock as a privat member
+	// and access it only through the locationBlock() method.
+	// Because Location can change from request to request it is a pointer and
+	// can be set to NULL (on inital setup and on reset).
+	// In the locationBlock() method I check the current state of
+	// m_locationBlock and if it is NULL I set a new m_locationBlock or set it
+	// to a default one and return this locationBlock.
+	// Through this private member and locationBlock getter, which I will not
+	// name getLocationBlock() but rather locationBlock() like a variable name
+	// I protect m_locationBlock.
+	// what do you think, do you like it?
+	const LocationBlock&	locationBlock();
+	bool					isAllowedMethod(void);
+
+	std::string										rawRequest;
+
+	HTTP::Method									method;
+	int												statusCode;
+	std::string										requestTarget;
+	std::string										URI;		//	decoded and sanatized requesttarget
+	std::string										protokoll;
+	std::unordered_map<std::string, std::string>	headers;
+
+	const ServerBlock&								serverBlock;
 
 private:
-	State			m_state;
-	int				m_statusCode;
-
-	std::string		m_rawRequest;
-	HTTP::Method	m_method;
-	std::string		m_requestTarget;
-	std::string		m_HTTPversion;
-	HeaderMap		m_headers;
-	std::string		m_body;
-
-	Request(const Request& other);
-	Request&	operator=(const Request& rhs);
-
-	void	parseNext(void);
-	void	parseRequestLine(void);
-	void	parseHeader(void);
-
-	bool	splitLine(std::string& line, char del, std::pair<std::string, std::string>& headerField);
+	State											m_state;
+	bool											m_error;
+	LocationBlock*									m_locationBlock;
 };
 
 #endif

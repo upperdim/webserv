@@ -1,4 +1,7 @@
 #include "Utils.hpp"
+#include <iomanip>
+#include <fstream>
+#include <sstream>
 
 std::string	Utils::sanitizePath(const Request& request, const ServerBlock serverBlock)
 {
@@ -39,7 +42,24 @@ bool	Utils::startsWith(const std::string& str, const std::string& prefix)
 	return ( std::equal(prefix.begin(), prefix.end(), str.begin()) );
 }
 
-bool	Utils::isAllowedMethod(HTTP::Method method, const std::vector<HTTP::Method> allowedMethods)
+void	Utils::trimWhitespaces(std::string& str)
 {
-	return std::find(allowedMethods.begin(), allowedMethods.end(), method) != allowedMethods.end();
+	size_t	start	= 0;
+	size_t	end		= str.length();
+	start = str.find_first_not_of("\t\n\v\f\r ");
+	if (start == std::string::npos)
+	{
+		str.clear();
+		return ;
+	}
+	end = str.find_last_not_of("\t\n\v\f\r ");
+	str = str.substr(start, end - start + 1);
+}
+
+
+std::string	Utils::charToHex(char c)
+{
+	std::ostringstream os;
+	os << "0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(c);
+	return os.str();
 }
