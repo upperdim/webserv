@@ -22,7 +22,6 @@ SRCS_NO_MAIN=	Config.cpp \
 				Request.cpp \
 				FileBufferReader.cpp \
 				Response.cpp \
-				Validate.cpp \
 				signal.cpp \
 				HTTP.cpp \
 				Log.cpp \
