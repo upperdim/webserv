@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/25 11:07:45 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/25 17:22:34 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,12 +42,12 @@ void Connection::handleReadEvent(EventManager& event_manager)
 {
 	LOG_MSG("[handleReadEvent] ", std::string("Connection fd: ") + std::to_string(socket_fd), LIGHTMAGENTA, DEFAULT);
 
-	char		requestBuf[REQUEST_BUFFER_SIZE] = {0};
-	ssize_t		byetesRead = recv(socket_fd, &requestBuf, sizeof(requestBuf), 0);
+	char		buffer[REQUEST_BUFFER_SIZE] = {0};
+	ssize_t		byetesRead = recv(socket_fd, &buffer, sizeof(buffer), 0);
 
 	if (byetesRead > 0) {
 		LOG_INFO_LM("RECIEVED BYTES: ", std::to_string(byetesRead));
-		request.append(requestBuf, byetesRead);
+		request.append(buffer, byetesRead);
 		RequestParser::parseNext(request);
 		// TODO:	if (request.checkifComplete())
 		//				request.setComplet();
