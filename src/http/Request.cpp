@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/25 11:11:58 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/25 11:27:32 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,5 +120,7 @@ const LocationBlock&	Request::locationBlock()
 
 bool	Request::isAllowedMethod(void)
 {
+	//	TODO:	should we protect this methode here and only accept it if the
+	//			request is complete or has an error????
 	return std::find(locationBlock().allowMethods.begin(), locationBlock().allowMethods.end(), method) != locationBlock().allowMethods.end();
 }
