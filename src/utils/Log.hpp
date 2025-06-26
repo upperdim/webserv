@@ -16,6 +16,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 #include "colors.hpp"
 
 # define ENABLE_LOG		true
@@ -28,6 +29,16 @@
 # define PRINT_RAW		true
 
 # if ENABLE_LOG
+
+# define LOG(msg) \
+	do { std::ostringstream _oss_; _oss_ << msg; Log::log(Log::DEBUG, _oss_); } while(0)
+# define LOGT(type, msg) \
+	do { std::ostringstream _oss_; _oss_ << msg; Log::log(type, _oss_); } while(0)
+# define LOGTL(type, label, msg) \
+	do { std::ostringstream _label_, _oss_; _label_ << label; _oss_ << msg; Log::log(type, _label_, _oss_); } while(0)
+# define LOGC(label, msg, col1, col2) \
+	do { std::ostringstream _label_, _oss_; _label_ << label; _oss_ << msg; Log::log(_label_, _oss_, col1, col2); } while(0)
+
 #  if PRINT_DEBUG
 #   define LOG_DEBUG(msg)					Log::debug(msg)
 #   define LOG_DEBUG_MV(msg, val)			Log::debug(msg, val)
@@ -74,6 +85,10 @@
 #   define LOG_RAW(msg, split)
 #  endif
 # else
+#  define LOG(msg)
+#  define LOGT(type, msg)
+#  define LOGTL(type, label, msg)
+#  define LOGC(label, msg, col1, col2)
 #  define LOG_DEBUG(msg)
 #  define LOG_DEBUG_MV(msg, val)
 #  define LOG_INFO(msg)
@@ -93,6 +108,16 @@ class Log
 public:
 	~Log();
 
+	static const size_t DEBUG	= 0;
+	static const size_t INFO	= 1;
+	static const size_t WARNING	= 2;
+	static const size_t ERROR	= 3;
+	static const size_t SUCCESS	= 4;
+
+	static void	log(size_t typeIdx, const std::ostringstream& oss);
+	static void	log(size_t typeIdx, const std::ostringstream& label, const std::ostringstream& oss);
+	static void	log(const std::ostringstream& label, const std::ostringstream& oss, const char* col1, const char* col2);
+
 	static void	debug(const std::string msg);
 	static void	debug(const std::string msg, const size_t val);
 	static void	info(const std::string msg);
@@ -108,9 +133,9 @@ public:
 
 	typedef struct s_type
 	{
-		std::string	name;
-		std::string	col1;
-		std::string	col2;
+		const char*	name;
+		const char*	col1;
+		const char*	col2;
 	} t_type;
 
 private:
@@ -118,13 +143,10 @@ private:
 	Log(const Log& orher);
 	Log&	operator=(const Log& rhs);
 
-	static const size_t DEBUG	= 0;
-	static const size_t INFO	= 1;
-	static const size_t WARNING	= 2;
-	static const size_t ERROR	= 3;
-	static const size_t SUCCESS	= 4;
+	static const t_type LOG_TYPES[6];
 
-	static const t_type LOG_TYPES[5];
+	static const char*	logLabelColor(size_t typeIdx);
+	static const char*	logMsgColor(size_t typeIdx);
 
 	static void	print(const t_type type, const std::string label, const std::string msg);
 };

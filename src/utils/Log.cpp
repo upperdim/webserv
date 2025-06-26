@@ -16,18 +16,39 @@ Log::~Log()
 {
 }
 
-const Log::t_type Log::LOG_TYPES[5] = {
-	{std::string("DEBUG"), RESET, RESET},
-	{std::string("INFO"), LIGHTBLUE, BLUE},
-	{std::string("WARNING"), LIGHTYELLOW, YELLOW},
-	{std::string("ERROR"), LIGHTRED, RED},
-	{std::string("SUCCESS"), LIGHTGREEN, GREEN}
+const Log::t_type Log::LOG_TYPES[6] = {
+	{"DEBUG",   RESET,       RESET},
+	{"INFO",    LIGHTBLUE,   BLUE},
+	{"WARNING", LIGHTYELLOW, YELLOW},
+	{"ERROR",   LIGHTRED,    RED},
+	{"SUCCESS", LIGHTGREEN,  GREEN},
+	{"CUSTOM",  RESET,       RESET}
 };
 
 
 /* ************************************************************************** */
 /* ************************************************************************** */
 
+
+void	Log::log(size_t typeIdx, const std::ostringstream& oss)
+{
+	if (typeIdx > 5) typeIdx = 5;
+	std::cout	<< logLabelColor(typeIdx) << BOLD    << "[" << LOG_TYPES[typeIdx].name << "] "
+				<< logMsgColor(typeIdx)   << REGULAR << oss.str() << std::endl;
+}
+
+void	Log::log(size_t typeIdx, const std::ostringstream& label, const std::ostringstream& oss)
+{
+	if (typeIdx > 5) typeIdx = 5;
+	std::cout	<< logLabelColor(typeIdx) << BOLD    << "[" << label.str() << "] "
+				<< logMsgColor(typeIdx)   << REGULAR << oss.str() << std::endl;
+}
+
+void	Log::log(const std::ostringstream& label, const std::ostringstream& oss, const char* col1, const char* col2)
+{
+	std::cout	<< col1 << BOLD    << "[" << label.str() << "] "
+				<< col2 << REGULAR << oss.str() << std::endl;
+}
 
 void	Log::debug(const std::string msg)
 {
@@ -109,6 +130,15 @@ void	Log::raw(const std::string msg, size_t split)
 		(void)msg;
 		(void)split;
 	#endif
+}
+
+const char*	Log::logLabelColor(size_t typeIdx)
+{
+	return LOG_TYPES[typeIdx].col1;
+}
+const char*	Log::logMsgColor(size_t typeIdx)
+{
+	return LOG_TYPES[typeIdx].col2;
 }
 
 void	Log::print(const t_type type, const std::string label, const std::string msg)
