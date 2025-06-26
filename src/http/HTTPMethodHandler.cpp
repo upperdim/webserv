@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <filesystem>
 #include "HTTPMethodHandler.hpp"
 #include "Utils.hpp"
 
@@ -20,31 +21,36 @@ HTTPMethodHandler::~HTTPMethodHandler()
 /* ************************************************************************** */
 /* ************************************************************************** */
 
-//	passing the response as argument reduces the count we assign it
-//	HTTP::handle() could also return the response, but I went with argument first
+
 void	HTTPMethodHandler::handle(Request& request, Response& response)
 {
 	if (request.error()) {
 		handleFailedRequest(request, response);
-	} else {
-		if (request.getRequestTarget().empty()) {
-			response.setStatus(WSSC_NOT_FOUND);
-		} else if (!request.isAllowedMethod()) {
-			response.setStatus(WSSC_METHOD_NOT_ALLOWED);
-		} else {
-			switch (request.method) {
-				case HTTP::Method::GET:
-					handleGetRequest(request, response);
-					break;
-				case HTTP::Method::POST:
-					handlePostRequest(request, response);
-					break;
-				case HTTP::Method::DELETE:
-					handleDeleteRequest(request, response);
-					break;
-			}
-		}
+		return;
 	}
+	
+	if (request.getRequestTarget().empty()) {
+		response.setStatus(WSSC_NOT_FOUND);
+		return;
+	}
+	
+	if (!request.isAllowedMethod()) {
+		response.setStatus(WSSC_METHOD_NOT_ALLOWED);
+		return;
+	}
+	
+	switch (request.method) {
+		case HTTP::Method::GET:
+			handleGetRequest(request, response);
+			break;
+		case HTTP::Method::POST:
+			handlePostRequest(request, response);
+			break;
+		case HTTP::Method::DELETE:
+			handleDeleteRequest(request, response);
+			break;
+	}
+	
 }
 
 
