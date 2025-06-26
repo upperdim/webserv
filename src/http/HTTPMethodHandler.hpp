@@ -1,30 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Handler.hpp                                        :+:      :+:    :+:   */
+/*   HTTPMethodHandler.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 10:53:29 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/26 10:55:24 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/26 16:59:52 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef HANDLER_HPP
-#define HANDLER_HPP
+#ifndef HTTP_METHOD_HANDLER_HPP
+#define HTTP_METHOD_HANDLER_HPP
 
 #include "Request.hpp"
 #include "Response.hpp"
 
-class Handler
+class HTTPMethodHandler
 {
 public:
-	~Handler();
+	~HTTPMethodHandler();
 
 	static void			handle(Request& request, Response& response);
 
 private:
-	Handler();
+	HTTPMethodHandler();
 
 	static void	handleGetRequest(const Request& request, Response& response);
 	static void	handlePostRequest(const Request& request, Response& response);
