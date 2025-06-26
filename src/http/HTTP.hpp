@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:09:01 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/26 09:48:36 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/26 10:57:18 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,9 +81,6 @@
 
 #include <string>
 #include <map>
-#include "Config.hpp"
-#include "Request.hpp"
-#include "Response.hpp"
 
 class HTTP
 {
@@ -97,15 +94,12 @@ public:
 
 	~HTTP();
 
-
 	static std::string	getStatusMessage(int _status_code);
 	static std::string	getMimeType(const std::string& path);
 	static std::string	getErrorPageTemplate(const int& status_code);
 	static bool			isValidStatusCode(int& statusCode);
 	static std::string	methodToString(const HTTP::Method& method);
 	static HTTP::Method	strToMethod(const std::string& str);
-
-	static void			handle(Request& request, Response& response);
 
 private:
 	static const std::map<int, std::string>			m_status_messages;
@@ -116,13 +110,6 @@ private:
 	HTTP();
 	HTTP(const HTTP& other);
 	HTTP&	operator=(const HTTP& rhs);
-
-	void	handleGetRequest(const Request& request, Response& response);
-	void	handlePostRequest(const Request& request, Response& response);
-	void	handleDeleteRequest(const Request& request, Response& response);
-	void	handleFailedRequest(const Request& request, Response& response);
-
-	void	createErrorResponse(Response& response, int statusCode);
 
 };
 
