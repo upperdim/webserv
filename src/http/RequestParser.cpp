@@ -12,6 +12,7 @@
 
 #include "RequestParser.hpp"
 #include <sstream>
+#include <algorithm>
 #include <unordered_set>
 #include "HTTP.hpp"
 #include "Validator.hpp"
