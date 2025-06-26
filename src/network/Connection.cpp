@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/26 09:35:15 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/26 10:38:54 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,25 +67,10 @@ void Connection::handleReadEvent(EventManager& event_manager)
 	}
 }
 
-/************************************************************************ */
-
-
-Response	Connection::handleErrorRequest(const Request& request)
-{
-	LOG_MSG("[handle Error Request] ", "...", LIGHTMAGENTA, DEFAULT);
-
-	Response	response;
-	int			status_code = request.getStatusCode();
-
-	if (status_code < WSSC_BAD_REQUEST)
-		status_code = WSSC_INTERNAL_SERVER_ERROR;
-
-	createErrorResponse(response, status_code);
-	return (response);
-}
-
 
 /************************************************************************ */
+/************************************************************************ */
+
 
 void Connection::handleWriteEvent(EventManager& event_manager)
 {
@@ -109,8 +94,6 @@ void Connection::handleWriteEvent(EventManager& event_manager)
 		m_done = true;
 	}
 
-	// LOG_MSG("REQUEST\n", request.getRequest(), LIGHTCYAN, LIGHTCYAN);
-	// LOG_RAW(chunk.c_str(), 16);
 }
 
 void Connection::handleErrorEvent(EventManager& event_manager)

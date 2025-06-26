@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/03 13:04:46 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/26 09:36:40 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/26 09:45:09 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -341,7 +341,21 @@ void	HTTP::handleDeleteRequest(const Request& request, Response& response)
 	return;
 }
 
-void	HTTP::createErrorResponse(Response& response, int statusCode, Response& response)
+void	HTTP::handleFailedRequest(const Request& request, Response& response)
+{
+	LOG_MSG("[handle failed request] ", "...", LIGHTMAGENTA, DEFAULT);
+
+	Response	response;
+	int			status_code = request.getStatusCode();
+
+	if (status_code < WSSC_BAD_REQUEST)
+		status_code = WSSC_INTERNAL_SERVER_ERROR;
+
+	createErrorResponse(response, status_code);
+	return (response);
+}
+
+void	HTTP::createErrorResponse(Response& response, int statusCode)
 {
 	//	TODO:	reexamen this will we need it like that or can we reduce
 	//			the statusCode for exameple etc…

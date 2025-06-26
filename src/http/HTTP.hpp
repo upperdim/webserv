@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:09:01 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/26 09:36:53 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/26 09:48:36 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,7 @@
 
 #include <string>
 #include <map>
+#include "Config.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 
@@ -119,8 +120,9 @@ private:
 	void	handleGetRequest(const Request& request, Response& response);
 	void	handlePostRequest(const Request& request, Response& response);
 	void	handleDeleteRequest(const Request& request, Response& response);
+	void	handleFailedRequest(const Request& request, Response& response);
 
-	void	createErrorResponse(Response& response, int statusCode, Response& response);
+	void	createErrorResponse(Response& response, int statusCode);
 
 };
 
