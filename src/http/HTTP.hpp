@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:09:01 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 16:32:26 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/26 09:23:32 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,8 @@
 
 #include <string>
 #include <map>
+#include "Request.hpp"
+#include "Response.hpp"
 
 class HTTP
 {
@@ -101,6 +103,8 @@ public:
 	static bool			isValidStatusCode(int& statusCode);
 	static std::string	methodToString(const HTTP::Method& method);
 	static HTTP::Method	strToMethod(const std::string& str);
+
+	static void			handle(Request& request, Response& response);
 
 private:
 	static const std::map<int, std::string>			m_status_messages;

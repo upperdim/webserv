@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/03 13:04:46 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 18:09:04 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/26 09:26:22 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -242,4 +242,33 @@ HTTP::Method	HTTP::strToMethod(const std::string& str)
 	else if (str == "DELETE\0")
 		return HTTP::Method::DELETE;
 	return HTTP::Method::GET;
+}
+
+//	passing the response as argument reduces the count we assign it
+//	HTTP::handle() could also return the response, but I went with argument first
+void	HTTP::handle(Request& request, Response& response)
+{
+	Response response;
+
+	if (request.error()) {
+		handleErrorRequest(request, response);
+	} else {
+		if (request.getRequestTarget().empty()) {
+			response.setStatus(WSSC_NOT_FOUND);
+		} else if (!request.isAllowedMethod()) {
+			response.setStatus(WSSC_METHOD_NOT_ALLOWED);
+		} else {
+			switch (request.method) {
+				case HTTP::Method::GET:
+					handleGetRequest(request, response);
+					break;
+				case HTTP::Method::POST:
+					handlePostRequest(request, response);
+					break;
+				case HTTP::Method::DELETE:
+					handleDeleteRequest(request, response);
+					break;
+			}
+		}
+	}
 }

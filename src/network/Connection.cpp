@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/25 17:22:34 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/26 09:22:53 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,29 +61,8 @@ void Connection::handleReadEvent(EventManager& event_manager)
 
 	if (request.complete() || request.error())
 	{
-		LOG_SUCCESS("DONE READING **********************************************************");
-		
-		if (request.error()) {
-			response = handleErrorRequest(request);
-		} else {
-			if (request.getRequestTarget().empty()) {
-				response.setStatus(WSSC_NOT_FOUND);
-			} else if (!request.isAllowedMethod()) {
-				response.setStatus(WSSC_METHOD_NOT_ALLOWED);
-			} else {
-				switch (request.method) {
-					case HTTP::Method::GET:
-						response = handleGetRequest(request);
-						break;
-					case HTTP::Method::POST:
-						response = handlePostRequest(request);
-						break;
-					case HTTP::Method::DELETE:
-						response = handleDeleteRequest(request);
-						break;
-				}
-			}
-		}
+		LOG_SUCCESS("recieved the full request || an error occured…");
+		HTTP::handle(request, response);
 		event_manager.setFdEvents(socket_fd, POLLOUT | POLLERR | POLLHUP);
 	}
 }
