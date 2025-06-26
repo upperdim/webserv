@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/26 09:22:53 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/26 09:35:15 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,49 +69,6 @@ void Connection::handleReadEvent(EventManager& event_manager)
 
 /************************************************************************ */
 
-Response	Connection::handleGetRequest(const Request& request)
-{
-	LOG_MSG("[handle Get Request] ", "...", LIGHTMAGENTA, DEFAULT);
-
-	Response response;
-
-	// TODO: repetitive?
-	if (request.getStatusCode() >= WSSC_BAD_REQUEST)
-	{
-		createErrorResponse(response, request.getStatusCode());
-		return (response);
-	}
-
-	// TODO: restructure:
-	// sanitize path
-	std::string path = Utils::sanitizePath(request, m_serverBlock);
-	LOG_DEBUG("PATH ----> " + path);
-
-	// does the path resource exist
-	if (Utils::resourceExist(path))
-	{
-		// fetch content
-		response.addHeader("Content-Type", HTTP::getMimeType(path));
-		response.setBodyFileBufferReader(path);
-	}
-	else
-		createErrorResponse(response, WSSC_I_M_A_TEAPOT);
-
-	return (response);
-}
-
-std::string	Connection::fetchErrorPage(int _status_code) const
-{
-	return (HTTP::getErrorPageTemplate(_status_code));
-}
-
-void	Connection::createErrorResponse(Response& response, int _status_code)
-{
-	response.setProtokoll("HTTP/1.1");
-	response.setStatus(_status_code);
-	response.addHeader("Content-Type", HTTP::getMimeType(".html"));
-	response.setBodyString(fetchErrorPage(_status_code));
-}
 
 Response	Connection::handleErrorRequest(const Request& request)
 {
@@ -127,36 +84,6 @@ Response	Connection::handleErrorRequest(const Request& request)
 	return (response);
 }
 
-Response	Connection::handlePostRequest(const Request& request)
-{
-	LOG_MSG("[handle Post Request] ", "...", LIGHTMAGENTA, DEFAULT);
-	(void) request;
-	throw std::runtime_error("Work in progress...");
-}
-
-Response	Connection::handleDeleteRequest(const Request& request)
-{
-	LOG_MSG("[handle DELETE Request] ", "...", LIGHTMAGENTA, DEFAULT);
-	Response response;
-
-	std::filesystem::path resourcePath(Utils::sanitizePath(request, m_serverBlock));
-	if (!(std::filesystem::exists(resourcePath) && std::filesystem::is_regular_file(resourcePath))) {
-		// resourcePath NOT FOUND
-		response.setStatus(WSSC_NOT_FOUND);
-		return response;
-	}
-
-	LOG_WARNING_LM("DELETING", resourcePath.c_str());
-	if (!std::filesystem::remove(resourcePath)) {
-		// failed to remove
-		response.setStatus(WSSC_INTERNAL_SERVER_ERROR);
-		return response;
-	}
-	LOG_SUCCESS(std::string("deleted: ") + resourcePath.c_str());
-
-	response.setStatus(WSSC_OK);
-	return response;
-}
 
 /************************************************************************ */
 

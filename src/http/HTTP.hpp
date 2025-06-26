@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:09:01 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/26 09:23:32 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/26 09:36:53 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,6 +115,13 @@ private:
 	HTTP();
 	HTTP(const HTTP& other);
 	HTTP&	operator=(const HTTP& rhs);
+
+	void	handleGetRequest(const Request& request, Response& response);
+	void	handlePostRequest(const Request& request, Response& response);
+	void	handleDeleteRequest(const Request& request, Response& response);
+
+	void	createErrorResponse(Response& response, int statusCode, Response& response);
+
 };
 
 #endif
