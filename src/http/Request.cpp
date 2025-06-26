@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "Request.hpp"
+#include <algorithm>
 
 Request::Request(const ServerBlock& _serverBlock)
 	:	method(HTTP::Method::GET),

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/02 20:09:01 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/18 16:32:26 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/26 10:57:18 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,6 @@ public:
 
 	~HTTP();
 
-
 	static std::string	getStatusMessage(int _status_code);
 	static std::string	getMimeType(const std::string& path);
 	static std::string	getErrorPageTemplate(const int& status_code);
@@ -111,6 +110,7 @@ private:
 	HTTP();
 	HTTP(const HTTP& other);
 	HTTP&	operator=(const HTTP& rhs);
+
 };
 
 #endif
