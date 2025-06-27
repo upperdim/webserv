@@ -28,6 +28,7 @@ public:
 	Server(ServerBlock serverBlock);
 	
 	int					getFd();
+	ServerBlock&		getServerBlockRef();
 };
 
 #endif

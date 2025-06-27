@@ -66,3 +66,7 @@ Server::Server(ServerBlock sb) : sockaddr(), serverBlock(sb) {
 int Server::getFd() {
 	return fd;
 }
+
+ServerBlock& Server::getServerBlockRef() {
+	return &serverBlock;
+}
