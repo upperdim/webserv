@@ -26,8 +26,8 @@ void ClientConnection::receiveRequest() {
 	log(bytesRead << " bytes read");
 
 	if (bytesRead > 0) {
-		request.recvBuffer.append(buffer, bytesRead);
-		log("recvBuffer.length() = " << request.recvBuffer.length());
+		request.rawRequest.append(buffer, bytesRead);
+		log("rawRequest.length() = " << request.rawRequest.length());
 		buffer[bytesRead] = '\0';
 		log("buffer = <<<" << buffer << ">>>");
 		request.parseNext();
