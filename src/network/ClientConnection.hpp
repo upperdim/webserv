@@ -37,9 +37,9 @@ public:
 	int			getFd();
 	bool		getConnectionError();
 	Server&		getConnectedServer();
-	Request		getRequest();
-	Response	getResponse();
-	void		setResponse(Response r);
+	Request&	getRequest(); // TODO: return type is reference because of = overload of Request
+	Response&	getResponse(); // TODO: return type is reference because of = overload of Response
+	// void		setResponse(Response r); // TODO: disabled for now due to = overload
 };
 
 #endif
