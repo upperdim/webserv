@@ -45,43 +45,6 @@ Response::~Response()
 /* ************************************************************************** */
 /* ************************************************************************** */
 
-// Response&	Response::operator=(const Response& rhs)
-// {
-// 	if (this != &rhs)
-// 	{
-// 		m_state = rhs.m_state;
-// 		m_protokoll = rhs.m_protokoll;
-// 		m_status_code = rhs.m_status_code;
-// 		m_status_msg = rhs.m_status_msg;
-// 		m_headers = rhs.m_headers;
-// 		m_body = rhs.m_body;
-// 		m_file_buffer_reader = rhs.m_file_buffer_reader;
-// 		m_body_type = rhs.m_body_type;
-// 		m_done = rhs.m_done;		
-// 	}
-// 	return (*this);
-// }
-
-Response&	Response::operator=(Response&& rhs)
-{
-	if (this != &rhs)
-	{
-		m_state = rhs.m_state;
-		m_protokoll = std::move(rhs.m_protokoll);
-		m_status_code = std::move(rhs.m_status_code);
-		m_status_msg = rhs.m_status_msg;
-		m_headers = std::move(rhs.m_headers);
-		m_body = std::move(rhs.m_body);
-		m_file_buffer_reader = std::move(rhs.m_file_buffer_reader);
-		m_body_type = rhs.m_body_type;
-		m_done = rhs.m_done;
-	}
-	return (*this);
-}
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
 
 void	Response::setProtokoll(const std::string& _protokoll)
 {

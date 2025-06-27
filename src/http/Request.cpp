@@ -28,24 +28,6 @@ Request::~Request()
 {
 }
 
-// move assignment operator
-Request&	Request::operator=(Request&& rhs)
-{
-	if (this != &rhs) {
-		rawRequest		= std::move(rhs.rawRequest);
-		method			= rhs.method;
-		statusCode		= rhs.statusCode;
-		requestTarget	= std::move(rhs.requestTarget);
-		URI				= std::move(rhs.URI);
-		protokoll		= std::move(rhs.protokoll);
-		headers			= std::move(rhs.headers);
-		m_state			= rhs.m_state;
-		m_error			= rhs.m_error;
-	}
-	return *this;
-}
-
-
 /* ************************************************************************** */
 /* ************************************************************************** */
 

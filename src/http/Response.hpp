@@ -28,11 +28,6 @@ public:
 	Response(Response&& other);			// move constructor
 	~Response();
 
-	// copy assignement operator overload
-	// Response&	operator=(const Response& rhs);	
-	// move assignement operator overload
-	Response&			operator=(Response&& rhs);
-
 	void				setProtokoll(const std::string& _protokoll);
 	void				setStatus(const int& _status_code);
 	void				addHeader(const std::string& key, const std::string& value);
