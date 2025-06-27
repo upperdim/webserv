@@ -31,32 +31,32 @@ public:
 	// copy assignement operator overload
 	// Response&	operator=(const Response& rhs);	
 	// move assignement operator overload
-	Response&	operator=(Response&& rhs);
+	Response&			operator=(Response&& rhs);
 
-	void		setProtokoll(const std::string& _protokoll);
-	void		setStatus(const int& _status_code);
-	void		addHeader(const std::string& key, const std::string& value);
-	void		setBodyString(const std::string& _body);
-	void		setBodyFileBufferReader(std::string path);
-	std::string	getNextChunk(void);
+	void				setProtokoll(const std::string& _protokoll);
+	void				setStatus(const int& _status_code);
+	void				addHeader(const std::string& key, const std::string& value);
+	void				setBodyString(const std::string& _body);
+	void				setBodyFileBufferReader(std::string path);
+	std::string			getNextChunk(void);
 
-	bool		complete(void) const;
-	bool		error(void) const;
+	bool				complete(void) const;
+	bool				error(void) const;
 	
 	// for debugging
-	std::string	getResponseStateString();
+	std::string			getResponseStateString();
+
+	bool				isComplete;
 
 private:
-	enum class ResponseState
-	{
+	enum class ResponseState {
 		SEND_HEADER,
 		SEND_BODY,
 		SEND_COMPLETE,
 		SEND_ERROR
 	};
 
-	enum class BodyType
-	{
+	enum class BodyType {
 		BODY_NONE,
 		BODY_STRING,
 		BODY_FILE_BUFFER,
@@ -74,10 +74,10 @@ private:
 
 	Response(const Response& other); // copy constructor =delete
 
-	std::string	getHeader(void) const;
-	std::string	getNextBodyChunk(void);
-	void		progressState(void);
-	void		setState(ResponseState _state);
+	std::string			getHeader(void) const;
+	std::string			getNextBodyChunk(void);
+	void				progressState(void);
+	void				setState(ResponseState _state);
 };
 
 #endif
