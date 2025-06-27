@@ -31,9 +31,6 @@ public:
 		COMPLETE
 	};
 
-	// move assignment operator
-	Request&				operator=(Request&& rhs);
-
 	void					append(const char *buf, const size_t bytes_read);
 	void					reset(void);
 

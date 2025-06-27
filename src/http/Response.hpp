@@ -25,13 +25,7 @@ class Response
 {
 public:
 	Response();
-	Response(Response&& other);			// move constructor
 	~Response();
-
-	// copy assignement operator overload
-	// Response&	operator=(const Response& rhs);	
-	// move assignement operator overload
-	Response&			operator=(Response&& rhs);
 
 	void				setProtokoll(const std::string& _protokoll);
 	void				setStatus(const int& _status_code);
@@ -71,8 +65,6 @@ private:
 	FileBufferReader	m_file_buffer_reader;
 	BodyType			m_body_type;
 	bool				m_done;
-
-	Response(const Response& other); // copy constructor =delete
 
 	std::string			getHeader(void) const;
 	std::string			getNextBodyChunk(void);
