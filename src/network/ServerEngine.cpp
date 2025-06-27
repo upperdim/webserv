@@ -15,6 +15,7 @@
 #include "ServerEngine.hpp"
 #include "ClientConnection.hpp"
 #include "HTTP.hpp"
+#include "HTTPMethodHandler.hpp"
 #include "Log.hpp"
 
 ServerEngine::ServerEngine(Config config) {
@@ -202,8 +203,8 @@ void ServerEngine::readClientIncomingData(int clientFd) {
 	
 	client.receiveRequest();
 
-	if (client.getRequest().complete) {
-		client.setResponse(HTTP::handleHTTPRequest(client.getRequest()));
+	if (client.getRequest().isComplete) {
+		// HTTPMethodHandler::handle(client.getRequestRef(), client.getResponseRef());
 		setPollFdEvents(clientFd, POLLOUT | POLLERR | POLLHUP);
 		LOG("Now listening to POLLOUT event for ClientConnection fd = " << clientFd << " socket");
 	}
@@ -219,7 +220,7 @@ void ServerEngine::writeToClient(int clientFd) {
 
 	client.sendResponse();
 
-	if (client.getResponse().complete) {
+	if (client.getResponse().isComplete) {
 		disconnectClient(clientFd);
 	}
 }
