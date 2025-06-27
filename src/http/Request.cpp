@@ -14,7 +14,7 @@
 #include <algorithm>
 
 Request::Request(const ServerBlock& _serverBlock)
-	:	isComplete(false)
+	:	isComplete(false),
 		method(HTTP::Method::GET),
 		statusCode(200),
 		serverBlock(_serverBlock),
