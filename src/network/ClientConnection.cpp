@@ -1,5 +1,17 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ClientConnection.cpp                               :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/27 02:25:08 by tunsal            #+#    #+#             */
+/*   Updated: 2025/06/27 02:25:08 by tunsal           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ClientConnection.hpp"
-#include "Logger.hpp"
+#include "Log.hpp"
 #include "Utils.hpp"
 
 ClientConnection::ClientConnection(int fd, Server& connectedServer) 

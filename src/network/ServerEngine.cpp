@@ -1,9 +1,21 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ServerEngine.cpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/27 02:25:23 by tunsal            #+#    #+#             */
+/*   Updated: 2025/06/27 02:25:23 by tunsal           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <iostream>
 #include <unistd.h>  // close()
 #include "ServerEngine.hpp"
 #include "ClientConnection.hpp"
 #include "HTTP.hpp"
-#include "Logger.hpp"
+#include "Log.hpp"
 
 ServerEngine::ServerEngine(Config config) {
 	// Create servers

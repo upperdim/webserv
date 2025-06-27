@@ -1,13 +1,14 @@
-/*
-	ServerEngine
-
-	- Manages servers
-	- Utilizes poll() for async I/O in order to handle multiple connections
-		- Owns and manages pollfd list
-		- Runs the main poll loop
-	- Accepts new connections
-	- Dispatches events to the respective server or client connection
-*/
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ServerEngine.hpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/27 02:25:26 by tunsal            #+#    #+#             */
+/*   Updated: 2025/06/27 02:25:26 by tunsal           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #ifndef SERVERENGINE_HPP
 #define SERVERENGINE_HPP

@@ -1,8 +1,20 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/27 02:25:16 by tunsal            #+#    #+#             */
+/*   Updated: 2025/06/27 02:25:16 by tunsal           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <iostream>
 #include <netdb.h>		// getaddrinfo()
 #include <arpa/inet.h>	// inet_ntop()
 #include "Server.hpp"
-#include "Logger.hpp"
+#include "Log.hpp"
 
 Server::Server(ServerBlock sb) : sockaddr(), serverBlock(sb) {
 	fd = socket(AF_INET, SOCK_STREAM, 0);
