@@ -68,5 +68,5 @@ int Server::getFd() {
 }
 
 ServerBlock& Server::getServerBlockRef() {
-	return &serverBlock;
+	return serverBlock;
 }
