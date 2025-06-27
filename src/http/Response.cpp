@@ -23,20 +23,6 @@ Response::Response()
 {
 }
 
-// move constructor
-Response::Response(Response&& other)
-	:	m_state(other.m_state),
-		m_protokoll(other.m_protokoll),
-		m_status_code(other.m_status_code),
-		m_status_msg(other.m_status_msg),
-		m_headers(std::move(other.m_headers)),
-		m_body(other.m_body),
-		m_body_type(other.m_body_type),
-		m_done(other.m_done)
-{
-	m_file_buffer_reader = std::move(other.m_file_buffer_reader);
-}
-
 Response::~Response()
 {
 }
