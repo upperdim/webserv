@@ -20,7 +20,6 @@
 #include <poll.h>
 #include <utility>
 #include "webserv.hpp"
-#include "IEventHandler.hpp"
 #include "Server.hpp"
 #include "Connection.hpp"
 

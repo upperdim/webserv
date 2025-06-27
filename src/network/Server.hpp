@@ -22,7 +22,6 @@
 #include <string>
 #include "webserv.hpp"
 #include "EventManager.hpp"
-#include "IEventHandler.hpp"
 #include "Connection.hpp"
 #include "Config.hpp"
 #include "Log.hpp"
