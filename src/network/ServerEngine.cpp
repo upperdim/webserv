@@ -172,7 +172,10 @@ void ServerEngine::acceptNewClientConnection(Server& clientConnectedServer) {
 		throw std::runtime_error("Error accepting client connection");
 	}
 
-	clients.emplace(clientFd, ClientConnection(clientFd, clientConnectedServer));
+	clients.emplace(
+		std::piecewise_construct,
+		std::forward_as_tuple(static_cast<int>(clientFd)),
+		std::forward_as_tuple(static_cast<int>(clientFd), clientConnectedServer));
 	pollFdsRegisterQueue.push_back(clientFd);
 	LOGT(Log::INFO, "New ClientConnection accepted, fd = " << clientFd);
 }
@@ -204,7 +207,7 @@ void ServerEngine::readClientIncomingData(int clientFd) {
 	client.receiveRequest();
 
 	if (client.getRequest().isComplete) {
-		// HTTPMethodHandler::handle(client.getRequestRef(), client.getResponseRef());
+		HTTPMethodHandler::handle(client.getRequest(), client.getResponse());
 		setPollFdEvents(clientFd, POLLOUT | POLLERR | POLLHUP);
 		LOG("Now listening to POLLOUT event for ClientConnection fd = " << clientFd << " socket");
 	}
