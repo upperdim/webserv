@@ -32,7 +32,7 @@ Server::Server(ServerBlock sb) : sockaddr(), serverBlock(sb) {
 	hints.ai_socktype = SOCK_STREAM;
 
 	addrinfo* res = nullptr;
-	int err = getaddrinfo(serverBlock.listenHost.c_str(), nullptr, &hints, &res);
+	int err = getaddrinfo(serverBlock.listenHostStr.c_str(), nullptr, &hints, &res);
 	if (err != 0) {
 		std::string errMsg = std::string("Error setting Server address with getaddrinfo: ") + gai_strerror(err);
 		throw (std::runtime_error(errMsg));
@@ -60,7 +60,7 @@ Server::Server(ServerBlock sb) : sockaddr(), serverBlock(sb) {
 		throw (std::runtime_error("Error binding socket for Server constructor"));
 	}
 
-	logl(INFO, "Server created with fd = " << fd << ". Listening at " << ipStr << ":" << ntohs(sockaddr.sin_port));
+	LOGT(Log::INFO, "Server created with fd = " << fd << ". Listening at " << ipStr << ":" << ntohs(sockaddr.sin_port));
 }
 
 int Server::getFd() {
