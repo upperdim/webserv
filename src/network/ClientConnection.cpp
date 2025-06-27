@@ -50,6 +50,8 @@ void ClientConnection::sendResponse() {
 int         ClientConnection::getFd()                 { return fd; }
 bool        ClientConnection::getConnectionError()    { return connectionError; }
 Server&     ClientConnection::getConnectedServer()    { return connectedServer; }
-Request		ClientConnection::getRequest()            { return request; }
-Response	ClientConnection::getResponse()           { return response; }
-void		ClientConnection::setResponse(Response r) { response = r; }
+Request     ClientConnection::getRequest()            { return request; }
+Request&    ClientConnection::getRequestRef()         { return &request; }
+Response    ClientConnection::getResponse()           { return response; }
+Response&   ClientConnection::getResponseRef()        { return &response; }
+void        ClientConnection::setResponse(Response r) { response = r; }

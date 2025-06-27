@@ -39,7 +39,9 @@ public:
 	Server&		getConnectedServer();
 	std::string getRecvBuffer();
 	Request		getRequest();
+	Request&	getRequestRef();
 	Response	getResponse();
+	Response&	getResponseRef();
 	void		setResponse(Response r);
 };
 
