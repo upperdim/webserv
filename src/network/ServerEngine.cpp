@@ -41,16 +41,16 @@ ServerEngine::ServerEngine(Config config) {
 }
 
 ServerEngine::~ServerEngine() {
-	log("ServerEngine destructor");
+	LOG("ServerEngine destructor");
 
 	for (size_t i = 0; i < servers.size(); ++i) {
 		close(servers[i].getFd());
-		log("closed server fd = " << servers[i].getFd());
+		LOG("closed server fd = " << servers[i].getFd());
 	}
 	
 	for (auto it = clients.begin(); it != clients.end(); ++it) {
 		close(it->second.getFd());
-		log("closed ClientConnection fd = " << it->second.getFd());
+		LOG("closed ClientConnection fd = " << it->second.getFd());
 	}
 }
 
@@ -74,7 +74,7 @@ void ServerEngine::iteratePollFds(int eventCount) {
 
 	for (size_t i = 0; i < pollFds.size() && counter < eventCount; ++i) {
 		if (pollFds[i].revents & POLLIN) {
-			log("POLLIN event, fd = " << pollFds[i].fd);
+			LOG("POLLIN event, fd = " << pollFds[i].fd);
 			int serverIdx = findServerIndexByFd(pollFds[i].fd);
 			if (serverIdx == -1) {
 				readClientIncomingData(pollFds[i].fd);
@@ -84,17 +84,17 @@ void ServerEngine::iteratePollFds(int eventCount) {
 		}
 
 		if (pollFds[i].revents & POLLOUT) {
-			log("POLLOUT event, fd = " << pollFds[i].fd);
+			LOG("POLLOUT event, fd = " << pollFds[i].fd);
 			writeToClient(pollFds[i].fd);
 		}
 		
 		if (pollFds[i].revents & (POLLHUP | POLLERR | POLLNVAL | POLLPRI)) {
 			if (pollFds[i].revents & POLLHUP) {
-				log("POLLHUP event, fd = " << pollFds[i].fd);
-				logl(INFO, "ClientConnection fd = " << pollFds[i].fd << " disconnected");
+				LOG("POLLHUP event, fd = " << pollFds[i].fd);
+				LOGT(Log::INFO, "ClientConnection fd = " << pollFds[i].fd << " disconnected");
 			} else {
-				log("POLLERR or POLLNVAL or POLLPRI event, fd = " << pollFds[i].fd);
-				logl(ERROR, "Socket error on fd = " << pollFds[i].fd);
+				LOG("POLLERR or POLLNVAL or POLLPRI event, fd = " << pollFds[i].fd);
+				LOGT(Log::ERROR, "Socket error on fd = " << pollFds[i].fd);
 			}
 			
 			int serverIdx = findServerIndexByFd(pollFds[i].fd);
@@ -173,16 +173,16 @@ void ServerEngine::acceptNewClientConnection(Server& clientConnectedServer) {
 
 	clients.emplace(clientFd, ClientConnection(clientFd, clientConnectedServer));
 	pollFdsRegisterQueue.push_back(clientFd);
-	logl(INFO, "New ClientConnection accepted, fd = " << clientFd);
+	LOGT(Log::INFO, "New ClientConnection accepted, fd = " << clientFd);
 }
 
 void ServerEngine::disconnectClient(int clientFd) {
-	log("Disconnecting ClientConnection fd = " << clientFd);
+	LOG("Disconnecting ClientConnection fd = " << clientFd);
 	clients.erase(clientFd);
 	pollFdsRemovalQueue.push_back(clientFd);
-	log("ClientConnection is removed from the map and queued for removal from pollFds, fd = " << clientFd);
+	LOG("ClientConnection is removed from the map and queued for removal from pollFds, fd = " << clientFd);
 	close(clientFd);
-	log("ClientConnection fd = " << clientFd << " is closed");
+	LOG("ClientConnection fd = " << clientFd << " is closed");
 }
 
 void ServerEngine::stopServer(int serverFd, int serverIdx) {
@@ -191,10 +191,10 @@ void ServerEngine::stopServer(int serverFd, int serverIdx) {
 	}
 
 	close(serverFd);
-	log("Server fd = " << serverFd << " is closed");
+	LOG("Server fd = " << serverFd << " is closed");
 	removeFromPollFds(serverFd);
 	servers.erase(servers.begin() + serverIdx);
-	log("Server is removed from the list and queued for removal from pollFds, fd = " << serverFd);
+	LOG("Server is removed from the list and queued for removal from pollFds, fd = " << serverFd);
 }
 
 void ServerEngine::readClientIncomingData(int clientFd) {
@@ -202,14 +202,14 @@ void ServerEngine::readClientIncomingData(int clientFd) {
 	
 	client.receiveRequest();
 
-	if (client.getRequest().isComplete) {
+	if (client.getRequest().complete) {
 		client.setResponse(HTTP::handleHTTPRequest(client.getRequest()));
 		setPollFdEvents(clientFd, POLLOUT | POLLERR | POLLHUP);
-		log("Now listening to POLLOUT event for ClientConnection fd = " << clientFd << " socket");
+		LOG("Now listening to POLLOUT event for ClientConnection fd = " << clientFd << " socket");
 	}
 
 	if (client.getConnectionError()) {
-		logl(ERROR, "Connection error on ClientConnection fd = " << clientFd);
+		LOGT(Log::ERROR, "Connection error on ClientConnection fd = " << clientFd);
 		disconnectClient(clientFd);
 	}
 }
@@ -219,7 +219,7 @@ void ServerEngine::writeToClient(int clientFd) {
 
 	client.sendResponse();
 
-	if (client.getResponse().isComplete) {
+	if (client.getResponse().complete) {
 		disconnectClient(clientFd);
 	}
 }
