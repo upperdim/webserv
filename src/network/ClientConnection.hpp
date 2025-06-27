@@ -37,7 +37,6 @@ public:
 	int			getFd();
 	bool		getConnectionError();
 	Server&		getConnectedServer();
-	std::string getRecvBuffer();
 	Request		getRequest();
 	Request&	getRequestRef();
 	Response	getResponse();
