@@ -5,6 +5,43 @@
 #include "HTTP.hpp"
 #include "Logger.hpp"
 
+ServerEngine::ServerEngine(Config config) {
+	// Create servers
+	for (size_t i = 0; i < config.serverBlocks.size(); ++i) {
+		bool isDuplicatePort = false;
+
+		for (size_t j = 0; j < i; ++j) {
+			if (config.serverBlocks[i].listenPort == config.serverBlocks[j].listenPort) {
+				isDuplicatePort = true;
+				break;
+			}
+		}
+
+		if (!isDuplicatePort) {
+			servers.push_back(Server(config.serverBlocks[i]));
+		}
+	}
+
+	// Register servers to pollfds
+	for (size_t i = 0; i < servers.size(); ++i) {
+		addToPollFds(servers[i].getFd());
+	}
+}
+
+ServerEngine::~ServerEngine() {
+	log("ServerEngine destructor");
+
+	for (size_t i = 0; i < servers.size(); ++i) {
+		close(servers[i].getFd());
+		log("closed server fd = " << servers[i].getFd());
+	}
+	
+	for (auto it = clients.begin(); it != clients.end(); ++it) {
+		close(it->second.getFd());
+		log("closed ClientConnection fd = " << it->second.getFd());
+	}
+}
+
 void ServerEngine::run() {
 	while (true) {
 		// if (pollFds.empty())
