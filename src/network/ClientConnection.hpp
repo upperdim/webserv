@@ -38,9 +38,7 @@ public:
 	bool		getConnectionError();
 	Server&		getConnectedServer();
 	Request		getRequest();
-	Request&	getRequestRef();
 	Response	getResponse();
-	Response&	getResponseRef();
 	void		setResponse(Response r);
 };
 

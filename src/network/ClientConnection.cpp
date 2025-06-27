@@ -11,39 +11,40 @@
 /* ************************************************************************** */
 
 #include "ClientConnection.hpp"
+#include "RequestParser.hpp"
 #include "Log.hpp"
-#include "Utils.hpp"
 
 ClientConnection::ClientConnection(int fd, Server& connectedServer) 
 	:	fd(fd),
 		connectedServer(connectedServer),
-		connectionError(false) {}
+		connectionError(false),
+		request(connectedServer.getServerBlockRef()) {}
 
 void ClientConnection::receiveRequest() {
-	log("Reading from ClientConnection fd = " << fd);
+	LOG("Reading from ClientConnection fd = " << fd);
 	char buffer[REQUEST_BUFFER_SIZE];
 	ssize_t bytesRead = recv(fd, &buffer, REQUEST_BUFFER_SIZE - 1, 0);
-	log(bytesRead << " bytes read");
+	LOG(bytesRead << " bytes read");
 
 	if (bytesRead > 0) {
 		request.rawRequest.append(buffer, bytesRead);
-		log("rawRequest.length() = " << request.rawRequest.length());
+		LOG("rawRequest.length() = " << request.rawRequest.length());
 		buffer[bytesRead] = '\0';
-		log("buffer = <<<" << buffer << ">>>");
-		request.parseNext();
+		LOG("buffer = <<<" << buffer << ">>>");
+		RequestParser::parseNext(request);
 	} else if (bytesRead < 0) {
 		connectionError = true;
-		logl(ERROR, "ClientConnection error, fd = " << fd);
+		LOGT(Log::ERROR, "ClientConnection error, fd = " << fd);
 	} else if (bytesRead == 0) {
 		request.isComplete = true;
-		log("ClientConnection fd = " << fd << " has received all of the request");
+		LOG("ClientConnection fd = " << fd << " has received all of the request");
 	}
 }
 
 void ClientConnection::sendResponse() {
-	log("Writing to ClientConnection fd = " << fd);
+	LOG("Writing to ClientConnection fd = " << fd);
 	// TODO: (Feature) Write in chunks
-	log("response data = " << response.data);
+	// LOG("response data = " << response.data);
 	response.isComplete = true;
 }
 
@@ -51,7 +52,5 @@ int         ClientConnection::getFd()                 { return fd; }
 bool        ClientConnection::getConnectionError()    { return connectionError; }
 Server&     ClientConnection::getConnectedServer()    { return connectedServer; }
 Request     ClientConnection::getRequest()            { return request; }
-Request&    ClientConnection::getRequestRef()         { return &request; }
 Response    ClientConnection::getResponse()           { return response; }
-Response&   ClientConnection::getResponseRef()        { return &response; }
 void        ClientConnection::setResponse(Response r) { response = r; }
