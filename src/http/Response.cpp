@@ -116,15 +116,14 @@ std::string	Response::getNextChunk(void)
 {
 	std::string	buff;
 
-	switch (m_state)
-	{
+	switch (m_state) {
 		case (ResponseState::SEND_HEADER):
 			buff = getHeader();
-			progressState();
+			setState(m_body_type == BodyType::BODY_NONE ? ResponseState::SEND_COMPLETE : ResponseState::SEND_BODY : );
 			break ;
 		case (ResponseState::SEND_BODY):
 			buff = getNextBodyChunk();
-			progressState();
+			checkBodyState();
 			break ;
 		case (ResponseState::SEND_COMPLETE):
 			m_done = true;
@@ -132,7 +131,28 @@ std::string	Response::getNextChunk(void)
 		default:
 			break ;
 	}
+
 	return (buff);
+}
+
+void	Response::checkBodyState()
+{
+	if (m_body_type == BodyType::BODY_STRING) {
+		if (m_body.empty() || m_body.length() == 0) {
+			setState(ResponseState::SEND_COMPLETE);
+		}
+	} else if (m_body_type == BodyType::BODY_FILE_BUFFER) {
+		switch (m_file_buffer_reader.getState()) {
+			case (FileBuffer::State::COMPLETE):
+				setState(ResponseState::SEND_COMPLETE);
+				break ;
+			case (FileBuffer::State::ERROR):
+				setState(ResponseState::SEND_ERROR);
+				break ;
+			default:
+				break ;
+		}
+	}
 }
 
 bool	Response::complete(void) const
@@ -200,41 +220,6 @@ std::string	Response::getNextBodyChunk(void)
 	}
 
 	return ( ss.str() );
-}
-
-void	Response::progressState(void)
-{
-	switch (m_state)
-	{
-		case (ResponseState::SEND_HEADER):
-			setState(ResponseState::SEND_BODY);
-			if (m_body_type == BodyType::BODY_NONE)
-				setState(ResponseState::SEND_COMPLETE);
-			break ;
-		case (ResponseState::SEND_BODY):
-			if (m_body_type == BodyType::BODY_STRING)
-			{
-				if (m_body.empty() || m_body.length() == 0)
-					setState(ResponseState::SEND_COMPLETE);
-			}
-			else if (m_body_type == BodyType::BODY_FILE_BUFFER)
-			{
-				switch (m_file_buffer_reader.getState())
-				{
-					case (FileBuffer::State::COMPLETE):
-						setState(ResponseState::SEND_COMPLETE);
-						break ;
-					case (FileBuffer::State::ERROR):
-						setState(ResponseState::SEND_ERROR);
-						break ;
-					default:
-						break ;
-				}
-			}
-			break ;
-		default:
-			break ;
-	}
 }
 
 void	Response::setState(ResponseState _state)

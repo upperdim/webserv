@@ -72,12 +72,13 @@ private:
 	BodyType			m_body_type;
 	bool				m_done;
 
+
 	Response(const Response& other); // copy constructor =delete
 
-	std::string	getHeader(void) const;
-	std::string	getNextBodyChunk(void);
-	void		progressState(void);
-	void		setState(ResponseState _state);
+	std::string			getHeader(void) const;
+	std::string			getNextBodyChunk(void);
+	void				checkBodyState();
+	void				setState(ResponseState _state);
 };
 
 #endif
