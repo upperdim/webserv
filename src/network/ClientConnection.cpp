@@ -43,9 +43,9 @@ void ClientConnection::receiveRequest() {
 
 void ClientConnection::sendResponse() {
 	LOG("Writing to ClientConnection fd = " << fd);
-	// TODO: (Feature) Write in chunks
-	// LOG("response data = " << response.data);
-	response.isComplete = true;
+	
+	std::string	chunk = response.getNextChunk();
+	send(fd, chunk.c_str(), chunk.length(), 0); // TODO: return val & checks
 }
 
 int         ClientConnection::getFd()                 { return fd; }

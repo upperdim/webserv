@@ -223,7 +223,11 @@ void ServerEngine::writeToClient(int clientFd) {
 
 	client.sendResponse();
 
-	if (client.getResponse().isComplete) {
+	if (client.getResponse().error()) {
+		disconnectClient(clientFd);
+	}
+
+	if (client.getResponse().complete()) {
 		disconnectClient(clientFd);
 	}
 }

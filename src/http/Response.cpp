@@ -13,8 +13,7 @@
 #include "Response.hpp"
 
 Response::Response()
-	:	isComplete(false),
-		m_state(ResponseState::SEND_HEADER),
+	:	m_state(ResponseState::SEND_HEADER),
 		m_protokoll("HTTP/1.1"),
 		m_status_code(200),
 		m_status_msg(HTTP::getStatusMessage(WSSC_OK)),

@@ -40,8 +40,6 @@ public:
 	// for debugging
 	std::string			getResponseStateString();
 
-	bool				isComplete;
-
 private:
 	enum class ResponseState {
 		SEND_HEADER,
