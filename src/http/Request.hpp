@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/25 11:07:12 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/28 09:46:42 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,10 +44,7 @@ public:
 	bool			error(void);
 
 	void			setComplete(void);
-	bool			complete(void);
-
-	int						getStatusCode(void) const;
-	std::string				getRequestTarget(void) const;
+	bool			isComplete(void);
 
 	// here I use some OOP trickery and uses locationBlock as a privat member
 	// and access it only through the locationBlock() method.
@@ -68,11 +65,14 @@ public:
 	HTTP::Method									method;
 	int												statusCode;
 	std::string										requestTarget;
-	std::string										URI;		//	decoded and sanatized requesttarget
 	std::string										protokoll;
 	std::unordered_map<std::string, std::string>	headers;
 
 	const ServerBlock&								serverBlock;
+
+	// matched and resolved attributes
+	std::string										URI;		//	decoded and sanatized requesttarget
+	std::string										resolvedPath;
 
 private:
 	State											m_state;

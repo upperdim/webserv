@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/25 11:27:32 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/28 09:41:23 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,10 @@ void	Request::setError(int errorStatusCode)
 
 void	Request::setComplete()
 {
+	// resolve Host //-> Use Host header to choose the right ServerBlock.
+	// resolve location here
+	// resolve path here
+
 	m_state = State::COMPLETE;
 }
 
@@ -88,19 +92,9 @@ bool	Request::error(void)
 	return m_error;
 }
 
-bool	Request::complete(void)
+bool	Request::isComplete(void)
 {
 	return m_state == State::COMPLETE;
-}
-
-int	Request::getStatusCode(void) const
-{
-	return (statusCode);
-}
-
-std::string	Request::getRequestTarget(void) const
-{
-	return (requestTarget);
 }
 
 const LocationBlock&	Request::locationBlock()

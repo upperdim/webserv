@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/26 17:00:32 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/28 09:26:03 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ void Connection::handleReadEvent(EventManager& event_manager)
 		request.setComplete();
 	}
 
-	if (request.complete() || request.error())
+	if (request.isComplete() || request.error())
 	{
 		LOG_SUCCESS("recieved the full request || an error occured…");
 		HTTPMethodHandler::handle(request, response);
