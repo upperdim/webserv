@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:23 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/27 02:25:23 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 01:44:53 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,7 +206,7 @@ void ServerEngine::readClientIncomingData(int clientFd) {
 	
 	client.receiveRequest();
 
-	if (client.getRequest().isComplete) {
+	if (client.getRequest().complete()) {
 		HTTPMethodHandler::handle(client.getRequest(), client.getResponse());
 		setPollFdEvents(clientFd, POLLOUT | POLLERR | POLLHUP);
 		LOG("Now listening to POLLOUT event for ClientConnection fd = " << clientFd << " socket");
