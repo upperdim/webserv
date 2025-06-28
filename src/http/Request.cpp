@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/28 12:49:05 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/28 14:11:26 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,9 +77,13 @@ void	Request::setError(int errorStatusCode)
 
 void	Request::setComplete()
 {
-	// resolve Host //-> Use Host header to choose the right ServerBlock.
-	// resolve location here
-	// resolve path here
+	// use Host from header to choose ServerBlock.
+	// resolve serverBlock
+	// resolve location via URI
+	// resolve root
+	// resolve path
+	// resolve clientMaxBodySize
+	// resolve index
 
 	m_state = State::COMPLETE;
 	isComplete = true;
