@@ -138,7 +138,7 @@ std::string	Response::getNextChunk(void)
 void	Response::checkBodyState()
 {
 	if (m_body_type == BodyType::BODY_STRING) {
-		if (m_body.empty() || m_body.length() == 0) {
+		if (m_body.empty()) {
 			setState(ResponseState::SEND_COMPLETE);
 		}
 	} else if (m_body_type == BodyType::BODY_FILE_BUFFER) {
