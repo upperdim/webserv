@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/28 09:41:23 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/28 12:49:05 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,11 @@
 #include <algorithm>
 
 Request::Request(const ServerBlock& _serverBlock)
-	:	method(HTTP::Method::GET),
+	:	isComplete(false),
+		method(HTTP::Method::GET),
 		statusCode(200),
 		serverBlock(_serverBlock),
 		m_state(State::READING_REQUEST_LINE),
-		m_error(false),
 		m_locationBlock(nullptr)
 {
 }
@@ -39,7 +39,6 @@ Request&	Request::operator=(Request&& rhs)
 		protokoll		= std::move(rhs.protokoll);
 		headers			= std::move(rhs.headers);
 		m_state			= rhs.m_state;
-		m_error			= rhs.m_error;
 	}
 	return *this;
 }
@@ -71,11 +70,9 @@ void	Request::setState(State state)
 
 void	Request::setError(int errorStatusCode)
 {
-	if (!m_error) {
-		m_error = true;
-		if (statusCode < WSSC_BAD_REQUEST)
-			statusCode = errorStatusCode;
-	}
+	statusCode = errorStatusCode;
+	m_state = State::INVALID;
+	isComplete = true;
 }
 
 void	Request::setComplete()
@@ -85,16 +82,7 @@ void	Request::setComplete()
 	// resolve path here
 
 	m_state = State::COMPLETE;
-}
-
-bool	Request::error(void)
-{
-	return m_error;
-}
-
-bool	Request::isComplete(void)
-{
-	return m_state == State::COMPLETE;
+	isComplete = true;
 }
 
 const LocationBlock&	Request::locationBlock()

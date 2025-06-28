@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 11:01:47 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/28 09:15:13 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/28 12:41:35 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ HTTPMethodHandler::~HTTPMethodHandler()
 
 void	HTTPMethodHandler::handle(Request& request, Response& response)
 {
-	if (request.error()) {
+	if (request.getState() == Request::State::INVALID) {
 		handleFailedRequest(request, response);
 		return;
 	}

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/28 08:14:19 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/28 12:46:02 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,8 @@ void	RequestParser::parseNext(Request& request)
 		//	TODO:	delete, just as an indication that the request is complete
 		LOG_DEBUG("===> REQUEST COMPLETE");
 	}
+	if (request.getState() == Request::State::COMPLETE || request.getState() == Request::State::INVALID)
+		request.setComplete();
 }
 
 
