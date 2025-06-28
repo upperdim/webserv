@@ -119,7 +119,7 @@ std::string	Response::getNextChunk(void)
 	switch (m_state) {
 		case (ResponseState::SEND_HEADER):
 			buff = getHeader();
-			setState(m_body_type == BodyType::BODY_NONE ? ResponseState::SEND_COMPLETE : ResponseState::SEND_BODY : );
+			setState(m_body_type == BodyType::BODY_NONE ? ResponseState::SEND_COMPLETE : ResponseState::SEND_BODY);
 			break ;
 		case (ResponseState::SEND_BODY):
 			buff = getNextBodyChunk();
