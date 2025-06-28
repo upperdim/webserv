@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 11:29:40 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/19 14:54:55 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/28 08:30:56 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ private:
 	HeaderMap			m_headers;
 	std::string			m_body;
 	FileBufferReader	m_file_buffer_reader;
-	BodyType			m_body_type;
+	BodyType			m_bodyType;
 	bool				m_done;
 
 
