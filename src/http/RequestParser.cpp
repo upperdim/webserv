@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/25 15:23:45 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/28 08:14:19 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,8 +60,10 @@ void	RequestParser::parseRequestLine(Request& request)
 	LOG_DEBUG("Request::parseRequestLine");
 
 	size_t	pos = request.rawRequest.find("\r\n");
-	if (pos == std::string::npos)
+	if (pos == std::string::npos) {
+		// waiting until we have recieved the whole requestLine
 		return;
+	}
 
 	// read the elements of the requestLine
 	std::istringstream lineStream(request.rawRequest.substr(0, pos).c_str());
@@ -105,40 +107,46 @@ void	RequestParser::parseRequestLine(Request& request)
 
 void	RequestParser::parseHeader(Request& request)
 {
-	size_t	start = 0;
-	size_t	pos, last_pos;
+	size_t headerEnd  = request.rawRequest.find("\r\n\r\n");
 
-	pos = request.rawRequest.find_first_of('\n');
-	last_pos = pos;
-	while (pos != std::string::npos) {
+	if (headerEnd == std::string::npos) {
+		// we need to wait until we have recieved the whole header
+		return;
+	}
+
+	size_t	start = 0;
+	while (start < headerEnd) {
+		size_t	pos = request.rawRequest.find_first_of('\n', start);
+
+		if (pos == std::string::npos) {
+			request.setError(WSSC_BAD_REQUEST);
+			return;
+		}
+
 		std::string line = request.rawRequest.substr(start, pos - start);
 
 		// clean trailing '\r' character
-		if (!line.empty() && line.back() == '\r')
+		if (!line.empty() && line.back() == '\r') 
 			line.pop_back();
 
 		if (line.empty()) {
-			request.setState(Request::State::READING_BODY);
-			//	TODO:	OLD is this still a good idea??
-			// request.rawRequest.clear();
+			request.setError(WSSC_BAD_REQUEST);
 			return;
 		}
 
 		std::pair<std::string, std::string> headerField;
 		if (!splitHeaderField(line, headerField)) {
-			LOG_WARNING("failed to split Header-Field: " + line);
+			LOGT(Log::WARNING, "failed to split Header-Field: " << line);
 			request.setError(WSSC_BAD_REQUEST);
 			return;
 		}
 
 		request.headers[headerField.first] = headerField.second;
 
-		last_pos = pos;
 		start = pos + 1;
-		pos = request.rawRequest.find_first_of("\n", start);
 	}
-	if (last_pos != std::string::npos)
-		request.rawRequest.erase(0, last_pos + 1);
+	request.rawRequest.erase(0, headerEnd + 4);
+	request.setState(Request::State::READING_BODY);
 }
 
 bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
