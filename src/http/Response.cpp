@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 11:29:39 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 16:54:09 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 16:56:09 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,60 +22,8 @@ Response::Response()
 {
 }
 
-// move constructor
-Response::Response(Response&& other)
-	:	m_state(other.m_state),
-		m_protokoll(other.m_protokoll),
-		m_status_code(other.m_status_code),
-		m_status_msg(other.m_status_msg),
-		m_headers(std::move(other.m_headers)),
-		m_body(other.m_body),
-		m_bodyType(other.m_bodyType),
-		m_done(other.m_done)
-{
-	m_file_buffer_reader = std::move(other.m_file_buffer_reader);
-}
-
 Response::~Response()
 {
-}
-
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
-// Response&	Response::operator=(const Response& rhs)
-// {
-// 	if (this != &rhs)
-// 	{
-// 		m_state = rhs.m_state;
-// 		m_protokoll = rhs.m_protokoll;
-// 		m_status_code = rhs.m_status_code;
-// 		m_status_msg = rhs.m_status_msg;
-// 		m_headers = rhs.m_headers;
-// 		m_body = rhs.m_body;
-// 		m_file_buffer_reader = rhs.m_file_buffer_reader;
-// 		m_bodyType = rhs.m_bodyType;
-// 		m_done = rhs.m_done;		
-// 	}
-// 	return (*this);
-// }
-
-Response&	Response::operator=(Response&& rhs)
-{
-	if (this != &rhs)
-	{
-		m_state = rhs.m_state;
-		m_protokoll = std::move(rhs.m_protokoll);
-		m_status_code = std::move(rhs.m_status_code);
-		m_status_msg = rhs.m_status_msg;
-		m_headers = std::move(rhs.m_headers);
-		m_body = std::move(rhs.m_body);
-		m_file_buffer_reader = std::move(rhs.m_file_buffer_reader);
-		m_bodyType = rhs.m_bodyType;
-		m_done = rhs.m_done;
-	}
-	return (*this);
 }
 
 /* ************************************************************************** */
