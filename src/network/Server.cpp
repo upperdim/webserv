@@ -3,16 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:16 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 03:27:38 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 18:10:20 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
 #include <netdb.h>		// getaddrinfo()
 #include <arpa/inet.h>	// inet_ntop()
+#include <fcntl.h>		// O_NONBLOCK
 #include "Server.hpp"
 #include "Log.hpp"
 
@@ -22,6 +23,9 @@ Server::Server(ServerBlock sb) : sockaddr(), serverBlock(sb)
 	if (fd < 0) {
 		throw (std::runtime_error("Error creating socket for Server constructor"));
 	}
+
+	if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
+		throw std::runtime_error("failed to set socket to non-blocking mode with fcntl");
 
 	int yes = 1;
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0)
@@ -41,6 +45,7 @@ Server::Server(ServerBlock sb) : sockaddr(), serverBlock(sb)
 	
 	sockaddr_in* ipv4 = reinterpret_cast<sockaddr_in*>(res->ai_addr);
 	sockaddr = *ipv4;
+	sockaddr.sin_family = AF_INET;
 	freeaddrinfo(res);
 
 	// Set port
@@ -49,16 +54,17 @@ Server::Server(ServerBlock sb) : sockaddr(), serverBlock(sb)
 	// Print host and port
 	char ipStr[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &(sockaddr.sin_addr), ipStr, sizeof(ipStr));
-	// std::cout << "Resolved to: " << ipStr << ":" << ntohs(sockaddr.sin_port) << std::endl;
+
+	std::string hostAndPort = std::string(ipStr) + ":" + std::to_string(ntohs(sockaddr.sin_port));
 
 	err = bind(fd, (struct sockaddr *) &sockaddr, sizeof sockaddr);
 	if (err != 0) {
-		throw (std::runtime_error("Error binding socket for Server constructor: "));
+		throw std::runtime_error("bind() to " + hostAndPort + "failed.");
 	}
 
 	err = listen(fd, LISTEN_BACKLOG);
 	if (err != 0) {
-		throw (std::runtime_error("Error binding socket for Server constructor"));
+		throw std::runtime_error("listen() to " + hostAndPort + "failed.");
 	}
 
 	LOGT(Log::INFO, "Server created with fd = " << fd << ". Listening at " << ipStr << ":" << ntohs(sockaddr.sin_port));

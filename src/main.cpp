@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 17:45:47 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 18:32:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,6 @@ int	main(int argc, char **argv)
 	} catch(const std::exception& e) {
 		LOGT(Log::ERROR, "Critical Exception caught ::");
 		LOGT(Log::ERROR, e.what());
-		g_running = false;
 	}
 
 	std::signal(SIGINT, SIG_DFL);
