@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/28 12:52:11 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 21:05:29 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ public:
 	Request::State			getState(void);
 	void					setState(State state);
 	void					setError(int _statusCode);
-	void					setComplete(void);
+	void					resolveRequestContext(void);
 
 	const LocationBlock&	locationBlock();
 	bool					isAllowedMethod(void);

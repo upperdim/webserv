@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/28 14:11:26 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 21:06:42 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,8 +75,15 @@ void	Request::setError(int errorStatusCode)
 	isComplete = true;
 }
 
-void	Request::setComplete()
+void	Request::resolveRequestContext()
 {
+	//	INFO:	I call this func currently resolveRequestContext(), since it is
+	//			called in RequesParser & Connection. If we move the RequestParser
+	//			into request this might be obsolete, or we do sth complete
+	//			different which depends on your ideas
+
+	// REQUEST RESOLVE PROCESSING FLOW (see WSV-42 bottom)
+	// ===============================
 	// use Host from header to choose ServerBlock.
 	// resolve serverBlock
 	// resolve location via URI

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 19:11:37 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/28 11:33:26 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 21:08:58 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,14 +50,17 @@ void Connection::handleReadEvent(EventManager& event_manager)
 		LOG_INFO_LM("RECIEVED BYTES: ", std::to_string(byetesRead));
 		request.append(buffer, byetesRead);
 		RequestParser::parseNext(request);
-		// TODO:	if (request.checkifComplete())
-		//				request.setComplet();
 	} else if (byetesRead < 0) {
 		LOG_ERROR("recieved bytes: -1 ---> socket error");
 		request.setError(WSSC_INTERNAL_SERVER_ERROR);
 	} else if (byetesRead == 0) {
 		LOG_SUCCESS("Done reading from socket fd: " + std::to_string(socket_fd));
-		request.setComplete();
+		
+		// TODO:	Should we call here the RequestParser::parseNext() again for safty??
+		RequestParser::parseNext(request);
+		////??????????????????????????????
+
+		request.resolveRequestContext();
 	}
 
 	if (request.isComplete)
