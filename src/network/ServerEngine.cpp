@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:23 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 01:44:53 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 03:12:34 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,8 @@
 #include "HTTPMethodHandler.hpp"
 #include "Log.hpp"
 
-ServerEngine::ServerEngine(Config config) {
+ServerEngine::ServerEngine(Config config)
+{
 	// Create servers
 	for (size_t i = 0; i < config.serverBlocks.size(); ++i) {
 		bool isDuplicatePort = false;
@@ -41,7 +42,8 @@ ServerEngine::ServerEngine(Config config) {
 	}
 }
 
-ServerEngine::~ServerEngine() {
+ServerEngine::~ServerEngine()
+{
 	LOG("ServerEngine destructor");
 
 	for (size_t i = 0; i < servers.size(); ++i) {
@@ -55,7 +57,11 @@ ServerEngine::~ServerEngine() {
 	}
 }
 
-void ServerEngine::run() {
+//=============================================================================
+// Main (event) loop
+//=============================================================================
+void ServerEngine::run()
+{
 	while (true) {
 		// if (pollFds.empty())
 		// 	continue; // TODO: (Optimization) sleep instead?
@@ -70,7 +76,8 @@ void ServerEngine::run() {
 	}
 }
 
-void ServerEngine::iteratePollFds(int eventCount) {
+void ServerEngine::iteratePollFds(int eventCount)
+{
 	int counter = 0;
 
 	for (size_t i = 0; i < pollFds.size() && counter < eventCount; ++i) {
@@ -111,7 +118,8 @@ void ServerEngine::iteratePollFds(int eventCount) {
 	}
 }
 
-void ServerEngine::updatePollFds() {
+void ServerEngine::updatePollFds()
+{
 	for (size_t i = 0; i < pollFdsRemovalQueue.size(); ++i) {
 		removeFromPollFds(pollFdsRemovalQueue[i]);
 	}
@@ -129,11 +137,16 @@ void ServerEngine::updatePollFds() {
 	pollFdsRegisterQueue.clear();
 }
 
-void ServerEngine::addToPollFds(int fd) {
+//=============================================================================
+// poll() file descriptors' functions
+//=============================================================================
+void ServerEngine::addToPollFds(int fd)
+{
 	pollFds.push_back( pollfd{fd, POLLIN | POLLERR | POLLHUP, 0} );
 }
 
-void ServerEngine::removeFromPollFds(int fd) {
+void ServerEngine::removeFromPollFds(int fd)
+{
 	for (auto it = pollFds.begin(); it != pollFds.end(); ++it) {
 		if (it->fd == fd) {
 			pollFds.erase(it);
@@ -142,7 +155,8 @@ void ServerEngine::removeFromPollFds(int fd) {
 	}
 }
 
-void ServerEngine::setPollFdEvents(int fd, short events) {
+void ServerEngine::setPollFdEvents(int fd, short events)
+{
 	// TODO: (Optimization) This is called by readClientIncomingData().
 	//       Keep the index of client inside pollFds as a member varaible
 	//       in order to eliminate this iteration?
@@ -155,7 +169,8 @@ void ServerEngine::setPollFdEvents(int fd, short events) {
 	throw std::runtime_error("Could not find fd in pollFds to set the event of.");
 }
 
-void ServerEngine::printPollFds() {
+void ServerEngine::printPollFds()
+{
 	std::cout << "pollFds = <";
 	
 	for (size_t i = 0; i < pollFds.size() - 1; ++i)
@@ -166,7 +181,11 @@ void ServerEngine::printPollFds() {
 	          << std::endl;
 }
 
-void ServerEngine::acceptNewClientConnection(Server& clientConnectedServer) {
+//=============================================================================
+// Connections & Disconnections
+//=============================================================================
+void ServerEngine::acceptNewClientConnection(Server& clientConnectedServer)
+{
 	int clientFd = accept(clientConnectedServer.getFd(), NULL, NULL);
 	if (clientFd == -1) {
 		throw std::runtime_error("Error accepting client connection");
@@ -180,7 +199,8 @@ void ServerEngine::acceptNewClientConnection(Server& clientConnectedServer) {
 	LOGT(Log::INFO, "New ClientConnection accepted, fd = " << clientFd);
 }
 
-void ServerEngine::disconnectClient(int clientFd) {
+void ServerEngine::disconnectClient(int clientFd)
+{
 	LOG("Disconnecting ClientConnection fd = " << clientFd);
 	clients.erase(clientFd);
 	pollFdsRemovalQueue.push_back(clientFd);
@@ -189,7 +209,8 @@ void ServerEngine::disconnectClient(int clientFd) {
 	LOG("ClientConnection fd = " << clientFd << " is closed");
 }
 
-void ServerEngine::stopServer(int serverFd, int serverIdx) {
+void ServerEngine::stopServer(int serverFd, int serverIdx)
+{
 	if (serverIdx < 0) {
 		serverIdx = findServerIndexByFd(serverFd);
 	}
@@ -201,7 +222,11 @@ void ServerEngine::stopServer(int serverFd, int serverIdx) {
 	LOG("Server is removed from the list and queued for removal from pollFds, fd = " << serverFd);
 }
 
-void ServerEngine::readClientIncomingData(int clientFd) {
+//=============================================================================
+// Reading & Writing
+//=============================================================================
+void ServerEngine::readClientIncomingData(int clientFd)
+{
 	ClientConnection& client = getClientConnectionByFd(clientFd);
 	
 	client.receiveRequest();
@@ -218,7 +243,8 @@ void ServerEngine::readClientIncomingData(int clientFd) {
 	}
 }
 
-void ServerEngine::writeToClient(int clientFd) {
+void ServerEngine::writeToClient(int clientFd)
+{
 	ClientConnection& client = getClientConnectionByFd(clientFd);
 
 	client.sendResponse();
@@ -232,14 +258,19 @@ void ServerEngine::writeToClient(int clientFd) {
 	}
 }
 
-int ServerEngine::findServerIndexByFd(int fd) {
+//=============================================================================
+// Utility functions
+//=============================================================================
+int ServerEngine::findServerIndexByFd(int fd)
+{
 	for (size_t i = 0; i < servers.size(); ++i)
 		if (servers[i].getFd() == fd)
 			return i;
 	return -1;
 }
 
-ClientConnection& ServerEngine::getClientConnectionByFd(int fd) {
+ClientConnection& ServerEngine::getClientConnectionByFd(int fd)
+{
 	auto it = clients.find(fd);
 	if (it == clients.end()) { 
 		throw std::runtime_error("getClientConnectionByFd(): fd was not found in clients map");
