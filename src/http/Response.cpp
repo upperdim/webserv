@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 11:29:39 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/19 14:54:47 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 16:54:09 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,23 @@ Response::Response()
 		m_protokoll("HTTP/1.1"),
 		m_status_code(200),
 		m_status_msg(HTTP::getStatusMessage(WSSC_OK)),
-		m_body_type(BodyType::BODY_NONE),
+		m_bodyType(BodyType::BODY_NONE),
 		m_done(false)
 {
+}
+
+// move constructor
+Response::Response(Response&& other)
+	:	m_state(other.m_state),
+		m_protokoll(other.m_protokoll),
+		m_status_code(other.m_status_code),
+		m_status_msg(other.m_status_msg),
+		m_headers(std::move(other.m_headers)),
+		m_body(other.m_body),
+		m_bodyType(other.m_bodyType),
+		m_done(other.m_done)
+{
+	m_file_buffer_reader = std::move(other.m_file_buffer_reader);
 }
 
 Response::~Response()
@@ -30,6 +44,42 @@ Response::~Response()
 /* ************************************************************************** */
 /* ************************************************************************** */
 
+// Response&	Response::operator=(const Response& rhs)
+// {
+// 	if (this != &rhs)
+// 	{
+// 		m_state = rhs.m_state;
+// 		m_protokoll = rhs.m_protokoll;
+// 		m_status_code = rhs.m_status_code;
+// 		m_status_msg = rhs.m_status_msg;
+// 		m_headers = rhs.m_headers;
+// 		m_body = rhs.m_body;
+// 		m_file_buffer_reader = rhs.m_file_buffer_reader;
+// 		m_bodyType = rhs.m_bodyType;
+// 		m_done = rhs.m_done;		
+// 	}
+// 	return (*this);
+// }
+
+Response&	Response::operator=(Response&& rhs)
+{
+	if (this != &rhs)
+	{
+		m_state = rhs.m_state;
+		m_protokoll = std::move(rhs.m_protokoll);
+		m_status_code = std::move(rhs.m_status_code);
+		m_status_msg = rhs.m_status_msg;
+		m_headers = std::move(rhs.m_headers);
+		m_body = std::move(rhs.m_body);
+		m_file_buffer_reader = std::move(rhs.m_file_buffer_reader);
+		m_bodyType = rhs.m_bodyType;
+		m_done = rhs.m_done;
+	}
+	return (*this);
+}
+
+/* ************************************************************************** */
+/* ************************************************************************** */
 
 void	Response::setProtokoll(const std::string& _protokoll)
 {
@@ -49,14 +99,14 @@ void	Response::addHeader(const std::string& key, const std::string& value)
 
 void	Response::setBodyString(const std::string& _body)
 {
-	m_body_type = BodyType::BODY_STRING;
+	m_bodyType = BodyType::BODY_STRING;
 	m_body = _body;
 	m_headers["Content-Length"] = std::to_string(m_body.size());
 }
 
 void	Response::setBodyFileBufferReader(std::string path)
 {
-	m_body_type = BodyType::BODY_FILE_BUFFER;
+	m_bodyType = BodyType::BODY_FILE_BUFFER;
 	m_file_buffer_reader = FileBufferReader(path, RESPONSE_BUFFER_SIZE);
 	m_headers["Content-Length"] = std::to_string(m_file_buffer_reader.getSize());
 }
@@ -65,15 +115,14 @@ std::string	Response::getNextChunk(void)
 {
 	std::string	buff;
 
-	switch (m_state)
-	{
+	switch (m_state) {
 		case (ResponseState::SEND_HEADER):
 			buff = getHeader();
-			progressState();
+			setState(m_bodyType == BodyType::BODY_NONE ? ResponseState::SEND_COMPLETE : ResponseState::SEND_BODY);
 			break ;
 		case (ResponseState::SEND_BODY):
 			buff = getNextBodyChunk();
-			progressState();
+			checkBodyState();
 			break ;
 		case (ResponseState::SEND_COMPLETE):
 			m_done = true;
@@ -81,7 +130,28 @@ std::string	Response::getNextChunk(void)
 		default:
 			break ;
 	}
+
 	return (buff);
+}
+
+void	Response::checkBodyState()
+{
+	if (m_bodyType == BodyType::BODY_STRING) {
+		if (m_body.empty()) {
+			setState(ResponseState::SEND_COMPLETE);
+		}
+	} else if (m_bodyType == BodyType::BODY_FILE_BUFFER) {
+		switch (m_file_buffer_reader.getState()) {
+			case (FileBuffer::State::COMPLETE):
+				setState(ResponseState::SEND_COMPLETE);
+				break ;
+			case (FileBuffer::State::ERROR):
+				setState(ResponseState::SEND_ERROR);
+				break ;
+			default:
+				break ;
+		}
+	}
 }
 
 bool	Response::complete(void) const
@@ -133,7 +203,7 @@ std::string	Response::getNextBodyChunk(void)
 {
 	std::stringstream	ss;
 
-	switch (m_body_type)
+	switch (m_bodyType)
 	{
 		case (BodyType::BODY_STRING):
 			ss << m_body.substr(0, RESPONSE_BUFFER_SIZE);
@@ -149,41 +219,6 @@ std::string	Response::getNextBodyChunk(void)
 	}
 
 	return ( ss.str() );
-}
-
-void	Response::progressState(void)
-{
-	switch (m_state)
-	{
-		case (ResponseState::SEND_HEADER):
-			setState(ResponseState::SEND_BODY);
-			if (m_body_type == BodyType::BODY_NONE)
-				setState(ResponseState::SEND_COMPLETE);
-			break ;
-		case (ResponseState::SEND_BODY):
-			if (m_body_type == BodyType::BODY_STRING)
-			{
-				if (m_body.empty() || m_body.length() == 0)
-					setState(ResponseState::SEND_COMPLETE);
-			}
-			else if (m_body_type == BodyType::BODY_FILE_BUFFER)
-			{
-				switch (m_file_buffer_reader.getState())
-				{
-					case (FileBuffer::State::COMPLETE):
-						setState(ResponseState::SEND_COMPLETE);
-						break ;
-					case (FileBuffer::State::ERROR):
-						setState(ResponseState::SEND_ERROR);
-						break ;
-					default:
-						break ;
-				}
-			}
-			break ;
-		default:
-			break ;
-	}
 }
 
 void	Response::setState(ResponseState _state)

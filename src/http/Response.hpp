@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 11:29:40 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/19 14:54:55 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 16:53:06 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,12 +61,15 @@ private:
 	HeaderMap			m_headers;
 	std::string			m_body;
 	FileBufferReader	m_file_buffer_reader;
-	BodyType			m_body_type;
+	BodyType			m_bodyType;
 	bool				m_done;
+
+
+	Response(const Response& other); // copy constructor =delete
 
 	std::string			getHeader(void) const;
 	std::string			getNextBodyChunk(void);
-	void				progressState(void);
+	void				checkBodyState();
 	void				setState(ResponseState _state);
 };
 
