@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 17:02:02 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 17:28:31 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ Config parseConfig(std::string configFilePath)
 		config.printConfigs();
 	} catch (std::exception& e) {
 		Log::error(e.what());
+		exit(EXIT_FAILURE);
 	}
 
 	return config;
