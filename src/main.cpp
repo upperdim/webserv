@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 18:32:55 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 01:05:22 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,6 @@
 #include "Parser.hpp"
 #include "ServerEngine.hpp"
 #include "Log.hpp"
-
-bool	g_running = true;
 
 Config parseConfig(std::string configFilePath)
 {
@@ -55,7 +53,7 @@ int	main(int argc, char **argv)
 	std::string configFilePath = handleArgs(argc, argv);
 	Config config = parseConfig(configFilePath);
 
-	std::signal(SIGINT, handleAbort);
+	std::signal(SIGINT,  handleAbort);
 	std::signal(SIGQUIT, handleAbort);
 
 	try {
@@ -66,7 +64,7 @@ int	main(int argc, char **argv)
 		LOGT(Log::ERROR, e.what());
 	}
 
-	std::signal(SIGINT, SIG_DFL);
+	std::signal(SIGINT,  SIG_DFL);
 	std::signal(SIGQUIT, SIG_DFL);
 
 	return 0;

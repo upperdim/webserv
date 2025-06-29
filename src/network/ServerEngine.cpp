@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerEngine.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:23 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 18:35:43 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 01:06:11 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 #include "HTTP.hpp"
 #include "HTTPMethodHandler.hpp"
 #include "Log.hpp"
+
+volatile std::sig_atomic_t ServerEngine::isRunning = false;
 
 ServerEngine::ServerEngine(Config config)
 {
@@ -64,13 +66,15 @@ ServerEngine::~ServerEngine()
 //=============================================================================
 void ServerEngine::run()
 {
-	while (g_running) {
+	isRunning = true;
+	
+	while (isRunning) {
 		if (pollFds.empty()) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(EMPTY_POLLFDS_SLEEP_TIME_MS));
 		}
 
 		int eventCount = poll(pollFds.data(), pollFds.size(), POLL_TIMEOUT_MS);
-		if (eventCount == -1 && g_running) {
+		if (eventCount == -1 && isRunning) {
 			throw std::runtime_error("poll() error");
 		}
 		
@@ -78,7 +82,7 @@ void ServerEngine::run()
 		updatePollFds();
 	}
 
-	LOGT(Log::INFO, "shutting down webserv.");
+	LOGT(Log::INFO, "ServerEngine stopped, shutting down webserv.");
 }
 
 void ServerEngine::iteratePollFds(int eventCount)
