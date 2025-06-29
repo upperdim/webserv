@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 21:12:25 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 21:39:23 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,23 +30,23 @@ RequestParser::~RequestParser()
 
 void	RequestParser::parseNext(Request& request)
 {
-	LOG_DEBUG("---> RequestParser::parseNext");
+	LOGT(Log::INFO, "===> RequestParser::parseNext");
 	if (request.getState() == Request::State::READING_REQUEST_LINE) {
-		LOG_DEBUG("===> REQUEST READING_REQUEST_LINE");
+		LOGT(Log::INFO, "---> Reqeust: parse requestLine");
 		parseRequestLine(request);
 	}
 	if (request.getState() == Request::State::READING_HEADERS) {
-		LOG_DEBUG("===> REQUEST READING_HEADERS");
+		LOGT(Log::INFO, "---> Request: parser headers");
 		parseHeader(request);
 	}
 	if (request.getState() == Request::State::READING_BODY) {
-		LOG_DEBUG("===> REQUEST READING_BODY");
+		LOGT(Log::INFO, "---> Request: body");
 		//	TODO:	skipping for now
 		request.setState(Request::State::COMPLETE);
 	}
 	if (request.getState() == Request::State::COMPLETE) {
 		//	TODO:	delete, just as an indication that the request is complete
-		LOG_DEBUG("===> REQUEST COMPLETE");
+		LOGT(Log::INFO, "LOGT(Log::INFO, Request: COMPLETE");
 	}
 	if (request.getState() == Request::State::COMPLETE || request.getState() == Request::State::INVALID)
 		request.resolveRequestContext();
@@ -59,8 +59,6 @@ void	RequestParser::parseNext(Request& request)
 
 void	RequestParser::parseRequestLine(Request& request)
 {
-	LOG_DEBUG("Request::parseRequestLine");
-
 	size_t	requestLineEnd = request.rawRequest.find("\r\n");
 	if (requestLineEnd == std::string::npos) {
 		// waiting until we have recieved the whole requestLine
@@ -84,7 +82,9 @@ void	RequestParser::parseRequestLine(Request& request)
 		return;
 	}
 
-	LOG_DEBUG(std::string("RAW       ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.method) + " " + LIGHTGREEN + request.requestTarget + " " + LIGHTBLUE + request.protokoll);
+	LOG("---> raw requestLine:       " << LIGHTRED << HTTP::methodToString(request.method)
+		<< " " << LIGHTGREEN << request.requestTarget << " " << LIGHTBLUE
+		<< request.protokoll);
 
 	if (!validateHttpMethod(methodStr, request)) {
 		request.setError(WSSC_BAD_REQUEST);
@@ -101,7 +101,8 @@ void	RequestParser::parseRequestLine(Request& request)
 		return;
 	}
 
-	LOG_DEBUG(std::string("validated ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.method) + " " + LIGHTGREEN + request.URI + " " + LIGHTBLUE + request.protokoll);
+	LOG("---> validated requestLine: " << LIGHTRED << HTTP::methodToString(request.method)
+		<< " " << LIGHTGREEN << request.URI << " " << LIGHTBLUE << request.protokoll);
 
 	request.rawRequest.erase(0, requestLineEnd + 2);
 	request.setState(Request::State::READING_HEADERS);

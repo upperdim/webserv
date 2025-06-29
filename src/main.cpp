@@ -3,33 +3,38 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/17 19:42:21 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 18:32:55 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Config.hpp"
-#include "Lexer.hpp"
 #include "Parser.hpp"
-#include "EventManager.hpp"
-#include "Server.hpp"
+#include "ServerEngine.hpp"
 #include "Log.hpp"
 
 bool	g_running = true;
 
-void	terminate(std::string msg, int exit_code)
+Config parseConfig(std::string configFilePath)
 {
-	if (exit_code == 0)
-		Log::info(msg);
-	else
-		Log::error(msg);
-	exit(exit_code);
+	Config config;
+
+	try {
+		Parser	parser(configFilePath);
+		config = parser.parse();
+		config.printConfigs();
+	} catch (std::exception& e) {
+		LOGT(Log::ERROR, e.what());
+		exit(EXIT_FAILURE);
+	}
+
+	return config;
 }
 
-int	main(int argc, char **argv)
+std::string handleArgs(int argc, char **argv)
 {
 	std::string configFilePath;
 
@@ -39,46 +44,30 @@ int	main(int argc, char **argv)
 	} else if (argc == 2) {
 		configFilePath = argv[1];
 	} else {
-		configFilePath = "default.conf"; // default config path
+		configFilePath = "default.conf";
 	}
+
+	return configFilePath;
+}
+
+int	main(int argc, char **argv)
+{
+	std::string configFilePath = handleArgs(argc, argv);
+	Config config = parseConfig(configFilePath);
 
 	std::signal(SIGINT, handleAbort);
 	std::signal(SIGQUIT, handleAbort);
 
-	Config config;
-
-	try	{
-		Lexer lexer(readFile(configFilePath));
-		std::vector<Token> tokens = lexer.tokenize();
-		// lexer.printTokens(tokens);
-		Parser	parser(tokens);
-
-		config = parser.parse();
-		config.printConfigs();
-	} catch (const std::exception& e)	{
-		terminate(e.what(), 1);
-	}
-
 	try {
-		EventManager event_manager(g_running);
-		std::vector<Server*> serverList; // TODO: delete / free
-		
-		for (size_t i = 0; i < config.serverBlocks.size(); ++i) {
-			serverList.push_back(new Server(config.serverBlocks[i]));
-			event_manager.registerFd(serverList[i], POLLIN | POLLERR | POLL_HUP);
-		}
-		
-		event_manager.processPendingRegistrations();
-
-		event_manager.run();
+		ServerEngine serverEngine(config);
+		serverEngine.run();
 	} catch(const std::exception& e) {
-		LOG_ERROR_LM("Critical Exception caught","::");
-		LOG_ERROR(e.what());
-		g_running = false;
+		LOGT(Log::ERROR, "Critical Exception caught ::");
+		LOGT(Log::ERROR, e.what());
 	}
 
 	std::signal(SIGINT, SIG_DFL);
 	std::signal(SIGQUIT, SIG_DFL);
 
-	return (0);
+	return 0;
 }

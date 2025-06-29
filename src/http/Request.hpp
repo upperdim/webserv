@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 21:05:29 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 21:23:19 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,15 +32,13 @@ public:
 		INVALID
 	};
 
-	// move assignment operator
-	Request&		operator=(Request&& rhs);
-
 	void					append(const char *buf, const size_t bytes_read);
 	void					reset(void);
 
 	Request::State			getState(void);
 	void					setState(State state);
 	void					setError(int _statusCode);
+	void					setComplete(void);
 	void					resolveRequestContext(void);
 
 	const LocationBlock&	locationBlock();

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Lexer.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 11:38:25 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/16 11:11:03 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 17:08:43 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,23 +35,19 @@ Lexer::~Lexer()
 /* ************************************************************************** */
 
 
-std::vector<Token>	Lexer::tokenize(void)
+void	Lexer::tokenize(std::vector<Token>& tokens)
 {
-	std::vector<Token> tokens;
-
 	while (m_pos < m_input.length()) {
 		Token token = nextToken();
 
 		//	TODO:	decide if we process INVALID tokens or if we just leave them out
 		//			currently I decided to add INVALID tokens to the list… lets see…
 		// if (token.type != TokenType::INVALID)
-			tokens.emplace_back(token);
+		tokens.emplace_back(token);
 	}
 
 	if (tokens.size() == 0 || tokens.back().type != TokenType::END_OF_INPUT)
 		tokens.emplace_back(Token(TokenType::END_OF_INPUT, m_line));
-
-	return tokens;
 }
 
 Token	Lexer::nextToken(bool _precededByComment)

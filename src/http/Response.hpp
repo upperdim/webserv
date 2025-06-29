@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 11:29:40 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/28 08:30:56 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 16:53:06 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,38 +25,30 @@ class Response
 {
 public:
 	Response();
-	Response(Response&& other);			// move constructor
 	~Response();
 
-	// copy assignement operator overload
-	// Response&	operator=(const Response& rhs);	
-	// move assignement operator overload
-	Response&	operator=(Response&& rhs);
+	void				setProtokoll(const std::string& _protokoll);
+	void				setStatus(const int& _status_code);
+	void				addHeader(const std::string& key, const std::string& value);
+	void				setBodyString(const std::string& _body);
+	void				setBodyFileBufferReader(std::string path);
+	std::string			getNextChunk(void);
 
-	void		setProtokoll(const std::string& _protokoll);
-	void		setStatus(const int& _status_code);
-	void		addHeader(const std::string& key, const std::string& value);
-	void		setBodyString(const std::string& _body);
-	void		setBodyFileBufferReader(std::string path);
-	std::string	getNextChunk(void);
-
-	bool		complete(void) const;
-	bool		error(void) const;
+	bool				complete(void) const;
+	bool				error(void) const;
 	
 	// for debugging
-	std::string	getResponseStateString();
+	std::string			getResponseStateString();
 
 private:
-	enum class ResponseState
-	{
+	enum class ResponseState {
 		SEND_HEADER,
 		SEND_BODY,
 		SEND_COMPLETE,
 		SEND_ERROR
 	};
 
-	enum class BodyType
-	{
+	enum class BodyType {
 		BODY_NONE,
 		BODY_STRING,
 		BODY_FILE_BUFFER,

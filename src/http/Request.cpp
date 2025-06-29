@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 21:06:42 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 21:27:02 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,23 +26,6 @@ Request::Request(const ServerBlock& _serverBlock)
 Request::~Request()
 {
 }
-
-// move assignment operator
-Request&	Request::operator=(Request&& rhs)
-{
-	if (this != &rhs) {
-		rawRequest		= std::move(rhs.rawRequest);
-		method			= rhs.method;
-		statusCode		= rhs.statusCode;
-		requestTarget	= std::move(rhs.requestTarget);
-		URI				= std::move(rhs.URI);
-		protokoll		= std::move(rhs.protokoll);
-		headers			= std::move(rhs.headers);
-		m_state			= rhs.m_state;
-	}
-	return *this;
-}
-
 
 /* ************************************************************************** */
 /* ************************************************************************** */
@@ -75,10 +58,23 @@ void	Request::setError(int errorStatusCode)
 	isComplete = true;
 }
 
-void	Request::resolveRequestContext()
+// I added this function so it can be called from clientConnection when
+// (recv == 0)
+// it made more sense to call setComplete() there instead of calling
+// resolveRequestContext()
+// I am intressted on your thoughts…
+void	Request::setComplete(void)
+{
+	if (m_state != State::INVALID)
+		m_state = State::COMPLETE;
+	isComplete = true;
+	resolveRequestContext();
+}
+
+void	Request::resolveRequestContext(void)
 {
 	//	INFO:	I call this func currently resolveRequestContext(), since it is
-	//			called in RequesParser & Connection. If we move the RequestParser
+	//			called in RequesParser. If we move the RequestParser
 	//			into request this might be obsolete, or we do sth complete
 	//			different which depends on your ideas
 
