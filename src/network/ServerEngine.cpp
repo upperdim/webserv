@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:23 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 03:19:56 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 18:28:29 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,13 +64,13 @@ ServerEngine::~ServerEngine()
 //=============================================================================
 void ServerEngine::run()
 {
-	while (true) {
+	while (g_running) {
 		if (pollFds.empty()) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(EMPTY_POLLFDS_SLEEP_TIME_MS));
 		}
 
 		int eventCount = poll(pollFds.data(), pollFds.size(), POLL_TIMEOUT_MS);
-		if (eventCount == -1) {
+		if (eventCount == -1 && g_running) {
 			throw std::runtime_error("poll() error");
 		}
 		
