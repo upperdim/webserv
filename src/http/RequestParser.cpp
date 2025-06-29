@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 21:05:34 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 21:12:25 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,14 +61,14 @@ void	RequestParser::parseRequestLine(Request& request)
 {
 	LOG_DEBUG("Request::parseRequestLine");
 
-	size_t	pos = request.rawRequest.find("\r\n");
-	if (pos == std::string::npos) {
+	size_t	requestLineEnd = request.rawRequest.find("\r\n");
+	if (requestLineEnd == std::string::npos) {
 		// waiting until we have recieved the whole requestLine
 		return;
 	}
 
 	// read the elements of the requestLine
-	std::istringstream lineStream(request.rawRequest.substr(0, pos).c_str());
+	std::istringstream lineStream(request.rawRequest.substr(0, requestLineEnd).c_str());
 	std::string methodStr;
 	if (!std::getline(lineStream, methodStr, ' ') ||
 	    !std::getline(lineStream, request.requestTarget, ' ') ||
@@ -103,7 +103,7 @@ void	RequestParser::parseRequestLine(Request& request)
 
 	LOG_DEBUG(std::string("validated ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.method) + " " + LIGHTGREEN + request.URI + " " + LIGHTBLUE + request.protokoll);
 
-	request.rawRequest.erase(0, pos + 2);
+	request.rawRequest.erase(0, requestLineEnd + 2);
 	request.setState(Request::State::READING_HEADERS);
 }
 
