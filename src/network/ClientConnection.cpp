@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:08 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 03:26:10 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 17:22:04 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,8 @@ ClientConnection::ClientConnection(int fd, Server& connectedServer)
 void ClientConnection::receiveRequest()
 {
 	LOG("Reading from ClientConnection fd = " << fd);
-	char buffer[REQUEST_BUFFER_SIZE];
-	ssize_t bytesRead = recv(fd, &buffer, REQUEST_BUFFER_SIZE - 1, 0);
+	char buffer[RECV_BUFFER_SIZE];
+	ssize_t bytesRead = recv(fd, &buffer, RECV_BUFFER_SIZE - 1, 0);
 	LOG(bytesRead << " bytes read");
 
 	if (bytesRead > 0) {

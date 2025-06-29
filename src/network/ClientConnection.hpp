@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:13 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 03:26:23 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 17:21:32 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #include "Request.hpp"
 #include "Response.hpp"
 
-#define REQUEST_BUFFER_SIZE	2048
+#define RECV_BUFFER_SIZE	2048
 
 class ClientConnection
 {
