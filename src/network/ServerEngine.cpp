@@ -6,12 +6,14 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:23 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 03:12:34 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 03:19:56 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
-#include <unistd.h>  // close()
+#include <unistd.h> // close()
+#include <thread>   // std::this_thread::sleep_for
+#include <chrono>   // std::chrono::seconds
 #include "ServerEngine.hpp"
 #include "ClientConnection.hpp"
 #include "HTTP.hpp"
@@ -63,8 +65,9 @@ ServerEngine::~ServerEngine()
 void ServerEngine::run()
 {
 	while (true) {
-		// if (pollFds.empty())
-		// 	continue; // TODO: (Optimization) sleep instead?
+		if (pollFds.empty()) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(EMPTY_POLLFDS_SLEEP_TIME_MS));
+		}
 
 		int eventCount = poll(pollFds.data(), pollFds.size(), POLL_TIMEOUT_MS);
 		if (eventCount == -1) {
