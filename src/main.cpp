@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 17:28:31 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 17:42:56 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ Config parseConfig(std::string configFilePath)
 		config = parser.parse();
 		config.printConfigs();
 	} catch (std::exception& e) {
-		Log::error(e.what());
+		LOGT(Log::ERROR, e.what());
 		exit(EXIT_FAILURE);
 	}
 
@@ -62,8 +62,8 @@ int	main(int argc, char **argv)
 		ServerEngine serverEngine(config);
 		serverEngine.run();
 	} catch(const std::exception& e) {
-		LOG_ERROR_LM("Critical Exception caught","::");
-		LOG_ERROR(e.what());
+		LOGT(Log::ERROR, "Critical Exception caught ::");
+		LOGT(Log::ERROR, e.what());
 		g_running = false;
 	}
 
