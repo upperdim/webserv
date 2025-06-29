@@ -1,20 +1,29 @@
+# OS
 .DS_Store
+
+# Binary
 obj/
 *.o
+webserv
+
+# Dev tools
 .vscode
 .idea
+*.bat
+*.ps1
 
-webserv
+# Demo folders
+local/
+error_pages/
+html*/
+www/
+
+# Demo files
 *.html
 *.png
 *.jpg
 *.md
 *.ico
-error_pages/
-html*/
-www/
-*.conf
 
-local/
-*.bat
-*.ps1
+# Config
+*.conf
