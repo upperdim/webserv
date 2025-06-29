@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Lexer.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:11:45 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/13 11:00:43 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 17:06:44 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,10 +27,10 @@ public:
 	Lexer(const Lexer& other);
 	~Lexer();
 	
-	std::vector<Token>	tokenize(void);
-	void				printTokens(std::vector<Token>& tokens);
+	void		tokenize(std::vector<Token>& tokens);
+	void		printTokens(std::vector<Token>& tokens);
 
-	bool	precededByComment = false;
+	bool		precededByComment = false;
 
 private:
 	void		markStart(void);

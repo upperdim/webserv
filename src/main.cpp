@@ -6,13 +6,12 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 03:25:44 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 17:02:02 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Config.hpp"
-#include "Lexer.hpp"
 #include "Parser.hpp"
 #include "ServerEngine.hpp"
 #include "Log.hpp"
@@ -24,11 +23,7 @@ Config parseConfig(std::string configFilePath)
 	Config config;
 
 	try {
-		Lexer lexer(readFile(configFilePath));
-		std::vector<Token> tokens = lexer.tokenize();
-		// lexer.printTokens(tokens);
-		Parser	parser(tokens);
-
+		Parser	parser(configFilePath);
 		config = parser.parse();
 		config.printConfigs();
 	} catch (std::exception& e) {
