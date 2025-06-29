@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/17 19:42:21 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 03:25:44 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,8 @@
 
 bool	g_running = true;
 
-Config parseConfig(std::string configFilePath) {
+Config parseConfig(std::string configFilePath)
+{
 	Config config;
 
 	try {
@@ -37,7 +38,8 @@ Config parseConfig(std::string configFilePath) {
 	return config;
 }
 
-std::string handleArgs(int argc, char **argv) {
+std::string handleArgs(int argc, char **argv)
+{
 	std::string configFilePath;
 
 	if (argc > 2) {

@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:26 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 03:19:45 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 03:27:59 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,8 @@
 #define EMPTY_POLLFDS_SLEEP_TIME_MS	200
 #define POLL_TIMEOUT_MS				2000
 
-class ServerEngine {
+class ServerEngine
+{
 private:
 	std::vector<Server>							servers;
 	std::unordered_map<int, ClientConnection>	clients;              // Key: fd, value: ClientConnection

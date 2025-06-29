@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:08 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 01:45:12 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 03:26:10 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,12 @@ ClientConnection::ClientConnection(int fd, Server& connectedServer)
 	:	fd(fd),
 		connectedServer(connectedServer),
 		connectionError(false),
-		request(connectedServer.getServerBlockRef()) {}
+		request(connectedServer.getServerBlockRef())
+{
+}
 
-void ClientConnection::receiveRequest() {
+void ClientConnection::receiveRequest()
+{
 	LOG("Reading from ClientConnection fd = " << fd);
 	char buffer[REQUEST_BUFFER_SIZE];
 	ssize_t bytesRead = recv(fd, &buffer, REQUEST_BUFFER_SIZE - 1, 0);
@@ -41,7 +44,8 @@ void ClientConnection::receiveRequest() {
 	}
 }
 
-void ClientConnection::sendResponse() {
+void ClientConnection::sendResponse()
+{
 	LOG("Writing to ClientConnection fd = " << fd);
 	
 	std::string	chunk = response.getNextChunk();

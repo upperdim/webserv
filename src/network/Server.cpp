@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:16 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/27 02:25:16 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 03:27:38 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,8 @@
 #include "Server.hpp"
 #include "Log.hpp"
 
-Server::Server(ServerBlock sb) : sockaddr(), serverBlock(sb) {
+Server::Server(ServerBlock sb) : sockaddr(), serverBlock(sb)
+{
 	fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd < 0) {
 		throw (std::runtime_error("Error creating socket for Server constructor"));
@@ -63,10 +64,5 @@ Server::Server(ServerBlock sb) : sockaddr(), serverBlock(sb) {
 	LOGT(Log::INFO, "Server created with fd = " << fd << ". Listening at " << ipStr << ":" << ntohs(sockaddr.sin_port));
 }
 
-int Server::getFd() {
-	return fd;
-}
-
-ServerBlock& Server::getServerBlockRef() {
-	return serverBlock;
-}
+int          Server::getFd()             { return fd; }
+ServerBlock& Server::getServerBlockRef() { return serverBlock; }
