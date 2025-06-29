@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/25 11:07:12 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 01:46:32 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,35 +31,20 @@ public:
 		COMPLETE
 	};
 
-	// move assignment operator
-	Request&		operator=(Request&& rhs);
+	void					append(const char *buf, const size_t bytes_read);
+	void					reset(void);
 
-	void			append(const char *buf, const size_t bytes_read);
-	void			reset(void);
+	Request::State			getState(void);
+	void					setState(State state);
 
-	Request::State	getState(void);
-	void			setState(State state);
+	void					setError(int _statusCode);
+	bool					error(void);
 
-	void			setError(int _statusCode);
-	bool			error(void);
-
-	void			setComplete(void);
-	bool			complete(void);
+	void					setComplete(void);
+	bool					complete(void);
 
 	int						getStatusCode(void) const;
 	std::string				getRequestTarget(void) const;
-
-	// here I use some OOP trickery and uses locationBlock as a privat member
-	// and access it only through the locationBlock() method.
-	// Because Location can change from request to request it is a pointer and
-	// can be set to NULL (on inital setup and on reset).
-	// In the locationBlock() method I check the current state of
-	// m_locationBlock and if it is NULL I set a new m_locationBlock or set it
-	// to a default one and return this locationBlock.
-	// Through this private member and locationBlock getter, which I will not
-	// name getLocationBlock() but rather locationBlock() like a variable name
-	// I protect m_locationBlock.
-	// what do you think, do you like it?
 	const LocationBlock&	locationBlock();
 	bool					isAllowedMethod(void);
 

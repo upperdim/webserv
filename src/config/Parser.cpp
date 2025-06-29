@@ -3,19 +3,22 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/22 10:10:59 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 17:06:40 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Parser.hpp"
+#include "Lexer.hpp"
+#include "webserv.hpp"
 
-Parser::Parser(const std::vector<Token>& _tokens)
-	:	m_tokens(_tokens),
-		m_pos(0)
+Parser::Parser(std::string configFilePath)
+	:	m_pos(0)
 {
+	Lexer lexer(readFile(configFilePath));
+	lexer.tokenize(m_tokens);
 }
 
 Parser::~Parser()

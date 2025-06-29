@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/25 11:27:32 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/29 01:46:41 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,24 +26,6 @@ Request::Request(const ServerBlock& _serverBlock)
 Request::~Request()
 {
 }
-
-// move assignment operator
-Request&	Request::operator=(Request&& rhs)
-{
-	if (this != &rhs) {
-		rawRequest		= std::move(rhs.rawRequest);
-		method			= rhs.method;
-		statusCode		= rhs.statusCode;
-		requestTarget	= std::move(rhs.requestTarget);
-		URI				= std::move(rhs.URI);
-		protokoll		= std::move(rhs.protokoll);
-		headers			= std::move(rhs.headers);
-		m_state			= rhs.m_state;
-		m_error			= rhs.m_error;
-	}
-	return *this;
-}
-
 
 /* ************************************************************************** */
 /* ************************************************************************** */

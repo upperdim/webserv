@@ -13,7 +13,6 @@
 #ifndef WEBSERV_H
 # define WEBSERV_H
 
-# define REQUEST_BUFFER_SIZE 1024
 // a good default RESPONSE_BUFFER_SIZE seams to be 64kb - 128kb
 # define RESPONSE_BUFFER_SIZE (64 * 1024)
 

@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/20 21:28:15 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/29 17:06:58 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,13 +31,13 @@
 class Parser
 {
 public:
-	Parser(const std::vector<Token>& _tokens);
+	Parser(std::string configFilePath);
 	~Parser();
 
 	Config	parse(void);
 
 private:
-	const std::vector<Token>&	m_tokens;
+	std::vector<Token>	m_tokens;
 	size_t						m_pos;
 
 	const Token&	prev(void) const;
