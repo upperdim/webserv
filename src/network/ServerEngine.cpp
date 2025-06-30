@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:23 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 21:28:26 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 10:17:15 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 #include "HTTP.hpp"
 #include "HTTPMethodHandler.hpp"
 #include "Log.hpp"
+
+volatile std::sig_atomic_t ServerEngine::isRunning = false;
 
 ServerEngine::ServerEngine(Config config)
 {
@@ -64,13 +66,15 @@ ServerEngine::~ServerEngine()
 //=============================================================================
 void ServerEngine::run()
 {
-	while (g_running) {
+	isRunning = true;
+	
+	while (isRunning) {
 		if (pollFds.empty()) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(EMPTY_POLLFDS_SLEEP_TIME_MS));
 		}
 
 		int eventCount = poll(pollFds.data(), pollFds.size(), POLL_TIMEOUT_MS);
-		if (eventCount == -1 && g_running) {
+		if (eventCount == -1 && isRunning) {
 			throw std::runtime_error("poll() error");
 		}
 		
@@ -78,7 +82,7 @@ void ServerEngine::run()
 		updatePollFds();
 	}
 
-	LOGT(Log::INFO, "shutting down webserv.");
+	LOGT(Log::INFO, "ServerEngine stopped, shutting down webserv.");
 }
 
 void ServerEngine::iteratePollFds(int eventCount)
@@ -217,7 +221,11 @@ void ServerEngine::disconnectClient(int clientFd)
 void ServerEngine::stopServer(int serverFd, int serverIdx)
 {
 	if (serverIdx < 0) {
+		LOG("stopServer(): serverIdx not provided, attempting to find by server fd...");
 		serverIdx = findServerIndexByFd(serverFd);
+		if (serverIdx < 0) {
+			throw std::runtime_error("stopServer(): serverIdx not provided and not found");
+		}
 	}
 
 	close(serverFd);

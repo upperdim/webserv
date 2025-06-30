@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:26 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 03:27:59 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/30 01:03:07 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ public:
 	ServerEngine(Config config);
 	~ServerEngine();
 
+	static volatile std::sig_atomic_t			isRunning;
 	void										run();
 };
 
