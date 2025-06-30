@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/30 11:01:31 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 11:53:08 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,16 @@ private:
 	std::vector<Token>	m_tokens;
 	size_t				m_pos;
 
+	typedef struct s_parsedDirectives {
+		bool listen				= false;
+		bool clientMaxBodySize	= false;
+		bool root				= false;
+		bool route				= false;
+		bool autoIndex			= false;
+		bool allowUpload		= false;
+		bool uploadDir			= false;
+	} t_parsedDirectives;
+
 	const Token&	prev(void) const;
 	const Token&	peek(void) const;
 	const Token&	advance(void);
@@ -50,8 +60,8 @@ private:
 
 	void			skipEventsDirective(void);
 	void			parseHttpDirective(Config& config);
-	void			parseServerBlock(ServerBlock& server);
-	void			parseServerDirectives(ServerBlock& server);
+	void			parseServerBlock(ServerBlock& server, t_parsedDirectives& parsedDirectives);
+	void			parseServerDirectives(ServerBlock& server, t_parsedDirectives& parsedDirectives);
 	void			parseLocationBlock(LocationBlock& location);
 	void			parseLocationDirectives(LocationBlock& location);
 

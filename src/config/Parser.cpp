@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/30 11:29:24 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 11:53:22 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,7 +160,8 @@ void	Parser::parseHttpDirective(Config& config)
 		switch (directive.keywordType) {
 			case KeywordType::SERVER: {
 				ServerBlock serverBlock;
-				parseServerBlock(serverBlock);
+				t_parsedDirectives parsedDirectives;
+				parseServerBlock(serverBlock, parsedDirectives);
 				config.serverBlocks.emplace_back(serverBlock);
 				break ;
 			}
@@ -172,7 +173,7 @@ void	Parser::parseHttpDirective(Config& config)
 	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
 }
 
-void	Parser::parseServerBlock(ServerBlock& server)
+void	Parser::parseServerBlock(ServerBlock& server, t_parsedDirectives& parsedDirectives)
 {
 	const Token& directive = advance();	//	consumes SERVER directive
 
@@ -191,13 +192,13 @@ void	Parser::parseServerBlock(ServerBlock& server)
 			parseLocationBlock(location);
 			server.locationBlocks.emplace_back(location);
 		} else {
-			parseServerDirectives(server);
+			parseServerDirectives(server, parsedDirectives);
 		}
 	}
 	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
 }
 
-void	Parser::parseServerDirectives(ServerBlock& server)
+void	Parser::parseServerDirectives(ServerBlock& server, t_parsedDirectives& parsedDirectives)
 {
 	const Token& directive = advance();	// grab the current directive token
 
@@ -216,24 +217,25 @@ void	Parser::parseServerDirectives(ServerBlock& server)
 
 	switch (directive.keywordType) {
 		case KeywordType::LISTEN:
-			if (server.parsedDirectives.listen)
+			if (parsedDirectives.listen)
 				Throw::DuplicateListenDirective(directive, server);
-			server.parsedDirectives.listen = true;
+			parsedDirectives.listen = true;
 			parseListenDirective(directive, params, server);
 			break;
 		case KeywordType::SERVER_NAME: 			parseServerNameDirective(directive, params, server); break;
 		case KeywordType::ERROR_PAGE: 			parseErrorPageDirective(directive, params, server); break;
 		case KeywordType::CLIENT_MAX_BODY_SIZE:
-			if (server.parsedDirectives.clientMaxBodySize)
+			if (parsedDirectives.clientMaxBodySize)
 				Throw::DuplicateDirective(directive);
-			server.parsedDirectives.clientMaxBodySize = true;
+			parsedDirectives.clientMaxBodySize = true;
 			parseClientMaxBodySizeDirective(directive, params, server.clientMaxBodySize);
 			break;
 		case KeywordType::ROOT:
-			if (server.parsedDirectives.root)
+			if (parsedDirectives.root)
 				Throw::DuplicateDirective(directive);
-			server.parsedDirectives.root = true;
-			parseUri(directive, params, server.root); break;
+			parsedDirectives.root = true;
+			parseUri(directive, params, server.root);
+			break;
 		case KeywordType::INDEX: 				parseIndexDirective(directive, params, server.index); break;
 		default:								Throw::UnknownOrUnsupportedDirective(directive);
 	}
