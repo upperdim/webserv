@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/30 11:42:31 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 17:04:28 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ public:
 
 	// Multiscope options
 	std::string root;								//	::	root
-	std::string index = "index.html";				//	::	index
+	std::string index;								//	::	index
 };
 
 class Config
@@ -59,6 +59,17 @@ class Config
 public:
 	Config();
 	~Config();
+
+	struct {
+		std::string	root;
+		std::string	index;
+		
+		// unused for now
+		size_t						clientMaxBodySize;	//	TODO: set type to ssize_t
+		std::vector<HTTP::Method>	allowMethods;
+		bool						autoIndex;
+		bool						allowUpload;
+	} fallback;
 
 	// Subject requirement of this scope
 	std::vector<ServerBlock>	serverBlocks;		//	::	server

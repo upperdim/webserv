@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/30 12:17:29 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 16:39:52 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,12 +26,11 @@
 #include "Token.hpp"
 #include "Validator.hpp"
 #include "Throw.hpp"
-#include "Log.hpp"
 
 class Parser
 {
 public:
-	Parser(std::string configFilePath);
+	Parser(std::string configFilePath, char *argv0);
 	~Parser();
 
 	Config	parse(void);
@@ -39,6 +38,7 @@ public:
 private:
 	std::vector<Token>	m_tokens;
 	size_t				m_pos;
+	char*				m_argv0;
 
 	typedef struct s_parsedDirectives {
 		bool listen					= false;
@@ -76,7 +76,8 @@ private:
 	void			parseExtension(const Token& directive, std::vector<const Token*>& params, std::string& ext);
 
 	// rules and checks
-	void			addDefaultLocationBlocks(std::vector<ServerBlock>& serverBlocks);
+	void			checkDefaultValues(Config& config);
+	void			setFallBacks(Config& config);
 
 };
 

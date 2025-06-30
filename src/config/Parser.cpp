@@ -6,16 +6,19 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/30 12:53:33 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 17:02:17 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Parser.hpp"
+#include <filesystem>
 #include "Lexer.hpp"
 #include "webserv.hpp"
+#include "Log.hpp"
 
-Parser::Parser(std::string configFilePath)
-	:	m_pos(0)
+Parser::Parser(std::string configFilePath, char *argv0)
+	:	m_pos(0),
+		m_argv0(argv0)
 {
 	Lexer lexer(readFile(configFilePath));
 	lexer.tokenize(m_tokens);
@@ -58,7 +61,9 @@ Config	Parser::parse(void)
 		}
 	}
 
-	addDefaultLocationBlocks(config.serverBlocks);
+	checkDefaultValues(config);
+	setFallBacks(config);
+	// addDefaultLocationBlocks(config.serverBlocks);
 
 	return config;
 }
@@ -567,13 +572,57 @@ void	Parser::parseExtension(const Token& directive, std::vector<const Token*>& p
 // Rules and Checks
 //=============================================================================
 
-// Add default location blocks if a ServerBlock is missing it
-void	Parser::addDefaultLocationBlocks(std::vector<ServerBlock>& serverBlocks)
+void	Parser::checkDefaultValues(Config& config)
 {
-	for (size_t i = 0; i < serverBlocks.size(); ++i) {
-		if (serverBlocks[i].locationBlocks.empty()) {
-			serverBlocks[i].locationBlocks.push_back(LocationBlock());
-			serverBlocks[i].locationBlocks[0].root = "/";
+	for (auto& serverBlock : config.serverBlocks) {
+		// listenPort
+		if (serverBlock.listenPort == 0)
+			serverBlock.listenPort = 80;
+
+		// listenHostStr
+		if (serverBlock.listenHostStr.empty())
+			serverBlock.listenHostStr = "0.0.0.0";
+
+		//	TODO:	I am not sure if we hace to set this, currently it makes sense
+		if (serverBlock.locationBlocks.empty()) {
+			serverBlock.locationBlocks.push_back(LocationBlock());
+			serverBlock.locationBlocks[0].route = "/";
 		}
+
+		// just for a test
+		if (serverBlock.root.empty())
+			serverBlock.root = "/Users/nmihaile/Documents/test/webserv/www";
+
 	}
+}
+
+void	Parser::setFallBacks(Config& config)
+{
+	//	set default ROOT
+	try	{
+		// convert argv0 to fs::path
+		std::filesystem::path execPath(m_argv0);
+		execPath.remove_filename();
+		// check for absolute
+		execPath = std::filesystem::absolute(execPath);
+		// resolve symlinks
+		execPath = std::filesystem::canonical(execPath);
+		config.fallback.root = execPath;
+	} catch (...) {
+		throw std::runtime_error("couldn't resolve executable path.");
+	}
+
+	// set default for INDEX
+	config.fallback.index = "index.html";
+
+	// set default for CLIENT_MAX_BODY_SIZE
+	config.fallback.clientMaxBodySize = 1024 * 1024;
+
+	// set default for ALLOW_METHODS
+	config.fallback.allowMethods.push_back(HTTP::Method::GET);
+
+	// set default for AUTO_INDEX, ALLOW_UPLOAD
+	config.fallback.autoIndex   = false;
+	config.fallback.allowUpload = false;
+	
 }
