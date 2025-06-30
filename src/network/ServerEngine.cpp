@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerEngine.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:23 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 18:35:43 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 03:28:56 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,7 +217,11 @@ void ServerEngine::disconnectClient(int clientFd)
 void ServerEngine::stopServer(int serverFd, int serverIdx)
 {
 	if (serverIdx < 0) {
+		LOG("stopServer(): serverIdx not provided, attempting to find by server fd...");
 		serverIdx = findServerIndexByFd(serverFd);
+		if (serverIdx < 0) {
+			throw std::runtime_error("stopServer(): serverIdx not provided and not found");
+		}
 	}
 
 	close(serverFd);
