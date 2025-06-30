@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:16 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 18:10:20 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 04:33:32 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ Server::Server(ServerBlock sb) : sockaddr(), serverBlock(sb)
 		throw std::runtime_error("listen() to " + hostAndPort + "failed.");
 	}
 
-	LOGT(Log::INFO, "Server created with fd = " << fd << ". Listening at " << ipStr << ":" << ntohs(sockaddr.sin_port));
+	LOGT(Log::INFO, "Server created with fd = " << fd << ". Listening at " << hostAndPort);
 }
 
 int          Server::getFd()             { return fd; }
