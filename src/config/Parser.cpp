@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 17:06:40 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/30 11:29:24 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,11 +215,25 @@ void	Parser::parseServerDirectives(ServerBlock& server)
 	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
 
 	switch (directive.keywordType) {
-		case KeywordType::LISTEN: 				parseListenDirective(directive, params, server); break;
+		case KeywordType::LISTEN:
+			if (server.parsedDirectives.listen)
+				Throw::DuplicateListenDirective(directive, server);
+			server.parsedDirectives.listen = true;
+			parseListenDirective(directive, params, server);
+			break;
 		case KeywordType::SERVER_NAME: 			parseServerNameDirective(directive, params, server); break;
 		case KeywordType::ERROR_PAGE: 			parseErrorPageDirective(directive, params, server); break;
-		case KeywordType::CLIENT_MAX_BODY_SIZE: parseClientMaxBodySizeDirective(directive, params, server.clientMaxBodySize); break;
-		case KeywordType::ROOT: 				parseUri(directive, params, server.root); break;
+		case KeywordType::CLIENT_MAX_BODY_SIZE:
+			if (server.parsedDirectives.clientMaxBodySize)
+				Throw::DuplicateDirective(directive);
+			server.parsedDirectives.clientMaxBodySize = true;
+			parseClientMaxBodySizeDirective(directive, params, server.clientMaxBodySize);
+			break;
+		case KeywordType::ROOT:
+			if (server.parsedDirectives.root)
+				Throw::DuplicateDirective(directive);
+			server.parsedDirectives.root = true;
+			parseUri(directive, params, server.root); break;
 		case KeywordType::INDEX: 				parseIndexDirective(directive, params, server.index); break;
 		default:								Throw::UnknownOrUnsupportedDirective(directive);
 	}
@@ -496,6 +510,10 @@ void	Parser::parseExtension(const Token& directive, std::vector<const Token*>& p
 	
 	ext = params[0]->value;
 }
+
+//=============================================================================
+// Rules and Checks
+//=============================================================================
 
 // Add default location blocks if a ServerBlock is missing it
 void	Parser::addDefaultLocationBlocks(std::vector<ServerBlock>& serverBlocks)

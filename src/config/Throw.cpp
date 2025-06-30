@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:07:32 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/22 10:06:22 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 11:28:40 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,4 +104,14 @@ void	Throw::InvalidExtension(const Token& token)
 void	Throw::FailedToConvertDomainToIP(const Token& token)
 {
 	throw std::runtime_error("Failed to convert \"" + token.getTokenValue() + "\" to IP address" + token.inLine());
+}
+
+void	Throw::DuplicateDirective(const Token& directive)
+{
+	throw std::runtime_error("\"" + directive.getTokenValue() + "\" directive is duplicate" + directive.inLine());
+}
+
+void	Throw::DuplicateListenDirective(const Token& token, const ServerBlock& server)
+{
+	throw std::runtime_error("a duplicate \"listen\" " + server.listenHostStr + ":" + std::to_string(server.listenPort) + token.inLine());
 }

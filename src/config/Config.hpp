@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/23 12:08:59 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 11:23:39 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,13 @@ public:
 	// Multiscope options
 	std::string root;								//	::	root
 	std::string index = "index.html";				//	::	index
+
+	struct s_parsedDirectives {
+		bool listen				= false;
+		bool clientMaxBodySize	= false;
+		bool root				= false;
+	} parsedDirectives;
+
 };
 
 class Config

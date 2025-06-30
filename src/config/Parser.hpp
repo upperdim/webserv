@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 17:06:58 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/06/30 11:01:31 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ public:
 
 private:
 	std::vector<Token>	m_tokens;
-	size_t						m_pos;
+	size_t				m_pos;
 
 	const Token&	prev(void) const;
 	const Token&	peek(void) const;
@@ -65,6 +65,7 @@ private:
 	void			parseToggle(const Token& directive, std::vector<const Token*>& params, bool& autoIndex);
 	void			parseExtension(const Token& directive, std::vector<const Token*>& params, std::string& ext);
 
+	// rules and checks
 	void			addDefaultLocationBlocks(std::vector<ServerBlock>& serverBlocks);
 
 };
