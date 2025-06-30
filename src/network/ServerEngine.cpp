@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:23 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/30 10:17:15 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 13:17:25 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,9 @@ volatile std::sig_atomic_t ServerEngine::isRunning = false;
 
 ServerEngine::ServerEngine(Config config)
 {
+	if (config.serverBlocks.size() == 0)
+		return;
+
 	// Create servers
 	for (size_t i = 0; i < config.serverBlocks.size(); ++i) {
 		bool isDuplicatePort = false;
@@ -44,6 +47,8 @@ ServerEngine::ServerEngine(Config config)
 	for (size_t i = 0; i < servers.size(); ++i) {
 		addToPollFds(servers[i].getFd());
 	}
+
+	isRunning = true;
 }
 
 ServerEngine::~ServerEngine()
@@ -66,8 +71,6 @@ ServerEngine::~ServerEngine()
 //=============================================================================
 void ServerEngine::run()
 {
-	isRunning = true;
-	
 	while (isRunning) {
 		if (pollFds.empty()) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(EMPTY_POLLFDS_SLEEP_TIME_MS));
