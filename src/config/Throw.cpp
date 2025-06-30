@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:07:32 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/30 11:28:40 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 12:54:02 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,4 +114,9 @@ void	Throw::DuplicateDirective(const Token& directive)
 void	Throw::DuplicateListenDirective(const Token& token, const ServerBlock& server)
 {
 	throw std::runtime_error("a duplicate \"listen\" " + server.listenHostStr + ":" + std::to_string(server.listenPort) + token.inLine());
+}
+
+void	Throw::DuplicateLocationDirective(const Token& token, std::string& route)
+{
+	throw std::runtime_error("duplicate location \"" + route + "\"" + token.inLine());
 }

@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/30 11:53:22 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 12:53:33 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,8 +160,8 @@ void	Parser::parseHttpDirective(Config& config)
 		switch (directive.keywordType) {
 			case KeywordType::SERVER: {
 				ServerBlock serverBlock;
-				t_parsedDirectives parsedDirectives;
-				parseServerBlock(serverBlock, parsedDirectives);
+				t_parsedDirectives parsedServerDirectives;
+				parseServerBlock(serverBlock, parsedServerDirectives);
 				config.serverBlocks.emplace_back(serverBlock);
 				break ;
 			}
@@ -173,7 +173,7 @@ void	Parser::parseHttpDirective(Config& config)
 	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
 }
 
-void	Parser::parseServerBlock(ServerBlock& server, t_parsedDirectives& parsedDirectives)
+void	Parser::parseServerBlock(ServerBlock& server, t_parsedDirectives& parsedServerDirectives)
 {
 	const Token& directive = advance();	//	consumes SERVER directive
 
@@ -189,16 +189,25 @@ void	Parser::parseServerBlock(ServerBlock& server, t_parsedDirectives& parsedDir
 		const Token& directive = peek();
 		if (directive.keywordType == KeywordType::LOCATION) {
 			LocationBlock location;
-			parseLocationBlock(location);
+			t_parsedDirectives parsedLocationDirectives;
+			parseLocationBlock(location, parsedLocationDirectives);
+
+			// check for duplicate location
+			for (auto locationRoute : parsedServerDirectives.locationRoutes) {
+				if (locationRoute == location.route)
+					Throw::DuplicateLocationDirective(directive, location.route);
+			}
+			parsedServerDirectives.locationRoutes.push_back(location.route);
+
 			server.locationBlocks.emplace_back(location);
 		} else {
-			parseServerDirectives(server, parsedDirectives);
+			parseServerDirectives(server, parsedServerDirectives);
 		}
 	}
 	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
 }
 
-void	Parser::parseServerDirectives(ServerBlock& server, t_parsedDirectives& parsedDirectives)
+void	Parser::parseServerDirectives(ServerBlock& server, t_parsedDirectives& parsedServerDirectives)
 {
 	const Token& directive = advance();	// grab the current directive token
 
@@ -217,31 +226,38 @@ void	Parser::parseServerDirectives(ServerBlock& server, t_parsedDirectives& pars
 
 	switch (directive.keywordType) {
 		case KeywordType::LISTEN:
-			if (parsedDirectives.listen)
+			if (parsedServerDirectives.listen)
 				Throw::DuplicateListenDirective(directive, server);
-			parsedDirectives.listen = true;
+			parsedServerDirectives.listen = true;
 			parseListenDirective(directive, params, server);
 			break;
-		case KeywordType::SERVER_NAME: 			parseServerNameDirective(directive, params, server); break;
-		case KeywordType::ERROR_PAGE: 			parseErrorPageDirective(directive, params, server); break;
+		case KeywordType::SERVER_NAME:
+			parseServerNameDirective(directive, params, server);
+			break;
+		case KeywordType::ERROR_PAGE:
+			parseErrorPageDirective(directive, params, server);
+			break;
 		case KeywordType::CLIENT_MAX_BODY_SIZE:
-			if (parsedDirectives.clientMaxBodySize)
+			if (parsedServerDirectives.clientMaxBodySize)
 				Throw::DuplicateDirective(directive);
-			parsedDirectives.clientMaxBodySize = true;
+			parsedServerDirectives.clientMaxBodySize = true;
 			parseClientMaxBodySizeDirective(directive, params, server.clientMaxBodySize);
 			break;
 		case KeywordType::ROOT:
-			if (parsedDirectives.root)
+			if (parsedServerDirectives.root)
 				Throw::DuplicateDirective(directive);
-			parsedDirectives.root = true;
+			parsedServerDirectives.root = true;
 			parseUri(directive, params, server.root);
 			break;
-		case KeywordType::INDEX: 				parseIndexDirective(directive, params, server.index); break;
-		default:								Throw::UnknownOrUnsupportedDirective(directive);
+		case KeywordType::INDEX:
+			parseIndexDirective(directive, params, server.index);
+			break;
+		default:
+			Throw::UnknownOrUnsupportedDirective(directive);
 	}
 }
 
-void	Parser::parseLocationBlock(LocationBlock& location)
+void	Parser::parseLocationBlock(LocationBlock& location, t_parsedDirectives& parsedLocationDirectives)
 {
 	const Token& directive = advance();	//	consumes LOCATION directive
 
@@ -270,12 +286,12 @@ void	Parser::parseLocationBlock(LocationBlock& location)
 		// expect KEYWORD
 		if (!isValidKeyword(peek()))
 			Throw::UnknownOrUnsupportedDirective(peek());
-		parseLocationDirectives(location);
+		parseLocationDirectives(location, parsedLocationDirectives);
 	}
 	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
 }
 
-void	Parser::parseLocationDirectives(LocationBlock& location)
+void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives& parsedLocationDirectives)
 {
 	const Token& directive = advance();	// grab the current directive token
 
@@ -293,16 +309,50 @@ void	Parser::parseLocationDirectives(LocationBlock& location)
 	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
 
 	switch (directive.keywordType) {
-		case KeywordType::ALLOW_METHODS:		parseAllowMethodsDirective(directive, params, location); break;
-		case KeywordType::RETURN:				parseUri(directive, params, location.returnRoute); break;
-		case KeywordType::AUTOINDEX:			parseToggle(directive, params, location.autoIndex); break;
-		case KeywordType::CGI_EXTENSION:		parseExtension(directive, params, location.cgiExtension); break;
-		case KeywordType::ALLOW_UPLOAD:			parseToggle(directive, params, location.allowUpload); break;
-		case KeywordType::UPLOAD_STORE:			parseUri(directive, params, location.uploadDir); break;
-		case KeywordType::CLIENT_MAX_BODY_SIZE:	parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize); break;
-		case KeywordType::ROOT:					parseUri(directive, params, location.root); break;
-		case KeywordType::INDEX:				parseIndexDirective(directive, params, location.index); break;
-		default:								Throw::UnknownOrUnsupportedDirective(directive);
+		case KeywordType::CLIENT_MAX_BODY_SIZE:
+			if (parsedLocationDirectives.clientMaxBodySize)
+				Throw::DuplicateDirective(directive);
+			parsedLocationDirectives.clientMaxBodySize = true;
+			parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize);
+			break;
+		case KeywordType::ROOT:
+			if (parsedLocationDirectives.root)
+				Throw::DuplicateDirective(directive);
+			parsedLocationDirectives.root = true;
+			parseUri(directive, params, location.root);
+			break;
+		case KeywordType::INDEX:
+			parseIndexDirective(directive, params, location.index);
+			break;
+		case KeywordType::ALLOW_METHODS:
+			parseAllowMethodsDirective(directive, params, location);
+			break;
+		case KeywordType::RETURN:
+			parseUri(directive, params, location.returnRoute);
+			break;
+		case KeywordType::AUTOINDEX:
+			if (parsedLocationDirectives.autoIndex)
+				Throw::DuplicateDirective(directive);
+			parsedLocationDirectives.autoIndex = true;
+			parseToggle(directive, params, location.autoIndex);
+			break;
+		case KeywordType::CGI_EXTENSION:
+			parseExtension(directive, params, location.cgiExtension);
+			break;
+		case KeywordType::ALLOW_UPLOAD:
+			if (parsedLocationDirectives.allowUpload)
+				Throw::DuplicateDirective(directive);
+			parsedLocationDirectives.allowUpload = true;
+			parseToggle(directive, params, location.allowUpload);
+			break;
+		case KeywordType::UPLOAD_STORE:
+			if (parsedLocationDirectives.uploadStore)
+				Throw::DuplicateDirective(directive);
+			parsedLocationDirectives.uploadStore = true;
+			parseUri(directive, params, location.uploadDir);
+			break;
+		default:
+			Throw::UnknownOrUnsupportedDirective(directive);
 	}
 }
 

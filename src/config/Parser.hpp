@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/30 11:53:08 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/06/30 12:17:29 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,13 +41,13 @@ private:
 	size_t				m_pos;
 
 	typedef struct s_parsedDirectives {
-		bool listen				= false;
-		bool clientMaxBodySize	= false;
-		bool root				= false;
-		bool route				= false;
-		bool autoIndex			= false;
-		bool allowUpload		= false;
-		bool uploadDir			= false;
+		bool listen					= false;
+		bool clientMaxBodySize		= false;
+		bool root					= false;
+		std::vector<std::string>	locationRoutes;
+		bool autoIndex				= false;
+		bool allowUpload			= false;
+		bool uploadStore			= false;
 	} t_parsedDirectives;
 
 	const Token&	prev(void) const;
@@ -60,10 +60,10 @@ private:
 
 	void			skipEventsDirective(void);
 	void			parseHttpDirective(Config& config);
-	void			parseServerBlock(ServerBlock& server, t_parsedDirectives& parsedDirectives);
-	void			parseServerDirectives(ServerBlock& server, t_parsedDirectives& parsedDirectives);
-	void			parseLocationBlock(LocationBlock& location);
-	void			parseLocationDirectives(LocationBlock& location);
+	void			parseServerBlock(ServerBlock& server, t_parsedDirectives& parsedServerDirectives);
+	void			parseServerDirectives(ServerBlock& server, t_parsedDirectives& parsedServerDirectives);
+	void			parseLocationBlock(LocationBlock& location, t_parsedDirectives& parsedLocationDirectives);
+	void			parseLocationDirectives(LocationBlock& location, t_parsedDirectives& parsedLocationDirectives);
 
 	void			parseListenDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseServerNameDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
