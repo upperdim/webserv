@@ -5,9 +5,9 @@
 #include "webserv.hpp"
 #include "Log.hpp"
 
-Parser::Parser(std::string configFilePath, char *argv0)
+Parser::Parser(std::string configFilePath, char *programName)
 	:	m_pos(0),
-		m_argv0(argv0)
+		m_programName(programName)
 {
 	Lexer lexer(readFile(configFilePath));
 	lexer.tokenize(m_tokens);
@@ -587,7 +587,7 @@ void	Parser::setFallBacks(Config& config)
 	//	set default ROOT
 	try	{
 		// convert argv0 to fs::path
-		std::filesystem::path execPath(m_argv0);
+		std::filesystem::path execPath(m_programName);
 		execPath.remove_filename();
 		// check for absolute
 		execPath = std::filesystem::absolute(execPath);

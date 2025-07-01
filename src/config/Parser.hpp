@@ -19,7 +19,7 @@
 class Parser
 {
 public:
-	Parser(std::string configFilePath, char *argv0);
+	Parser(std::string configFilePath, char *programName);
 	~Parser();
 
 	Config	parse(void);
@@ -27,7 +27,7 @@ public:
 private:
 	std::vector<Token>	m_tokens;
 	size_t				m_pos;
-	char*				m_argv0;
+	char*				m_programName;
 
 	typedef struct s_parsedDirectives {
 		bool events                 = false;

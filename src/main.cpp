@@ -1,27 +1,15 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/18 11:44:18 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/30 16:09:17 by nmihaile         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "webserv.hpp"
 #include "Config.hpp"
 #include "Parser.hpp"
 #include "ServerEngine.hpp"
 #include "Log.hpp"
 
-Config parseConfig(std::string configFilePath, char *argv0)
+Config parseConfig(std::string configFilePath, char *programName)
 {
 	Config config;
 
 	try {
-		Parser	parser(configFilePath, argv0);
+		Parser	parser(configFilePath, programName);
 		config = parser.parse();
 		config.printConfigs();
 	} catch (std::exception& e) {
