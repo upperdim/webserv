@@ -3,6 +3,7 @@
 
 Request::Request(const ServerBlock& _serverBlock)
 	:	parsingState(ParsingState::REQUEST_LINE),
+		doneReceiving(false),
 		method(HTTP::Method::GET),
 		statusCode(200),
 		serverBlock(_serverBlock),

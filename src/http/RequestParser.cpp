@@ -437,7 +437,7 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 				request.setError(WSSC_CONTENT_TOO_LARGE);
 				return false;
 			}
-			request.resolvedContentlength = resolvedContentLength;
+			request.contentLength = resolvedContentLength;
 		} catch(...) {
 			request.setError(WSSC_BAD_REQUEST);
 			return false;

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <optional>
 #include "HTTP.hpp"
 #include "Config.hpp"
 
@@ -29,17 +30,19 @@ public:
 	ParsingState									parsingState;
 	bool											doneReceiving;
 	
+	// raw request attributes
 	HTTP::Method									method;
 	int												statusCode;
 	std::string										requestTarget;
-	std::string										URI;		//	decoded and sanatized requesttarget
 	std::string										protokoll;
 	std::unordered_map<std::string, std::string>	headers;
 
 	const ServerBlock&								serverBlock;
 
-	// resolved attributes
-	size_t											resolvedContentlength;
+	// matched and resolved attributes
+	std::string										URI;		//	decoded and sanatized requesttarget
+	// resolved from header
+	std::optional<size_t>							contentLength;
 
 private:
 	bool											m_error;
