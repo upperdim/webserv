@@ -32,7 +32,7 @@ public:
 	
 	// raw request attributes
 	HTTP::Method									method;
-	int												statusCode;
+	std::optional<int>								errorStatusCode;
 	std::string										requestTarget;
 	std::string										protokoll;
 	std::unordered_map<std::string, std::string>	headers;

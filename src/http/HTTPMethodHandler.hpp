@@ -17,8 +17,6 @@ private:
 	static void	handleGetRequest(const Request& request, Response& response);
 	static void	handlePostRequest(const Request& request, Response& response);
 	static void	handleDeleteRequest(const Request& request, Response& response);
-	static void	handleFailedRequest(const Request& request, Response& response);
-
 	static void	createErrorResponse(Response& response, int statusCode);
 
 };

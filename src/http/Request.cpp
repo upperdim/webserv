@@ -5,19 +5,19 @@ Request::Request(const ServerBlock& _serverBlock)
 	:	parsingState(ParsingState::REQUEST_LINE),
 		doneReceiving(false),
 		method(HTTP::Method::GET),
-		statusCode(0),
+		errorStatusCode(std::nullopt),
 		serverBlock(_serverBlock),
 		m_error(false),
 		m_locationBlock(nullptr)
 {
 }
 
-void	Request::setError(int errorStatusCode)
+void	Request::setError(int _errorStatusCode)
 {
 	if (!m_error) {
 		m_error = true;
-		if (statusCode < WSSC_BAD_REQUEST)
-			statusCode = errorStatusCode;
+		if (errorStatusCode < WSSC_BAD_REQUEST)
+			errorStatusCode = _errorStatusCode;
 	}
 }
 

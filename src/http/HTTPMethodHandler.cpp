@@ -12,8 +12,8 @@ HTTPMethodHandler::~HTTPMethodHandler()
 
 void	HTTPMethodHandler::handle(Request& request, Response& response)
 {
-	if (request.error()) {
-		handleFailedRequest(request, response);
+	if (request.error() && request.errorStatusCode.has_value()) {
+		createErrorResponse(response, request.errorStatusCode.value());
 		return;
 	}
 	
@@ -51,8 +51,8 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 	LOG_MSG("[handle Get Request] ", "...", LIGHTMAGENTA, DEFAULT);
 
 	// TODO: repetitive?
-	if (request.statusCode >= WSSC_BAD_REQUEST) {
-		createErrorResponse(response, request.statusCode);
+	if (request.errorStatusCode.has_value()) {
+		createErrorResponse(response, request.errorStatusCode.value());
 		return;
 	}
 
@@ -101,15 +101,6 @@ void	HTTPMethodHandler::handleDeleteRequest(const Request& request, Response& re
 	LOG_SUCCESS(std::string("deleted: ") + resourcePath.c_str());
 
 	response.setStatus(WSSC_OK);
-}
-
-void	HTTPMethodHandler::handleFailedRequest(const Request& request, Response& response)
-{
-	LOG_MSG("[handle failed request] ", "...", LIGHTMAGENTA, DEFAULT);
-
-	if (request.statusCode < WSSC_BAD_REQUEST)
-		request.statusCode = WSSC_INTERNAL_SERVER_ERROR;
-	createErrorResponse(response, request.statusCode);
 }
 
 void	HTTPMethodHandler::createErrorResponse(Response& response, int statusCode)
