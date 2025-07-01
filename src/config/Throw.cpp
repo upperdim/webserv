@@ -1,14 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Throw.cpp                                          :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/16 09:07:32 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/22 10:06:22 by nmihaile         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 #include "Throw.hpp"
 
@@ -104,4 +93,19 @@ void	Throw::InvalidExtension(const Token& token)
 void	Throw::FailedToConvertDomainToIP(const Token& token)
 {
 	throw std::runtime_error("Failed to convert \"" + token.getTokenValue() + "\" to IP address" + token.inLine());
+}
+
+void	Throw::DuplicateDirective(const Token& directive)
+{
+	throw std::runtime_error("\"" + directive.getTokenValue() + "\" directive is duplicate" + directive.inLine());
+}
+
+void	Throw::DuplicateListenDirective(const Token& token, const ServerBlock& server)
+{
+	throw std::runtime_error("a duplicate \"listen\" " + server.listenHostStr + ":" + std::to_string(server.listenPort) + token.inLine());
+}
+
+void	Throw::DuplicateLocationDirective(const Token& token, std::string& route)
+{
+	throw std::runtime_error("duplicate location \"" + route + "\"" + token.inLine());
 }

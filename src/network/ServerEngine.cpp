@@ -12,6 +12,9 @@ volatile std::sig_atomic_t ServerEngine::isRunning = false;
 
 ServerEngine::ServerEngine(Config config)
 {
+	if (config.serverBlocks.size() == 0)
+		return;
+
 	// Create servers
 	for (size_t i = 0; i < config.serverBlocks.size(); ++i) {
 		bool isDuplicatePort = false;
@@ -55,7 +58,7 @@ ServerEngine::~ServerEngine()
 void ServerEngine::run()
 {
 	isRunning = true;
-	
+
 	while (isRunning) {
 		if (pollFds.empty()) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(EMPTY_POLLFDS_SLEEP_TIME_MS));

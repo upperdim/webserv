@@ -1,14 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Throw.hpp                                          :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/16 09:07:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/22 10:06:18 by nmihaile         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 #ifndef THROW_HPP
 #define THROW_HPP
@@ -17,6 +6,7 @@
 #include <vector>
 #include <stdexcept>
 #include "colors.hpp"
+#include "Config.hpp"
 #include "Token.hpp"
 
 class Throw
@@ -41,6 +31,9 @@ public:
 	static void	InvalidReturnCode(const Token& token);
 	static void	InvalidExtension(const Token& token);
 	static void	FailedToConvertDomainToIP(const Token& token);
+	static void	DuplicateDirective(const Token& directive);
+	static void	DuplicateListenDirective(const Token& token, const ServerBlock& server);
+	static void	DuplicateLocationDirective(const Token& token, std::string& route);
 
 private:
 	Throw();
