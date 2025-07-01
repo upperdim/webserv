@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/07/01 20:16:01 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/07/01 20:36:48 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,6 @@ public:
 	void					setError(int _statusCode);
 	bool					error(void);
 
-	int						getStatusCode(void) const;
-	std::string				getRequestTarget(void) const;
 	const LocationBlock&	locationBlock();
 	bool					isAllowedMethod(void);
 
