@@ -30,6 +30,8 @@ private:
 	char*				m_argv0;
 
 	typedef struct s_parsedDirectives {
+		bool events                 = false;
+		bool http                   = false;
 		bool listen					= false;
 		bool clientMaxBodySize		= false;
 		bool root					= false;

@@ -33,6 +33,8 @@ Config	Parser::parse(void)
 		return config;
 	}
 
+	t_parsedDirectives parsedRootDirectives;
+
 	while (m_pos < m_tokens.size() && !isAtEnd()) {
 		// expecting a KEYWORD or throw accordingly
 		if (peek().type == TokenType::SEMICOLON ||
@@ -44,10 +46,21 @@ Config	Parser::parse(void)
 
 		const Token& directive = peek();
 		switch (directive.keywordType) {
-			case KeywordType::EVENTS:	skipEventsDirective(); break;
-			case KeywordType::HTTP:		parseHttpDirective(config);	break;
+			case KeywordType::EVENTS:
+				if (parsedRootDirectives.events)
+					Throw::DuplicateDirective(directive);
+				parsedRootDirectives.events = true;
+				skipEventsDirective();
+				break;
+			case KeywordType::HTTP:
+				if (parsedRootDirectives.http)
+					Throw::DuplicateDirective(directive);
+				parsedRootDirectives.http = true;
+				parseHttpDirective(config);
+				break;
 			// add any global supported directive here
-			default:					Throw::UnknownOrUnsupportedDirective(peek()); break;
+			default:
+				Throw::UnknownOrUnsupportedDirective(peek());
 		}
 	}
 
