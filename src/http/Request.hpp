@@ -1,20 +1,9 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Request.hpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 01:46:32 by tunsal           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
 #include <string>
 #include <unordered_map>
+#include <optional>
 #include "HTTP.hpp"
 #include "Config.hpp"
 
@@ -22,46 +11,36 @@ class Request
 {
 public:
 	Request(const ServerBlock& _serverBlock);
-	~Request();
 
-	enum class State {
-		READING_REQUEST_LINE,
-		READING_HEADERS,
-		READING_BODY,
-		COMPLETE
+	enum class ParsingState {
+		REQUEST_LINE,
+		HEADERS,
+		BODY,
+		COMPLETE,
+		INVALID
 	};
 
-	void					append(const char *buf, const size_t bytes_read);
-	void					reset(void);
-
-	Request::State			getState(void);
-	void					setState(State state);
-
-	void					setError(int _statusCode);
-	bool					error(void);
-
-	void					setComplete(void);
-	bool					complete(void);
-
-	int						getStatusCode(void) const;
-	std::string				getRequestTarget(void) const;
-	const LocationBlock&	locationBlock();
-	bool					isAllowedMethod(void);
+	bool											isAllowedMethod(void);
 
 	std::string										rawRequest;
-
+	ParsingState									parsingState;
+	bool											doneReceiving;
+	
+	// raw request attributes
 	HTTP::Method									method;
-	int												statusCode;
+	std::optional<int>								errorStatusCode;
 	std::string										requestTarget;
-	std::string										URI;		//	decoded and sanatized requesttarget
 	std::string										protokoll;
 	std::unordered_map<std::string, std::string>	headers;
 
 	const ServerBlock&								serverBlock;
 
+	// matched and resolved attributes
+	std::string										URI;		//	decoded and sanatized requesttarget
+	// resolved from header
+	std::optional<size_t>							contentLength;
+
 private:
-	State											m_state;
-	bool											m_error;
 	LocationBlock*									m_locationBlock;
 };
 

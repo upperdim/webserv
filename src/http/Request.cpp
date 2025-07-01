@@ -1,109 +1,33 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Request.cpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 01:46:41 by tunsal           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Request.hpp"
 #include <algorithm>
 
 Request::Request(const ServerBlock& _serverBlock)
-	:	method(HTTP::Method::GET),
-		statusCode(200),
+	:	parsingState(ParsingState::REQUEST_LINE),
+		doneReceiving(false),
+		method(HTTP::Method::GET),
+		errorStatusCode(std::nullopt),
 		serverBlock(_serverBlock),
-		m_state(State::READING_REQUEST_LINE),
-		m_error(false),
 		m_locationBlock(nullptr)
 {
 }
 
-Request::~Request()
-{
-}
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
-
-void	Request::append(const char *buf, const size_t bytesRead)
-{
-	rawRequest.append(buf, bytesRead);
-}
-
-void	Request::reset(void)
-{
-	//	TODO:	reset the Request
-}
-
-Request::State	Request::getState(void)
-{
-	return m_state;
-}
-
-void	Request::setState(State state)
-{
-	m_state = state;
-}
-
-void	Request::setError(int errorStatusCode)
-{
-	if (!m_error) {
-		m_error = true;
-		if (statusCode < WSSC_BAD_REQUEST)
-			statusCode = errorStatusCode;
-	}
-}
-
-void	Request::setComplete()
-{
-	m_state = State::COMPLETE;
-}
-
-bool	Request::error(void)
-{
-	return m_error;
-}
-
-bool	Request::complete(void)
-{
-	return m_state == State::COMPLETE;
-}
-
-int	Request::getStatusCode(void) const
-{
-	return (statusCode);
-}
-
-std::string	Request::getRequestTarget(void) const
-{
-	return (requestTarget);
-}
-
-const LocationBlock&	Request::locationBlock()
-{
-	if (m_locationBlock == nullptr) {
-		// Matches the requestTaget to a serverBlock.locationBlock
-		// TODO:	more needs o be done
-		for (const LocationBlock& locationBlock : serverBlock.locationBlocks) {
-			if (locationBlock.route == URI) {
-				m_locationBlock = const_cast<LocationBlock*>(&locationBlock);
-				return *m_locationBlock;
-			}
-		}
-		m_locationBlock = const_cast<LocationBlock*>(&serverBlock.locationBlocks.front());
-	}
-	return *m_locationBlock;
-}
-
+// TODO: This function should not be called until request is complete
+// it needs the correct serverBlock found in order to access the locationBlock
+// 
+// Move this as a validation to the correct place (after resolving request and matching serverBlock)
 bool	Request::isAllowedMethod(void)
 {
+	for (const LocationBlock& locationBlock : serverBlock.locationBlocks) {
+		if (locationBlock.route == URI) {
+			m_locationBlock = const_cast<LocationBlock*>(&locationBlock);
+		}
+	}
+
+	if (m_locationBlock == nullptr) {
+		throw std::runtime_error("locationblock is null");
+	}
+
 	//	TODO:	should we protect this methode here and only accept it if the
 	//			request is complete or has an error????
-	return std::find(locationBlock().allowMethods.begin(), locationBlock().allowMethods.end(), method) != locationBlock().allowMethods.end();
+	return std::find(m_locationBlock->allowMethods.begin(), m_locationBlock->allowMethods.end(), method) != m_locationBlock->allowMethods.end();
 }

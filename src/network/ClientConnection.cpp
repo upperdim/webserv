@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 02:25:08 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 17:22:04 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/07/01 19:17:13 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ void ClientConnection::receiveRequest()
 		connectionError = true;
 		LOGT(Log::ERROR, "ClientConnection error, fd = " << fd);
 	} else if (bytesRead == 0) {
-		request.setComplete();
+		request.doneReceiving = true;
 		LOG("ClientConnection fd = " << fd << " has received all of the request");
 	}
 }
