@@ -17,7 +17,7 @@ void	HTTPMethodHandler::handle(Request& request, Response& response)
 		return;
 	}
 	
-	if (request.requestTarget.empty()) {
+	if (request.URI.empty()) {
 		response.setStatus(WSSC_NOT_FOUND);
 		return;
 	}
@@ -101,20 +101,15 @@ void	HTTPMethodHandler::handleDeleteRequest(const Request& request, Response& re
 	LOG_SUCCESS(std::string("deleted: ") + resourcePath.c_str());
 
 	response.setStatus(WSSC_OK);
-	return;
 }
 
 void	HTTPMethodHandler::handleFailedRequest(const Request& request, Response& response)
 {
 	LOG_MSG("[handle failed request] ", "...", LIGHTMAGENTA, DEFAULT);
 
-	int			status_code = request.statusCode;
-
-	if (status_code < WSSC_BAD_REQUEST)
-		status_code = WSSC_INTERNAL_SERVER_ERROR;
-
-	createErrorResponse(response, status_code);
-	return;
+	if (request.statusCode < WSSC_BAD_REQUEST)
+		request.statusCode = WSSC_INTERNAL_SERVER_ERROR;
+	createErrorResponse(response, request.statusCode);
 }
 
 void	HTTPMethodHandler::createErrorResponse(Response& response, int statusCode)

@@ -6,7 +6,7 @@
 std::string	Utils::sanitizePath(const Request& request, const ServerBlock serverBlock)
 {
 	std::string	root_path	= serverBlock.root;
-	std::string path		= request.requestTarget;
+	std::string path		= request.URI;
 
 	if (path == "/") {
 		if (serverBlock.index.empty())

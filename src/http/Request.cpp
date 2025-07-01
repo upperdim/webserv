@@ -5,7 +5,7 @@ Request::Request(const ServerBlock& _serverBlock)
 	:	parsingState(ParsingState::REQUEST_LINE),
 		doneReceiving(false),
 		method(HTTP::Method::GET),
-		statusCode(200),
+		statusCode(0),
 		serverBlock(_serverBlock),
 		m_error(false),
 		m_locationBlock(nullptr)
