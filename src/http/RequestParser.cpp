@@ -42,14 +42,16 @@ void	RequestParser::parseRequestLine(Request& request)
 	if (!std::getline(lineStream, methodStr, ' ') ||
 	    !std::getline(lineStream, request.requestTarget, ' ') ||
 		!std::getline(lineStream, request.protokoll, ' ')) {
-		request.setError(WSSC_INTERNAL_SERVER_ERROR);
+		request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+		request.parsingState = Request::ParsingState::INVALID;
 		return;
 	}
 
 	// Don't allow extra garbage after the protokoll in the request line
 	std::string someExtraGarbage;
 	if (lineStream >> someExtraGarbage) {
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return;
 	}
 
@@ -58,17 +60,20 @@ void	RequestParser::parseRequestLine(Request& request)
 		<< request.protokoll);
 
 	if (!validateHttpMethod(methodStr, request)) {
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return;
 	}
 
 	if (!validateRequestTarget(request)) {
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return;
 	}
 
 	if (!validateProtokoll(request)) {
-		request.setError(WSSC_HTTP_VERSION_NOT_SUPPORTED);
+		request.errorStatusCode = WSSC_HTTP_VERSION_NOT_SUPPORTED;
+		request.parsingState = Request::ParsingState::INVALID;
 		return;
 	}
 
@@ -93,7 +98,8 @@ void	RequestParser::parseHeader(Request& request)
 		size_t	pos = request.rawRequest.find_first_of('\n', start);
 
 		if (pos == std::string::npos) {
-			request.setError(WSSC_BAD_REQUEST);
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
 			return;
 		}
 
@@ -104,14 +110,16 @@ void	RequestParser::parseHeader(Request& request)
 			line.pop_back();
 
 		if (line.empty()) {
-			request.setError(WSSC_BAD_REQUEST);
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
 			return;
 		}
 
 		std::pair<std::string, std::string> headerField;
 		if (!splitHeaderField(line, headerField)) {
 			LOGT(Log::WARNING, "failed to split Header-Field: " << line);
-			request.setError(WSSC_BAD_REQUEST);
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
 			return;
 		}
 
@@ -148,11 +156,13 @@ bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
 
 	if (ustr == "GET\0" || ustr == "POST\0" || ustr == "DELETE\0") {
 		request.method = HTTP::strToMethod(methodStr);
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return false;
 	}
 
-	request.setError(WSSC_METHOD_NOT_ALLOWED);
+	request.errorStatusCode = WSSC_METHOD_NOT_ALLOWED;
+	request.parsingState = Request::ParsingState::INVALID;
 	return false;
 }
 
@@ -162,7 +172,8 @@ bool	RequestParser::validateRequestTarget(Request& request)
 	if (request.requestTarget == "*" ||
 		request.requestTarget.find("://") != std::string::npos ||
 		request.requestTarget.find('/') != 0) {
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return false;
 	}
 
@@ -172,7 +183,8 @@ bool	RequestParser::validateRequestTarget(Request& request)
 	    !isRelativeForm_EnsureLeadingSlash(request.URI) ||
 	    !removeDotSegments(request.URI) ||
 		!collapseDuplicateSlashes(request.URI)) {
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return false;
 	}
 
@@ -180,7 +192,8 @@ bool	RequestParser::validateRequestTarget(Request& request)
 	if (request.URI.empty() ||
 		request.URI.size() > MAX_URI_LENGTH ||
 		request.URI.find('\\') != std::string::npos) {
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return false;
 	}
 
@@ -414,7 +427,8 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 	// checking for available HOST
 	auto it = request.headers.find("host");
 	if (it == request.headers.end()) {
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return false;
 	}
 
@@ -424,7 +438,8 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 		const std::string contentLengthStr = it->second;
 		for (auto& c : contentLengthStr) {
 			if (!std::isdigit(c)) {
-				request.setError(WSSC_BAD_REQUEST);
+				request.errorStatusCode = WSSC_BAD_REQUEST;
+				request.parsingState = Request::ParsingState::INVALID;
 				return false;
 			}
 		}
@@ -434,12 +449,14 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 
 			//	TODO:	use resolved clientMaxBodySize
 			if (resolvedContentLength > request.serverBlock.clientMaxBodySize) {
-				request.setError(WSSC_CONTENT_TOO_LARGE);
+				request.errorStatusCode = WSSC_CONTENT_TOO_LARGE;
+				request.parsingState = Request::ParsingState::INVALID;
 				return false;
 			}
 			request.contentLength = resolvedContentLength;
 		} catch(...) {
-			request.setError(WSSC_BAD_REQUEST);
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
 			return false;
 		}
 	}
@@ -450,7 +467,8 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 		//	INFO:	here we only allow "transfer-encoding:chunked"
 		//			we could accept "transfer-encoding:gzip, chunked, deflate"
 		if (it->second != "chunked") {
-			request.setError(WSSC_NOT_IMPLEMENTED);
+			request.errorStatusCode = WSSC_NOT_IMPLEMENTED;
+			request.parsingState = Request::ParsingState::INVALID;
 			return false;
 		}
 	}

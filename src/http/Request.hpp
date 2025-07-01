@@ -20,9 +20,6 @@ public:
 		INVALID
 	};
 
-	void					setError(int _statusCode);
-	bool					error(void);
-
 	const LocationBlock&	locationBlock();
 	bool					isAllowedMethod(void);
 
@@ -45,7 +42,6 @@ public:
 	std::optional<size_t>							contentLength;
 
 private:
-	bool											m_error;
 	LocationBlock*									m_locationBlock;
 };
 

@@ -7,23 +7,8 @@ Request::Request(const ServerBlock& _serverBlock)
 		method(HTTP::Method::GET),
 		errorStatusCode(std::nullopt),
 		serverBlock(_serverBlock),
-		m_error(false),
 		m_locationBlock(nullptr)
 {
-}
-
-void	Request::setError(int _errorStatusCode)
-{
-	if (!m_error) {
-		m_error = true;
-		if (errorStatusCode < WSSC_BAD_REQUEST)
-			errorStatusCode = _errorStatusCode;
-	}
-}
-
-bool	Request::error(void)
-{
-	return m_error;
 }
 
 const LocationBlock&	Request::locationBlock()

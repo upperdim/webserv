@@ -12,7 +12,7 @@ HTTPMethodHandler::~HTTPMethodHandler()
 
 void	HTTPMethodHandler::handle(Request& request, Response& response)
 {
-	if (request.error() && request.errorStatusCode.has_value()) {
+	if (request.errorStatusCode.has_value()) {
 		createErrorResponse(response, request.errorStatusCode.value());
 		return;
 	}
