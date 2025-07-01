@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RequestParser.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/07/01 19:40:23 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/07/01 20:23:31 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ private:
 	static bool					splitHeaderField(std::string& line, std::pair<std::string, std::string>& headerField);
 	static bool					isValidFieldNameChar(const char c);
 	static bool					isValidFieldValueChar(const char c);
+	static bool					validateRequiredHeaderFields(Request& request);
 
 };
 

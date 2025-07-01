@@ -30,14 +30,14 @@ void	RequestParser::parseNext(Request& request)
 
 void	RequestParser::parseRequestLine(Request& request)
 {
-	LOG_DEBUG("Request::parseRequestLine");
-
-	size_t	pos = request.rawRequest.find("\r\n");
-	if (pos == std::string::npos)
+	size_t	requestLineEnd = request.rawRequest.find("\r\n");
+	if (requestLineEnd == std::string::npos) {
+		// waiting until we have recieved the whole requestLine
 		return;
+	}
 
 	// read the elements of the requestLine
-	std::istringstream lineStream(request.rawRequest.substr(0, pos).c_str());
+	std::istringstream lineStream(request.rawRequest.substr(0, requestLineEnd).c_str());
 	std::string methodStr;
 	if (!std::getline(lineStream, methodStr, ' ') ||
 	    !std::getline(lineStream, request.requestTarget, ' ') ||
@@ -53,7 +53,9 @@ void	RequestParser::parseRequestLine(Request& request)
 		return;
 	}
 
-	LOG_DEBUG(std::string("RAW       ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.method) + " " + LIGHTGREEN + request.requestTarget + " " + LIGHTBLUE + request.protokoll);
+	LOG("---> raw requestLine:       " << LIGHTRED << HTTP::methodToString(request.method)
+		<< " " << LIGHTGREEN << request.requestTarget << " " << LIGHTBLUE
+		<< request.protokoll);
 
 	if (!validateHttpMethod(methodStr, request)) {
 		request.setError(WSSC_BAD_REQUEST);
@@ -70,48 +72,63 @@ void	RequestParser::parseRequestLine(Request& request)
 		return;
 	}
 
-	LOG_DEBUG(std::string("validated ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.method) + " " + LIGHTGREEN + request.URI + " " + LIGHTBLUE + request.protokoll);
+	LOG("---> validated requestLine: " << LIGHTRED << HTTP::methodToString(request.method)
+		<< " " << LIGHTGREEN << request.URI << " " << LIGHTBLUE << request.protokoll);
 
-	request.rawRequest.erase(0, pos + 2);
-	request.parsingState =Request::ParsingState::HEADERS;
+	request.rawRequest.erase(0, requestLineEnd + 2);
+	request.parsingState = Request::ParsingState::HEADERS;
 }
 
 void	RequestParser::parseHeader(Request& request)
 {
-	size_t	start = 0;
-	size_t	pos, last_pos;
+	size_t headerEnd  = request.rawRequest.find("\r\n\r\n");
 
-	pos = request.rawRequest.find_first_of('\n');
-	last_pos = pos;
-	while (pos != std::string::npos) {
+	if (headerEnd == std::string::npos) {
+		// we need to wait until we have recieved the whole header
+		return;
+	}
+
+	size_t	start = 0;
+	while (start < headerEnd) {
+		size_t	pos = request.rawRequest.find_first_of('\n', start);
+
+		if (pos == std::string::npos) {
+			request.setError(WSSC_BAD_REQUEST);
+			return;
+		}
+
 		std::string line = request.rawRequest.substr(start, pos - start);
 
 		// clean trailing '\r' character
-		if (!line.empty() && line.back() == '\r')
+		if (!line.empty() && line.back() == '\r') 
 			line.pop_back();
 
 		if (line.empty()) {
-			request.parsingState = Request::ParsingState::BODY;
-			//	TODO:	OLD is this still a good idea??
-			// request.rawRequest.clear();
+			request.setError(WSSC_BAD_REQUEST);
 			return;
 		}
 
 		std::pair<std::string, std::string> headerField;
 		if (!splitHeaderField(line, headerField)) {
-			LOG_WARNING("failed to split Header-Field: " + line);
+			LOGT(Log::WARNING, "failed to split Header-Field: " << line);
 			request.setError(WSSC_BAD_REQUEST);
 			return;
 		}
 
+		std::transform(headerField.first.begin(), headerField.first.end(),
+		               headerField.first.begin(),
+					   [](unsigned char c){ return std::tolower(c); });
+
 		request.headers[headerField.first] = headerField.second;
 
-		last_pos = pos;
 		start = pos + 1;
-		pos = request.rawRequest.find_first_of("\n", start);
 	}
-	if (last_pos != std::string::npos)
-		request.rawRequest.erase(0, last_pos + 1);
+	request.rawRequest.erase(0, headerEnd + 4);
+
+	if (!validateRequiredHeaderFields(request))
+		return;
+
+	request.parsingState = Request::ParsingState::BODY;
 }
 
 void	RequestParser::parseBody(Request& request)
@@ -126,9 +143,8 @@ bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
 		return true;
 
 	std::string ustr = methodStr;
-	std::transform(ustr.begin(), ustr.end(), ustr.begin(), [](char c){
-		return (std::toupper(c));
-	});
+	std::transform(ustr.begin(), ustr.end(), ustr.begin(),
+	               [](unsigned char c){ return (std::toupper(c)); });
 
 	if (ustr == "GET\0" || ustr == "POST\0" || ustr == "DELETE\0") {
 		request.method = HTTP::strToMethod(methodStr);
@@ -391,4 +407,53 @@ bool	RequestParser::isValidFieldValueChar(const char c)
 {
 	const unsigned char uc = static_cast<unsigned char>(c);
 	return (uc >= ' ' && uc <= '~') || uc == '\t';
+}
+
+bool	RequestParser::validateRequiredHeaderFields(Request& request)
+{
+	// checking for available HOST
+	auto it = request.headers.find("host");
+	if (it == request.headers.end()) {
+		request.setError(WSSC_BAD_REQUEST);
+		return false;
+	}
+
+	// check content-length if available on valid field-value
+	it = request.headers.find("content-length");
+	if (it != request.headers.end()) {
+		const std::string contentLengthStr = it->second;
+		for (auto& c : contentLengthStr) {
+			if (!std::isdigit(c)) {
+				request.setError(WSSC_BAD_REQUEST);
+				return false;
+			}
+		}
+
+		try {
+			size_t resolvedContentLength = std::stoull(contentLengthStr);
+
+			//	TODO:	use resolved clientMaxBodySize
+			if (resolvedContentLength > request.serverBlock.clientMaxBodySize) {
+				request.setError(WSSC_CONTENT_TOO_LARGE);
+				return false;
+			}
+			request.resolvedContentlength = resolvedContentLength;
+		} catch(...) {
+			request.setError(WSSC_BAD_REQUEST);
+			return false;
+		}
+	}
+
+	// check transfer-encoding
+	it = request.headers.find("transfer-encoding");
+	if (it != request.headers.end()) {
+		//	INFO:	here we only allow "transfer-encoding:chunked"
+		//			we could accept "transfer-encoding:gzip, chunked, deflate"
+		if (it->second != "chunked") {
+			request.setError(WSSC_NOT_IMPLEMENTED);
+			return false;
+		}
+	}
+
+	return true;
 }

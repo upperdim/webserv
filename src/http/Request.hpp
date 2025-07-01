@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/07/01 19:33:33 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/07/01 20:16:01 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,9 @@ public:
 	std::unordered_map<std::string, std::string>	headers;
 
 	const ServerBlock&								serverBlock;
+
+	// resolved attributes
+	size_t											resolvedContentlength;
 
 private:
 	bool											m_error;
