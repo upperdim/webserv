@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/30 17:02:17 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/07/01 16:34:05 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ Parser::~Parser()
 Config	Parser::parse(void)
 {
 	Config config = {};
+	setFallBacks(config);
 
 	if (m_tokens.size() == 0 || isAtEnd()) {
 		//	TODO:	return a valid default config
@@ -62,7 +63,6 @@ Config	Parser::parse(void)
 	}
 
 	checkDefaultValues(config);
-	setFallBacks(config);
 	// addDefaultLocationBlocks(config.serverBlocks);
 
 	return config;
@@ -598,6 +598,13 @@ void	Parser::checkDefaultValues(Config& config)
 
 void	Parser::setFallBacks(Config& config)
 {
+	// set default PORT and LISTEN_HOST_STR
+	config.fallback.port          = 80;
+	config.fallback.listenHostStr = "0.0.0.0";
+
+	// set default route
+	config.fallback.route         = "/";
+
 	//	set default ROOT
 	try	{
 		// convert argv0 to fs::path
@@ -609,7 +616,7 @@ void	Parser::setFallBacks(Config& config)
 		execPath = std::filesystem::canonical(execPath);
 		config.fallback.root = execPath;
 	} catch (...) {
-		throw std::runtime_error("couldn't resolve executable path.");
+		throw std::runtime_error("failed to resolve executable path to set default value for root directive.");
 	}
 
 	// set default for INDEX
@@ -623,6 +630,5 @@ void	Parser::setFallBacks(Config& config)
 
 	// set default for AUTO_INDEX, ALLOW_UPLOAD
 	config.fallback.autoIndex   = false;
-	config.fallback.allowUpload = false;
-	
+	config.fallback.allowUpload = false;	
 }

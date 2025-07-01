@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/30 17:04:28 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/07/01 16:37:23 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,11 +61,12 @@ public:
 	~Config();
 
 	struct {
-		std::string	root;
-		std::string	index;
-		
-		// unused for now
-		size_t						clientMaxBodySize;	//	TODO: set type to ssize_t
+		int							port;
+		std::string					listenHostStr;
+		std::string					route;
+		std::string					root;
+		std::string					index;
+		size_t						clientMaxBodySize;
 		std::vector<HTTP::Method>	allowMethods;
 		bool						autoIndex;
 		bool						allowUpload;
