@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Request.cpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/07/01 19:16:37 by tunsal           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Request.hpp"
 #include <algorithm>
 
@@ -23,13 +11,6 @@ Request::Request(const ServerBlock& _serverBlock)
 {
 }
 
-Request::~Request()
-{
-}
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
 void	Request::setError(int errorStatusCode)
 {
 	if (!m_error) {
@@ -42,16 +23,6 @@ void	Request::setError(int errorStatusCode)
 bool	Request::error(void)
 {
 	return m_error;
-}
-
-int	Request::getStatusCode(void) const
-{
-	return (statusCode);
-}
-
-std::string	Request::getRequestTarget(void) const
-{
-	return (requestTarget);
 }
 
 const LocationBlock&	Request::locationBlock()

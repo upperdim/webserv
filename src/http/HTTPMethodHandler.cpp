@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPMethodHandler.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 11:01:47 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/26 17:01:06 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/07/01 19:28:43 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ void	HTTPMethodHandler::handle(Request& request, Response& response)
 		return;
 	}
 	
-	if (request.getRequestTarget().empty()) {
+	if (request.requestTarget.empty()) {
 		response.setStatus(WSSC_NOT_FOUND);
 		return;
 	}
@@ -63,8 +63,8 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 	LOG_MSG("[handle Get Request] ", "...", LIGHTMAGENTA, DEFAULT);
 
 	// TODO: repetitive?
-	if (request.getStatusCode() >= WSSC_BAD_REQUEST) {
-		createErrorResponse(response, request.getStatusCode());
+	if (request.statusCode >= WSSC_BAD_REQUEST) {
+		createErrorResponse(response, request.statusCode);
 		return;
 	}
 
@@ -120,7 +120,7 @@ void	HTTPMethodHandler::handleFailedRequest(const Request& request, Response& re
 {
 	LOG_MSG("[handle failed request] ", "...", LIGHTMAGENTA, DEFAULT);
 
-	int			status_code = request.getStatusCode();
+	int			status_code = request.statusCode;
 
 	if (status_code < WSSC_BAD_REQUEST)
 		status_code = WSSC_INTERNAL_SERVER_ERROR;

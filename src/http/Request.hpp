@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/07/01 19:16:44 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/07/01 19:26:12 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@ class Request
 {
 public:
 	Request(const ServerBlock& _serverBlock);
-	~Request();
 
 	enum class ParsingState {
 		READING_REQUEST_LINE,
