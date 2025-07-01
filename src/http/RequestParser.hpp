@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   RequestParser.hpp                                  :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/22 14:13:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/25 12:57:11 by nmihaile         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef REQUESTPARSER_HPP
 #define REQUESTPARSER_HPP
 
@@ -20,15 +8,12 @@
 class RequestParser
 {
 public:
-	~RequestParser();
-
 	static void					parseNext(Request& request);
 
 private:
-	RequestParser();
-
 	static void					parseRequestLine(Request& request);
 	static void					parseHeader(Request& request);
+	static void					parseBody(Request& request);
 
 	static bool					validateHttpMethod(std::string& methodStr, Request& request);
 	static bool					validateRequestTarget(Request& request);
@@ -48,6 +33,7 @@ private:
 	static bool					splitHeaderField(std::string& line, std::pair<std::string, std::string>& headerField);
 	static bool					isValidFieldNameChar(const char c);
 	static bool					isValidFieldValueChar(const char c);
+	static bool					validateRequiredHeaderFields(Request& request);
 
 };
 

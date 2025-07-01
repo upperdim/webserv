@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   HTTPMethodHandler.cpp                              :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/26 11:01:47 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/28 12:41:35 by nmihaile         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <filesystem>
 #include "HTTPMethodHandler.hpp"
 #include "Utils.hpp"
@@ -24,8 +12,8 @@ HTTPMethodHandler::~HTTPMethodHandler()
 
 void	HTTPMethodHandler::handle(Request& request, Response& response)
 {
-	if (request.getState() == Request::State::INVALID) {
-		handleFailedRequest(request, response);
+	if (request.errorStatusCode.has_value()) {
+		createErrorResponse(response, request.errorStatusCode.value());
 		return;
 	}
 	
@@ -63,8 +51,8 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 	LOG_MSG("[handle Get Request] ", "...", LIGHTMAGENTA, DEFAULT);
 
 	// TODO: repetitive?
-	if (request.statusCode >= WSSC_BAD_REQUEST) {
-		createErrorResponse(response, request.statusCode);
+	if (request.errorStatusCode.has_value()) {
+		createErrorResponse(response, request.errorStatusCode.value());
 		return;
 	}
 
@@ -113,20 +101,6 @@ void	HTTPMethodHandler::handleDeleteRequest(const Request& request, Response& re
 	LOG_SUCCESS(std::string("deleted: ") + resourcePath.c_str());
 
 	response.setStatus(WSSC_OK);
-	return;
-}
-
-void	HTTPMethodHandler::handleFailedRequest(const Request& request, Response& response)
-{
-	LOG_MSG("[handle failed request] ", "...", LIGHTMAGENTA, DEFAULT);
-
-	int			status_code = request.statusCode;
-
-	if (status_code < WSSC_BAD_REQUEST)
-		status_code = WSSC_INTERNAL_SERVER_ERROR;
-
-	createErrorResponse(response, status_code);
-	return;
 }
 
 void	HTTPMethodHandler::createErrorResponse(Response& response, int statusCode)

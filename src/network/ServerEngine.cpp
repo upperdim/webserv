@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ServerEngine.cpp                                   :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/27 02:25:23 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/30 13:17:25 by nmihaile         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <iostream>
 #include <unistd.h> // close()
 #include <thread>   // std::this_thread::sleep_for
@@ -247,7 +235,7 @@ void ServerEngine::readClientIncomingData(int clientFd)
 	
 	client.receiveRequest();
 
-	if (client.getRequest().isComplete) {
+	if (client.getRequest().doneReceiving) {
 		HTTPMethodHandler::handle(client.getRequest(), client.getResponse());
 		setPollFdEvents(clientFd, POLLOUT | POLLERR | POLLHUP);
 		LOG("Now listening to POLLOUT event for ClientConnection fd = " << clientFd << " socket");

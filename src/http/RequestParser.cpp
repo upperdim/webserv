@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   RequestParser.cpp                                  :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 21:39:23 by nmihaile         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "RequestParser.hpp"
 #include <sstream>
 #include <algorithm>
@@ -19,43 +7,26 @@
 #include "Log.hpp"
 #include "Utils.hpp"
 
-RequestParser::~RequestParser()
-{
-}
-
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
-
 void	RequestParser::parseNext(Request& request)
 {
 	LOGT(Log::INFO, "===> RequestParser::parseNext");
-	if (request.getState() == Request::State::READING_REQUEST_LINE) {
+	if (request.parsingState == Request::ParsingState::REQUEST_LINE) {
 		LOGT(Log::INFO, "---> Reqeust: parse requestLine");
 		parseRequestLine(request);
 	}
-	if (request.getState() == Request::State::READING_HEADERS) {
+	if (request.parsingState == Request::ParsingState::HEADERS) {
 		LOGT(Log::INFO, "---> Request: parser headers");
 		parseHeader(request);
 	}
-	if (request.getState() == Request::State::READING_BODY) {
-		LOGT(Log::INFO, "---> Request: body");
-		//	TODO:	skipping for now
-		request.setState(Request::State::COMPLETE);
+	if (request.parsingState == Request::ParsingState::BODY) {
+		LOGT(Log::INFO, "---> Request: parser body");
+		parseBody(request);
 	}
-	if (request.getState() == Request::State::COMPLETE) {
-		//	TODO:	delete, just as an indication that the request is complete
-		LOGT(Log::INFO, "LOGT(Log::INFO, Request: COMPLETE");
+	if (request.parsingState == Request::ParsingState::COMPLETE || request.parsingState == Request::ParsingState::INVALID) {
+		LOGT(Log::INFO, "---> Request: " << (request.parsingState == Request::ParsingState::COMPLETE ? "COMPLETE" : "INVALID"));
+		request.doneReceiving = true;
 	}
-	if (request.getState() == Request::State::COMPLETE || request.getState() == Request::State::INVALID)
-		request.resolveRequestContext();
 }
-
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
 
 void	RequestParser::parseRequestLine(Request& request)
 {
@@ -71,14 +42,16 @@ void	RequestParser::parseRequestLine(Request& request)
 	if (!std::getline(lineStream, methodStr, ' ') ||
 	    !std::getline(lineStream, request.requestTarget, ' ') ||
 		!std::getline(lineStream, request.protokoll, ' ')) {
-		request.setError(WSSC_INTERNAL_SERVER_ERROR);
+		request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+		request.parsingState = Request::ParsingState::INVALID;
 		return;
 	}
 
 	// Don't allow extra garbage after the protokoll in the request line
 	std::string someExtraGarbage;
 	if (lineStream >> someExtraGarbage) {
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return;
 	}
 
@@ -87,17 +60,20 @@ void	RequestParser::parseRequestLine(Request& request)
 		<< request.protokoll);
 
 	if (!validateHttpMethod(methodStr, request)) {
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return;
 	}
 
 	if (!validateRequestTarget(request)) {
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return;
 	}
 
 	if (!validateProtokoll(request)) {
-		request.setError(WSSC_HTTP_VERSION_NOT_SUPPORTED);
+		request.errorStatusCode = WSSC_HTTP_VERSION_NOT_SUPPORTED;
+		request.parsingState = Request::ParsingState::INVALID;
 		return;
 	}
 
@@ -105,7 +81,7 @@ void	RequestParser::parseRequestLine(Request& request)
 		<< " " << LIGHTGREEN << request.URI << " " << LIGHTBLUE << request.protokoll);
 
 	request.rawRequest.erase(0, requestLineEnd + 2);
-	request.setState(Request::State::READING_HEADERS);
+	request.parsingState = Request::ParsingState::HEADERS;
 }
 
 void	RequestParser::parseHeader(Request& request)
@@ -122,7 +98,8 @@ void	RequestParser::parseHeader(Request& request)
 		size_t	pos = request.rawRequest.find_first_of('\n', start);
 
 		if (pos == std::string::npos) {
-			request.setError(WSSC_BAD_REQUEST);
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
 			return;
 		}
 
@@ -133,23 +110,39 @@ void	RequestParser::parseHeader(Request& request)
 			line.pop_back();
 
 		if (line.empty()) {
-			request.setError(WSSC_BAD_REQUEST);
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
 			return;
 		}
 
 		std::pair<std::string, std::string> headerField;
 		if (!splitHeaderField(line, headerField)) {
 			LOGT(Log::WARNING, "failed to split Header-Field: " << line);
-			request.setError(WSSC_BAD_REQUEST);
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
 			return;
 		}
+
+		std::transform(headerField.first.begin(), headerField.first.end(),
+		               headerField.first.begin(),
+					   [](unsigned char c){ return std::tolower(c); });
 
 		request.headers[headerField.first] = headerField.second;
 
 		start = pos + 1;
 	}
 	request.rawRequest.erase(0, headerEnd + 4);
-	request.setState(Request::State::READING_BODY);
+
+	if (!validateRequiredHeaderFields(request))
+		return;
+
+	request.parsingState = Request::ParsingState::BODY;
+}
+
+void	RequestParser::parseBody(Request& request)
+{
+	// TODO: Implement
+	request.parsingState = Request::ParsingState::COMPLETE;
 }
 
 bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
@@ -158,17 +151,18 @@ bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
 		return true;
 
 	std::string ustr = methodStr;
-	std::transform(ustr.begin(), ustr.end(), ustr.begin(), [](char c){
-		return (std::toupper(c));
-	});
+	std::transform(ustr.begin(), ustr.end(), ustr.begin(),
+	               [](unsigned char c){ return (std::toupper(c)); });
 
 	if (ustr == "GET\0" || ustr == "POST\0" || ustr == "DELETE\0") {
 		request.method = HTTP::strToMethod(methodStr);
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return false;
 	}
 
-	request.setError(WSSC_METHOD_NOT_ALLOWED);
+	request.errorStatusCode = WSSC_METHOD_NOT_ALLOWED;
+	request.parsingState = Request::ParsingState::INVALID;
 	return false;
 }
 
@@ -178,7 +172,8 @@ bool	RequestParser::validateRequestTarget(Request& request)
 	if (request.requestTarget == "*" ||
 		request.requestTarget.find("://") != std::string::npos ||
 		request.requestTarget.find('/') != 0) {
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return false;
 	}
 
@@ -188,7 +183,8 @@ bool	RequestParser::validateRequestTarget(Request& request)
 	    !isRelativeForm_EnsureLeadingSlash(request.URI) ||
 	    !removeDotSegments(request.URI) ||
 		!collapseDuplicateSlashes(request.URI)) {
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return false;
 	}
 
@@ -196,7 +192,8 @@ bool	RequestParser::validateRequestTarget(Request& request)
 	if (request.URI.empty() ||
 		request.URI.size() > MAX_URI_LENGTH ||
 		request.URI.find('\\') != std::string::npos) {
-		request.setError(WSSC_BAD_REQUEST);
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return false;
 	}
 
@@ -423,4 +420,58 @@ bool	RequestParser::isValidFieldValueChar(const char c)
 {
 	const unsigned char uc = static_cast<unsigned char>(c);
 	return (uc >= ' ' && uc <= '~') || uc == '\t';
+}
+
+bool	RequestParser::validateRequiredHeaderFields(Request& request)
+{
+	// checking for available HOST
+	auto it = request.headers.find("host");
+	if (it == request.headers.end()) {
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
+		return false;
+	}
+
+	// check content-length if available on valid field-value
+	it = request.headers.find("content-length");
+	if (it != request.headers.end()) {
+		const std::string contentLengthStr = it->second;
+		for (auto& c : contentLengthStr) {
+			if (!std::isdigit(c)) {
+				request.errorStatusCode = WSSC_BAD_REQUEST;
+				request.parsingState = Request::ParsingState::INVALID;
+				return false;
+			}
+		}
+
+		try {
+			size_t resolvedContentLength = std::stoull(contentLengthStr);
+
+			//	TODO:	use resolved clientMaxBodySize
+			if (resolvedContentLength > request.serverBlock.clientMaxBodySize) {
+				request.errorStatusCode = WSSC_CONTENT_TOO_LARGE;
+				request.parsingState = Request::ParsingState::INVALID;
+				return false;
+			}
+			request.contentLength = resolvedContentLength;
+		} catch(...) {
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
+			return false;
+		}
+	}
+
+	// check transfer-encoding
+	it = request.headers.find("transfer-encoding");
+	if (it != request.headers.end()) {
+		//	INFO:	here we only allow "transfer-encoding:chunked"
+		//			we could accept "transfer-encoding:gzip, chunked, deflate"
+		if (it->second != "chunked") {
+			request.errorStatusCode = WSSC_NOT_IMPLEMENTED;
+			request.parsingState = Request::ParsingState::INVALID;
+			return false;
+		}
+	}
+
+	return true;
 }
