@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/07/01 16:34:05 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/07/01 17:02:16 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,8 +62,7 @@ Config	Parser::parse(void)
 		}
 	}
 
-	checkDefaultValues(config);
-	// addDefaultLocationBlocks(config.serverBlocks);
+	setFallbacksForServerBlocks(config);
 
 	return config;
 }
@@ -568,38 +567,16 @@ void	Parser::parseExtension(const Token& directive, std::vector<const Token*>& p
 	ext = params[0]->value;
 }
 
+
 //=============================================================================
 // Rules and Checks
 //=============================================================================
 
-void	Parser::checkDefaultValues(Config& config)
-{
-	for (auto& serverBlock : config.serverBlocks) {
-		// listenPort
-		if (serverBlock.listenPort == 0)
-			serverBlock.listenPort = 80;
-
-		// listenHostStr
-		if (serverBlock.listenHostStr.empty())
-			serverBlock.listenHostStr = "0.0.0.0";
-
-		//	TODO:	I am not sure if we hace to set this, currently it makes sense
-		if (serverBlock.locationBlocks.empty()) {
-			serverBlock.locationBlocks.push_back(LocationBlock());
-			serverBlock.locationBlocks[0].route = "/";
-		}
-
-		// just for a test
-		if (serverBlock.root.empty())
-			serverBlock.root = "/Users/nmihaile/Documents/test/webserv/www";
-
-	}
-}
 
 void	Parser::setFallBacks(Config& config)
 {
 	// set default PORT and LISTEN_HOST_STR
-	config.fallback.port          = 80;
+	config.fallback.listenPort    = 80;
 	config.fallback.listenHostStr = "0.0.0.0";
 
 	// set default route
@@ -631,4 +608,42 @@ void	Parser::setFallBacks(Config& config)
 	// set default for AUTO_INDEX, ALLOW_UPLOAD
 	config.fallback.autoIndex   = false;
 	config.fallback.allowUpload = false;	
+}
+
+void	Parser::setFallbacksForServerBlocks(Config& config)
+{
+	for (auto& serverBlock : config.serverBlocks) {
+		// listenPort
+		if (serverBlock.listenPort == 0)
+			serverBlock.listenPort = config.fallback.listenPort;
+
+		// listenHostStr
+		if (serverBlock.listenHostStr.empty())
+			serverBlock.listenHostStr = config.fallback.listenHostStr;
+
+		// set a default location if we dont have one
+		if (serverBlock.locationBlocks.empty()) {
+			LocationBlock locatioBlock;
+			locatioBlock.route        = config.fallback.route;
+			locatioBlock.allowMethods = config.fallback.allowMethods;
+			locatioBlock.autoIndex    = config.fallback.autoIndex;
+			locatioBlock.allowUpload  = config.fallback.allowUpload;
+			// and add the new default location to this serverBlock
+			serverBlock.locationBlocks.push_back(locatioBlock);
+		}
+
+		// clientMaxBodySize
+		//		=>	this is currently set in the header file, since the type is
+		//			size_t, there is the std::optional<size_t> which would let
+		//			us to check if the value was set or not
+		//			-> if we want we can go that route
+
+		// root
+		if (serverBlock.root.empty())
+			serverBlock.root = config.fallback.root;
+
+		// index
+		if (serverBlock.index.empty())
+			serverBlock.index = config.fallback.index;
+	}
 }

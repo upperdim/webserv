@@ -6,7 +6,7 @@
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/30 16:39:52 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/07/01 17:02:12 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,8 +76,8 @@ private:
 	void			parseExtension(const Token& directive, std::vector<const Token*>& params, std::string& ext);
 
 	// rules and checks
-	void			checkDefaultValues(Config& config);
 	void			setFallBacks(Config& config);
+	void			setFallbacksForServerBlocks(Config& config);
 
 };
 

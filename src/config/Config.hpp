@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/07/01 16:37:23 by nmihaile         ###   ########.fr       */
+/*   Created: 2025/07/01 17:01:45 by nmihaile          #+#    #+#             */
+/*   Updated: 2025/07/01 17:01:49 by nmihaile         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ public:
 	~Config();
 
 	struct {
-		int							port;
+		int							listenPort;
 		std::string					listenHostStr;
 		std::string					route;
 		std::string					root;
