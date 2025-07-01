@@ -17,14 +17,14 @@ Request::Request(const ServerBlock& _serverBlock)
 // Move this as a validation to the correct place (after resolving request and matching serverBlock)
 bool	Request::isAllowedMethod(void)
 {
-	if (m_locationBlock == nullptr) {
-		throw std::runtime_error("locationblock is null");
-	}
-
 	for (const LocationBlock& locationBlock : serverBlock.locationBlocks) {
 		if (locationBlock.route == URI) {
 			m_locationBlock = const_cast<LocationBlock*>(&locationBlock);
 		}
+	}
+
+	if (m_locationBlock == nullptr) {
+		throw std::runtime_error("locationblock is null");
 	}
 
 	//	TODO:	should we protect this methode here and only accept it if the
