@@ -11,25 +11,23 @@ Request::Request(const ServerBlock& _serverBlock)
 {
 }
 
-const LocationBlock&	Request::locationBlock()
-{
-	if (m_locationBlock == nullptr) {
-		// Matches the requestTaget to a serverBlock.locationBlock
-		// TODO:	more needs o be done
-		for (const LocationBlock& locationBlock : serverBlock.locationBlocks) {
-			if (locationBlock.route == URI) {
-				m_locationBlock = const_cast<LocationBlock*>(&locationBlock);
-				return *m_locationBlock;
-			}
-		}
-		m_locationBlock = const_cast<LocationBlock*>(&serverBlock.locationBlocks.front());
-	}
-	return *m_locationBlock;
-}
-
+// TODO: This function should not be called until request is complete
+// it needs the correct serverBlock found in order to access the locationBlock
+// 
+// Move this as a validation to the correct place (after resolving request and matching serverBlock)
 bool	Request::isAllowedMethod(void)
 {
+	if (m_locationBlock == nullptr) {
+		throw std::runtime_error("locationblock is null");
+	}
+
+	for (const LocationBlock& locationBlock : serverBlock.locationBlocks) {
+		if (locationBlock.route == URI) {
+			m_locationBlock = const_cast<LocationBlock*>(&locationBlock);
+		}
+	}
+
 	//	TODO:	should we protect this methode here and only accept it if the
 	//			request is complete or has an error????
-	return std::find(locationBlock().allowMethods.begin(), locationBlock().allowMethods.end(), method) != locationBlock().allowMethods.end();
+	return std::find(m_locationBlock->allowMethods.begin(), m_locationBlock->allowMethods.end(), method) != m_locationBlock->allowMethods.end();
 }

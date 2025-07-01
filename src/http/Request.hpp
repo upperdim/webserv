@@ -20,8 +20,7 @@ public:
 		INVALID
 	};
 
-	const LocationBlock&	locationBlock();
-	bool					isAllowedMethod(void);
+	bool											isAllowedMethod(void);
 
 	std::string										rawRequest;
 	ParsingState									parsingState;
