@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/07/01 19:10:40 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/07/01 19:16:37 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,19 +39,9 @@ void	Request::setError(int errorStatusCode)
 	}
 }
 
-void	Request::setComplete()
-{
-	parsingState = ParsingState::COMPLETE;
-}
-
 bool	Request::error(void)
 {
 	return m_error;
-}
-
-bool	Request::complete(void)
-{
-	return parsingState == ParsingState::COMPLETE;
 }
 
 int	Request::getStatusCode(void) const
