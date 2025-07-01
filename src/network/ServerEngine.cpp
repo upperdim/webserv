@@ -35,8 +35,6 @@ ServerEngine::ServerEngine(Config config)
 	for (size_t i = 0; i < servers.size(); ++i) {
 		addToPollFds(servers[i].getFd());
 	}
-
-	isRunning = true;
 }
 
 ServerEngine::~ServerEngine()
@@ -59,6 +57,8 @@ ServerEngine::~ServerEngine()
 //=============================================================================
 void ServerEngine::run()
 {
+	isRunning = true;
+
 	while (isRunning) {
 		if (pollFds.empty()) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(EMPTY_POLLFDS_SLEEP_TIME_MS));
