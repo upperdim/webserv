@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   RequestParser.cpp                                  :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/07/01 19:09:37 by tunsal           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "RequestParser.hpp"
 #include <sstream>
 #include <algorithm>
@@ -19,41 +7,26 @@
 #include "Log.hpp"
 #include "Utils.hpp"
 
-RequestParser::~RequestParser()
-{
-}
-
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
-
 void	RequestParser::parseNext(Request& request)
 {
-	LOG_DEBUG("---> RequestParser::parseNext");
-	if (request.parsingState == Request::ParsingState::READING_REQUEST_LINE) {
-		LOG_DEBUG("===> REQUEST READING_REQUEST_LINE");
+	LOGT(Log::INFO, "===> RequestParser::parseNext");
+	if (request.parsingState == Request::ParsingState::REQUEST_LINE) {
+		LOGT(Log::INFO, "---> Reqeust: parse requestLine");
 		parseRequestLine(request);
 	}
-	if (request.parsingState == Request::ParsingState::READING_HEADERS) {
-		LOG_DEBUG("===> REQUEST READING_HEADERS");
+	if (request.parsingState == Request::ParsingState::HEADERS) {
+		LOGT(Log::INFO, "---> Request: parser headers");
 		parseHeader(request);
 	}
-	if (request.parsingState == Request::ParsingState::READING_BODY) {
-		LOG_DEBUG("===> REQUEST READING_BODY");
-		//	TODO:	skipping for now
-		request.parsingState =Request::ParsingState::COMPLETE;
+	if (request.parsingState == Request::ParsingState::BODY) {
+		LOGT(Log::INFO, "---> Request: parser body");
+		parseBody(request);
 	}
-	if (request.parsingState == Request::ParsingState::COMPLETE) {
-		//	TODO:	delete, just as an indication that the request is complete
-		LOG_DEBUG("===> REQUEST COMPLETE");
+	if (request.parsingState == Request::ParsingState::COMPLETE || request.parsingState == Request::ParsingState::INVALID) {
+		LOGT(Log::INFO, "---> Request: " << (request.parsingState == Request::ParsingState::COMPLETE ? "COMPLETE" : "INVALID"));
+		request.doneReceiving = true;
 	}
 }
-
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
 
 void	RequestParser::parseRequestLine(Request& request)
 {
@@ -100,7 +73,7 @@ void	RequestParser::parseRequestLine(Request& request)
 	LOG_DEBUG(std::string("validated ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.method) + " " + LIGHTGREEN + request.URI + " " + LIGHTBLUE + request.protokoll);
 
 	request.rawRequest.erase(0, pos + 2);
-	request.parsingState =Request::ParsingState::READING_HEADERS;
+	request.parsingState =Request::ParsingState::HEADERS;
 }
 
 void	RequestParser::parseHeader(Request& request)
@@ -118,7 +91,7 @@ void	RequestParser::parseHeader(Request& request)
 			line.pop_back();
 
 		if (line.empty()) {
-			request.parsingState =Request::ParsingState::READING_BODY;
+			request.parsingState = Request::ParsingState::BODY;
 			//	TODO:	OLD is this still a good idea??
 			// request.rawRequest.clear();
 			return;
@@ -139,6 +112,12 @@ void	RequestParser::parseHeader(Request& request)
 	}
 	if (last_pos != std::string::npos)
 		request.rawRequest.erase(0, last_pos + 1);
+}
+
+void	RequestParser::parseBody(Request& request)
+{
+	// TODO: Implement
+	request.parsingState = Request::ParsingState::COMPLETE;
 }
 
 bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)

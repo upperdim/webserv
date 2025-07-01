@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RequestParser.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:20 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/25 12:57:11 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/07/01 19:40:23 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,15 +20,12 @@
 class RequestParser
 {
 public:
-	~RequestParser();
-
 	static void					parseNext(Request& request);
 
 private:
-	RequestParser();
-
 	static void					parseRequestLine(Request& request);
 	static void					parseHeader(Request& request);
+	static void					parseBody(Request& request);
 
 	static bool					validateHttpMethod(std::string& methodStr, Request& request);
 	static bool					validateRequestTarget(Request& request);

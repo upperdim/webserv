@@ -2,7 +2,7 @@
 #include <algorithm>
 
 Request::Request(const ServerBlock& _serverBlock)
-	:	parsingState(ParsingState::READING_REQUEST_LINE),
+	:	parsingState(ParsingState::REQUEST_LINE),
 		method(HTTP::Method::GET),
 		statusCode(200),
 		serverBlock(_serverBlock),
