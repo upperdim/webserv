@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:23 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 01:46:32 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/07/01 19:07:02 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,18 +24,12 @@ public:
 	Request(const ServerBlock& _serverBlock);
 	~Request();
 
-	enum class State {
+	enum class ParsingState {
 		READING_REQUEST_LINE,
 		READING_HEADERS,
 		READING_BODY,
 		COMPLETE
 	};
-
-	void					append(const char *buf, const size_t bytes_read);
-	void					reset(void);
-
-	Request::State			getState(void);
-	void					setState(State state);
 
 	void					setError(int _statusCode);
 	bool					error(void);
@@ -49,7 +43,8 @@ public:
 	bool					isAllowedMethod(void);
 
 	std::string										rawRequest;
-
+	ParsingState									parsingState;
+	
 	HTTP::Method									method;
 	int												statusCode;
 	std::string										requestTarget;
@@ -60,7 +55,6 @@ public:
 	const ServerBlock&								serverBlock;
 
 private:
-	State											m_state;
 	bool											m_error;
 	LocationBlock*									m_locationBlock;
 };

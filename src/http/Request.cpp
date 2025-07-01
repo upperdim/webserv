@@ -6,7 +6,7 @@
 /*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 18:06:22 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 01:46:41 by tunsal           ###   ########.fr       */
+/*   Updated: 2025/07/01 19:10:40 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,10 @@
 #include <algorithm>
 
 Request::Request(const ServerBlock& _serverBlock)
-	:	method(HTTP::Method::GET),
+	:	parsingState(ParsingState::READING_REQUEST_LINE),
+		method(HTTP::Method::GET),
 		statusCode(200),
 		serverBlock(_serverBlock),
-		m_state(State::READING_REQUEST_LINE),
 		m_error(false),
 		m_locationBlock(nullptr)
 {
@@ -30,27 +30,6 @@ Request::~Request()
 /* ************************************************************************** */
 /* ************************************************************************** */
 
-
-void	Request::append(const char *buf, const size_t bytesRead)
-{
-	rawRequest.append(buf, bytesRead);
-}
-
-void	Request::reset(void)
-{
-	//	TODO:	reset the Request
-}
-
-Request::State	Request::getState(void)
-{
-	return m_state;
-}
-
-void	Request::setState(State state)
-{
-	m_state = state;
-}
-
 void	Request::setError(int errorStatusCode)
 {
 	if (!m_error) {
@@ -62,7 +41,7 @@ void	Request::setError(int errorStatusCode)
 
 void	Request::setComplete()
 {
-	m_state = State::COMPLETE;
+	parsingState = ParsingState::COMPLETE;
 }
 
 bool	Request::error(void)
@@ -72,7 +51,7 @@ bool	Request::error(void)
 
 bool	Request::complete(void)
 {
-	return m_state == State::COMPLETE;
+	return parsingState == ParsingState::COMPLETE;
 }
 
 int	Request::getStatusCode(void) const

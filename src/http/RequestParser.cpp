@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RequestParser.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/22 14:13:19 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/25 15:23:45 by nmihaile         ###   ########.fr       */
+/*   Updated: 2025/07/01 19:09:37 by tunsal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,20 +31,20 @@ RequestParser::~RequestParser()
 void	RequestParser::parseNext(Request& request)
 {
 	LOG_DEBUG("---> RequestParser::parseNext");
-	if (request.getState() == Request::State::READING_REQUEST_LINE) {
+	if (request.parsingState == Request::ParsingState::READING_REQUEST_LINE) {
 		LOG_DEBUG("===> REQUEST READING_REQUEST_LINE");
 		parseRequestLine(request);
 	}
-	if (request.getState() == Request::State::READING_HEADERS) {
+	if (request.parsingState == Request::ParsingState::READING_HEADERS) {
 		LOG_DEBUG("===> REQUEST READING_HEADERS");
 		parseHeader(request);
 	}
-	if (request.getState() == Request::State::READING_BODY) {
+	if (request.parsingState == Request::ParsingState::READING_BODY) {
 		LOG_DEBUG("===> REQUEST READING_BODY");
 		//	TODO:	skipping for now
-		request.setState(Request::State::COMPLETE);
+		request.parsingState =Request::ParsingState::COMPLETE;
 	}
-	if (request.getState() == Request::State::COMPLETE) {
+	if (request.parsingState == Request::ParsingState::COMPLETE) {
 		//	TODO:	delete, just as an indication that the request is complete
 		LOG_DEBUG("===> REQUEST COMPLETE");
 	}
@@ -100,7 +100,7 @@ void	RequestParser::parseRequestLine(Request& request)
 	LOG_DEBUG(std::string("validated ~~ RequestLine: ") + LIGHTRED + HTTP::methodToString(request.method) + " " + LIGHTGREEN + request.URI + " " + LIGHTBLUE + request.protokoll);
 
 	request.rawRequest.erase(0, pos + 2);
-	request.setState(Request::State::READING_HEADERS);
+	request.parsingState =Request::ParsingState::READING_HEADERS;
 }
 
 void	RequestParser::parseHeader(Request& request)
@@ -118,7 +118,7 @@ void	RequestParser::parseHeader(Request& request)
 			line.pop_back();
 
 		if (line.empty()) {
-			request.setState(Request::State::READING_BODY);
+			request.parsingState =Request::ParsingState::READING_BODY;
 			//	TODO:	OLD is this still a good idea??
 			// request.rawRequest.clear();
 			return;
