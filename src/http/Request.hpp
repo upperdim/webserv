@@ -22,7 +22,6 @@ public:
 
 	bool											isAllowedMethod(void);
 
-	bool											isComplete;
 	std::string										rawRequest;
 	ParsingState									parsingState;
 	bool											doneReceiving;
