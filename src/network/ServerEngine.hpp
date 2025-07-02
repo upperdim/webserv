@@ -14,7 +14,7 @@
 class ServerEngine
 {
 private:
-	std::vector<Server>							servers;
+	std::vector<ServerSocket>					servers;
 	std::unordered_map<int, ClientConnection>	clients;              // Key: fd, value: ClientConnection
 
 	std::vector<struct pollfd>					pollFds;
@@ -29,7 +29,7 @@ private:
 	void										iteratePollFds(int eventCount);
 	void										updatePollFds();
 	
-	void										acceptNewClientConnection(Server& clientConnectedServer);
+	void										acceptNewClientConnection(ServerSocket& clientConnectedServer);
 	void										disconnectClient(int clientFd);
 	void										stopServer(int serverFd, int serverIdx);
 	void										readClientIncomingData(int clientFd);

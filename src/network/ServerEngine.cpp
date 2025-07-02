@@ -13,6 +13,9 @@ volatile std::sig_atomic_t ServerEngine::isRunning = false;
 // Server creation:
 //   - Same      host:port => same ServerSocket, insert to map as <server_name, serverBlock>
 //   - Different host:port => create a new ServerSocket, insert to map as <server_name, serverBlock>
+//
+// map < host:port , serverBlock >
+//
 ServerEngine::ServerEngine(Config config)
 {
 	if (config.serverBlocks.size() == 0)
@@ -30,7 +33,7 @@ ServerEngine::ServerEngine(Config config)
 		}
 
 		if (!isDuplicatePort) {
-			servers.push_back(Server(config.serverBlocks[i]));
+			servers.push_back(ServerSocket(config.serverBlocks[i]));
 		}
 	}
 
@@ -187,7 +190,7 @@ void ServerEngine::printPollFds()
 //=============================================================================
 // Connections & Disconnections
 //=============================================================================
-void ServerEngine::acceptNewClientConnection(Server& clientConnectedServer)
+void ServerEngine::acceptNewClientConnection(ServerSocket& clientConnectedServer)
 {
 	int clientFd = accept(clientConnectedServer.getFd(), NULL, NULL);
 	if (clientFd == -1) {

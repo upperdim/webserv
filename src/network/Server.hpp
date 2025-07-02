@@ -1,24 +1,24 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <unordered_map>
 #include <netinet/in.h>
+#include <map>
 #include "Config.hpp"
 
 #define LISTEN_BACKLOG 10 // Maximum number of connection requests in queue
 
-class Server
+class ServerSocket
 {
 private:
-	int												fd; 		// File descriptor
-	struct sockaddr_in								sockaddr;
-	std::unordered_map<std::string, ServerBlock>	serverNametoServerBlock;
+	int									fd; // File descriptor of the server socket
+	struct sockaddr_in					sockaddr;
+	ServerBlock							serverBlock;
 
 public:
-	Server(ServerBlock serverBlock);
+	ServerSocket(ServerBlock serverBlock);
 	
-	int					getFd();
-	ServerBlock&		getServerBlockRef();
+	int									getFd();
+	ServerBlock&						getServerBlockRef();
 };
 
 #endif

@@ -11,23 +11,23 @@
 class ClientConnection
 {
 private:
-	int			fd;
-	Server&		connectedServer;
-	bool		connectionError;
-	Request		request;
-	Response	response;
+int					fd;
+	ServerSocket&	connectedServer;
+	bool			connectionError;
+	Request			request;
+	Response		response;
 
 public:
-	ClientConnection(int fd, Server& connectedServer);
+	ClientConnection(int fd, ServerSocket& connectedServer);
 
-	void		receiveRequest();
-	void		sendResponse();
+	void			receiveRequest();
+	void			sendResponse();
 	
-	int			getFd();
-	bool		getConnectionError();
-	Server&		getConnectedServer();
-	Request&	getRequest();
-	Response&	getResponse();
+	int				getFd();
+	bool			getConnectionError();
+	ServerSocket&	getConnectedServer();
+	Request&		getRequest();
+	Response&		getResponse();
 };
 
 #endif

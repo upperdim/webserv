@@ -5,7 +5,7 @@
 #include "Server.hpp"
 #include "Log.hpp"
 
-Server::Server(ServerBlock sb) : sockaddr(), serverBlock(sb)
+ServerSocket::ServerSocket(ServerBlock sb) : sockaddr(), serverBlock(sb)
 {
 	fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd < 0) {
@@ -58,5 +58,5 @@ Server::Server(ServerBlock sb) : sockaddr(), serverBlock(sb)
 	LOGT(Log::INFO, "Server created with fd = " << fd << ". Listening at " << hostAndPort);
 }
 
-int          Server::getFd()             { return fd; }
-ServerBlock& Server::getServerBlockRef() { return serverBlock; }
+int          ServerSocket::getFd()             { return fd; }
+ServerBlock& ServerSocket::getServerBlockRef() { return serverBlock; }
