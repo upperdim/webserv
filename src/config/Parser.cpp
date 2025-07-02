@@ -660,5 +660,12 @@ void	Parser::checksServerBlocksAndSetsdefaults(Config& config)
 			if (locationBlock.root.empty())
 				locationBlock.root = serverBlock.root;
 		}
+
+		// and sort the locations, longes route first
+		std::sort(serverBlock.locationBlocks.begin(), serverBlock.locationBlocks.end(),
+		          [](LocationBlock& a, LocationBlock& b){
+				      return a.route.length() > b.route.length();
+				  });
+
 	}
 }
