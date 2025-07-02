@@ -1,21 +1,13 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Parser.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/13 11:02:33 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 17:06:40 by tunsal           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 #include "Parser.hpp"
+#include <filesystem>
 #include "Lexer.hpp"
 #include "webserv.hpp"
+#include "Log.hpp"
 
-Parser::Parser(std::string configFilePath)
-	:	m_pos(0)
+Parser::Parser(std::string configFilePath, char *programName)
+	:	m_pos(0),
+		m_programName(programName)
 {
 	Lexer lexer(readFile(configFilePath));
 	lexer.tokenize(m_tokens);
@@ -33,12 +25,15 @@ Parser::~Parser()
 Config	Parser::parse(void)
 {
 	Config config = {};
+	setFallBacks(config);
 
 	if (m_tokens.size() == 0 || isAtEnd()) {
 		//	TODO:	return a valid default config
 		//			set default value for allow_methods					
 		return config;
 	}
+
+	t_parsedDirectives parsedRootDirectives;
 
 	while (m_pos < m_tokens.size() && !isAtEnd()) {
 		// expecting a KEYWORD or throw accordingly
@@ -51,14 +46,25 @@ Config	Parser::parse(void)
 
 		const Token& directive = peek();
 		switch (directive.keywordType) {
-			case KeywordType::EVENTS:	skipEventsDirective(); break;
-			case KeywordType::HTTP:		parseHttpDirective(config);	break;
+			case KeywordType::EVENTS:
+				if (parsedRootDirectives.events)
+					Throw::DuplicateDirective(directive);
+				parsedRootDirectives.events = true;
+				skipEventsDirective();
+				break;
+			case KeywordType::HTTP:
+				if (parsedRootDirectives.http)
+					Throw::DuplicateDirective(directive);
+				parsedRootDirectives.http = true;
+				parseHttpDirective(config);
+				break;
 			// add any global supported directive here
-			default:					Throw::UnknownOrUnsupportedDirective(peek()); break;
+			default:
+				Throw::UnknownOrUnsupportedDirective(peek());
 		}
 	}
 
-	addDefaultLocationBlocks(config.serverBlocks);
+	setFallbacksForServerBlocks(config);
 
 	return config;
 }
@@ -160,7 +166,8 @@ void	Parser::parseHttpDirective(Config& config)
 		switch (directive.keywordType) {
 			case KeywordType::SERVER: {
 				ServerBlock serverBlock;
-				parseServerBlock(serverBlock);
+				t_parsedDirectives parsedServerDirectives;
+				parseServerBlock(serverBlock, parsedServerDirectives);
 				config.serverBlocks.emplace_back(serverBlock);
 				break ;
 			}
@@ -172,7 +179,7 @@ void	Parser::parseHttpDirective(Config& config)
 	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
 }
 
-void	Parser::parseServerBlock(ServerBlock& server)
+void	Parser::parseServerBlock(ServerBlock& server, t_parsedDirectives& parsedServerDirectives)
 {
 	const Token& directive = advance();	//	consumes SERVER directive
 
@@ -188,16 +195,25 @@ void	Parser::parseServerBlock(ServerBlock& server)
 		const Token& directive = peek();
 		if (directive.keywordType == KeywordType::LOCATION) {
 			LocationBlock location;
-			parseLocationBlock(location);
+			t_parsedDirectives parsedLocationDirectives;
+			parseLocationBlock(location, parsedLocationDirectives);
+
+			// check for duplicate location
+			for (auto locationRoute : parsedServerDirectives.locationRoutes) {
+				if (locationRoute == location.route)
+					Throw::DuplicateLocationDirective(directive, location.route);
+			}
+			parsedServerDirectives.locationRoutes.push_back(location.route);
+
 			server.locationBlocks.emplace_back(location);
 		} else {
-			parseServerDirectives(server);
+			parseServerDirectives(server, parsedServerDirectives);
 		}
 	}
 	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
 }
 
-void	Parser::parseServerDirectives(ServerBlock& server)
+void	Parser::parseServerDirectives(ServerBlock& server, t_parsedDirectives& parsedServerDirectives)
 {
 	const Token& directive = advance();	// grab the current directive token
 
@@ -215,17 +231,39 @@ void	Parser::parseServerDirectives(ServerBlock& server)
 	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
 
 	switch (directive.keywordType) {
-		case KeywordType::LISTEN: 				parseListenDirective(directive, params, server); break;
-		case KeywordType::SERVER_NAME: 			parseServerNameDirective(directive, params, server); break;
-		case KeywordType::ERROR_PAGE: 			parseErrorPageDirective(directive, params, server); break;
-		case KeywordType::CLIENT_MAX_BODY_SIZE: parseClientMaxBodySizeDirective(directive, params, server.clientMaxBodySize); break;
-		case KeywordType::ROOT: 				parseUri(directive, params, server.root); break;
-		case KeywordType::INDEX: 				parseIndexDirective(directive, params, server.index); break;
-		default:								Throw::UnknownOrUnsupportedDirective(directive);
+		case KeywordType::LISTEN:
+			if (parsedServerDirectives.listen)
+				Throw::DuplicateListenDirective(directive, server);
+			parsedServerDirectives.listen = true;
+			parseListenDirective(directive, params, server);
+			break;
+		case KeywordType::SERVER_NAME:
+			parseServerNameDirective(directive, params, server);
+			break;
+		case KeywordType::ERROR_PAGE:
+			parseErrorPageDirective(directive, params, server);
+			break;
+		case KeywordType::CLIENT_MAX_BODY_SIZE:
+			if (parsedServerDirectives.clientMaxBodySize)
+				Throw::DuplicateDirective(directive);
+			parsedServerDirectives.clientMaxBodySize = true;
+			parseClientMaxBodySizeDirective(directive, params, server.clientMaxBodySize);
+			break;
+		case KeywordType::ROOT:
+			if (parsedServerDirectives.root)
+				Throw::DuplicateDirective(directive);
+			parsedServerDirectives.root = true;
+			parseUri(directive, params, server.root);
+			break;
+		case KeywordType::INDEX:
+			parseIndexDirective(directive, params, server.index);
+			break;
+		default:
+			Throw::UnknownOrUnsupportedDirective(directive);
 	}
 }
 
-void	Parser::parseLocationBlock(LocationBlock& location)
+void	Parser::parseLocationBlock(LocationBlock& location, t_parsedDirectives& parsedLocationDirectives)
 {
 	const Token& directive = advance();	//	consumes LOCATION directive
 
@@ -254,12 +292,12 @@ void	Parser::parseLocationBlock(LocationBlock& location)
 		// expect KEYWORD
 		if (!isValidKeyword(peek()))
 			Throw::UnknownOrUnsupportedDirective(peek());
-		parseLocationDirectives(location);
+		parseLocationDirectives(location, parsedLocationDirectives);
 	}
 	expect(TokenType::CLOSE_BRACE, directive, "expected \"}\"");
 }
 
-void	Parser::parseLocationDirectives(LocationBlock& location)
+void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives& parsedLocationDirectives)
 {
 	const Token& directive = advance();	// grab the current directive token
 
@@ -277,16 +315,50 @@ void	Parser::parseLocationDirectives(LocationBlock& location)
 	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
 
 	switch (directive.keywordType) {
-		case KeywordType::ALLOW_METHODS:		parseAllowMethodsDirective(directive, params, location); break;
-		case KeywordType::RETURN:				parseUri(directive, params, location.returnRoute); break;
-		case KeywordType::AUTOINDEX:			parseToggle(directive, params, location.autoIndex); break;
-		case KeywordType::CGI_EXTENSION:		parseExtension(directive, params, location.cgiExtension); break;
-		case KeywordType::ALLOW_UPLOAD:			parseToggle(directive, params, location.allowUpload); break;
-		case KeywordType::UPLOAD_STORE:			parseUri(directive, params, location.uploadDir); break;
-		case KeywordType::CLIENT_MAX_BODY_SIZE:	parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize); break;
-		case KeywordType::ROOT:					parseUri(directive, params, location.root); break;
-		case KeywordType::INDEX:				parseIndexDirective(directive, params, location.index); break;
-		default:								Throw::UnknownOrUnsupportedDirective(directive);
+		case KeywordType::CLIENT_MAX_BODY_SIZE:
+			if (parsedLocationDirectives.clientMaxBodySize)
+				Throw::DuplicateDirective(directive);
+			parsedLocationDirectives.clientMaxBodySize = true;
+			parseClientMaxBodySizeDirective(directive, params, location.clientMaxBodySize);
+			break;
+		case KeywordType::ROOT:
+			if (parsedLocationDirectives.root)
+				Throw::DuplicateDirective(directive);
+			parsedLocationDirectives.root = true;
+			parseUri(directive, params, location.root);
+			break;
+		case KeywordType::INDEX:
+			parseIndexDirective(directive, params, location.index);
+			break;
+		case KeywordType::ALLOW_METHODS:
+			parseAllowMethodsDirective(directive, params, location);
+			break;
+		case KeywordType::RETURN:
+			parseUri(directive, params, location.returnRoute);
+			break;
+		case KeywordType::AUTOINDEX:
+			if (parsedLocationDirectives.autoIndex)
+				Throw::DuplicateDirective(directive);
+			parsedLocationDirectives.autoIndex = true;
+			parseToggle(directive, params, location.autoIndex);
+			break;
+		case KeywordType::CGI_EXTENSION:
+			parseExtension(directive, params, location.cgiExtension);
+			break;
+		case KeywordType::ALLOW_UPLOAD:
+			if (parsedLocationDirectives.allowUpload)
+				Throw::DuplicateDirective(directive);
+			parsedLocationDirectives.allowUpload = true;
+			parseToggle(directive, params, location.allowUpload);
+			break;
+		case KeywordType::UPLOAD_STORE:
+			if (parsedLocationDirectives.uploadStore)
+				Throw::DuplicateDirective(directive);
+			parsedLocationDirectives.uploadStore = true;
+			parseUri(directive, params, location.uploadDir);
+			break;
+		default:
+			Throw::UnknownOrUnsupportedDirective(directive);
 	}
 }
 
@@ -497,13 +569,83 @@ void	Parser::parseExtension(const Token& directive, std::vector<const Token*>& p
 	ext = params[0]->value;
 }
 
-// Add default location blocks if a ServerBlock is missing it
-void	Parser::addDefaultLocationBlocks(std::vector<ServerBlock>& serverBlocks)
+
+//=============================================================================
+// Rules and Checks
+//=============================================================================
+
+
+void	Parser::setFallBacks(Config& config)
 {
-	for (size_t i = 0; i < serverBlocks.size(); ++i) {
-		if (serverBlocks[i].locationBlocks.empty()) {
-			serverBlocks[i].locationBlocks.push_back(LocationBlock());
-			serverBlocks[i].locationBlocks[0].root = "/";
+	// set default PORT and LISTEN_HOST_STR
+	config.fallback.listenPort    = 80;
+	config.fallback.listenHostStr = "0.0.0.0";
+
+	// set default route
+	config.fallback.route         = "/";
+
+	//	set default ROOT
+	try	{
+		// convert argv0 to fs::path
+		std::filesystem::path execPath(m_programName);
+		execPath.remove_filename();
+		// check for absolute
+		execPath = std::filesystem::absolute(execPath);
+		// resolve symlinks
+		execPath = std::filesystem::canonical(execPath);
+		config.fallback.root = execPath;
+	} catch (...) {
+		throw std::runtime_error("failed to resolve executable path to set default value for root directive.");
+	}
+
+	// set default for INDEX
+	config.fallback.index = "index.html";
+
+	// set default for CLIENT_MAX_BODY_SIZE
+	config.fallback.clientMaxBodySize = 1024 * 1024;
+
+	// set default for ALLOW_METHODS
+	config.fallback.allowMethods.push_back(HTTP::Method::GET);
+
+	// set default for AUTO_INDEX, ALLOW_UPLOAD
+	config.fallback.autoIndex   = false;
+	config.fallback.allowUpload = false;	
+}
+
+void	Parser::setFallbacksForServerBlocks(Config& config)
+{
+	for (auto& serverBlock : config.serverBlocks) {
+		// listenPort
+		if (serverBlock.listenPort == 0)
+			serverBlock.listenPort = config.fallback.listenPort;
+
+		// listenHostStr
+		if (serverBlock.listenHostStr.empty())
+			serverBlock.listenHostStr = config.fallback.listenHostStr;
+
+		// set a default location if we dont have one
+		if (serverBlock.locationBlocks.empty()) {
+			LocationBlock locatioBlock;
+			locatioBlock.route        = config.fallback.route;
+			locatioBlock.allowMethods = config.fallback.allowMethods;
+			locatioBlock.autoIndex    = config.fallback.autoIndex;
+			locatioBlock.allowUpload  = config.fallback.allowUpload;
+			// and add the new default location to this serverBlock
+			serverBlock.locationBlocks.push_back(locatioBlock);
 		}
+
+		// clientMaxBodySize
+		//		=>	this is currently set in the header file, since the type is
+		//			size_t, there is the std::optional<size_t> which would let
+		//			us to check if the value was set or not
+		//			-> if we want we can go that route
+
+		// root
+		if (serverBlock.root.empty())
+			serverBlock.root = config.fallback.root;
+
+		// index
+		if (serverBlock.index.empty())
+			serverBlock.index = config.fallback.index;
 	}
 }

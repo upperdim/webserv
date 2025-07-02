@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   FileBufferReader.cpp                               :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/15 18:07:45 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/03/17 18:05:59 by nmihaile         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "FileBufferReader.hpp"
 
 FileBufferReader::FileBufferReader()

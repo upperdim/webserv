@@ -1,14 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Parser.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/13 11:02:35 by nmihaile          #+#    #+#             */
-/*   Updated: 2025/06/29 17:06:58 by tunsal           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 #ifndef PARSER_HPP
 #define PARSER_HPP
@@ -26,19 +15,31 @@
 #include "Token.hpp"
 #include "Validator.hpp"
 #include "Throw.hpp"
-#include "Log.hpp"
 
 class Parser
 {
 public:
-	Parser(std::string configFilePath);
+	Parser(std::string configFilePath, char *programName);
 	~Parser();
 
 	Config	parse(void);
 
 private:
 	std::vector<Token>	m_tokens;
-	size_t						m_pos;
+	size_t				m_pos;
+	char*				m_programName;
+
+	typedef struct s_parsedDirectives {
+		bool events                 = false;
+		bool http                   = false;
+		bool listen					= false;
+		bool clientMaxBodySize		= false;
+		bool root					= false;
+		std::vector<std::string>	locationRoutes;
+		bool autoIndex				= false;
+		bool allowUpload			= false;
+		bool uploadStore			= false;
+	} t_parsedDirectives;
 
 	const Token&	prev(void) const;
 	const Token&	peek(void) const;
@@ -50,10 +51,10 @@ private:
 
 	void			skipEventsDirective(void);
 	void			parseHttpDirective(Config& config);
-	void			parseServerBlock(ServerBlock& server);
-	void			parseServerDirectives(ServerBlock& server);
-	void			parseLocationBlock(LocationBlock& location);
-	void			parseLocationDirectives(LocationBlock& location);
+	void			parseServerBlock(ServerBlock& server, t_parsedDirectives& parsedServerDirectives);
+	void			parseServerDirectives(ServerBlock& server, t_parsedDirectives& parsedServerDirectives);
+	void			parseLocationBlock(LocationBlock& location, t_parsedDirectives& parsedLocationDirectives);
+	void			parseLocationDirectives(LocationBlock& location, t_parsedDirectives& parsedLocationDirectives);
 
 	void			parseListenDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseServerNameDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
@@ -65,7 +66,9 @@ private:
 	void			parseToggle(const Token& directive, std::vector<const Token*>& params, bool& autoIndex);
 	void			parseExtension(const Token& directive, std::vector<const Token*>& params, std::string& ext);
 
-	void			addDefaultLocationBlocks(std::vector<ServerBlock>& serverBlocks);
+	// rules and checks
+	void			setFallBacks(Config& config);
+	void			setFallbacksForServerBlocks(Config& config);
 
 };
 

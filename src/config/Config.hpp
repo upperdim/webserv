@@ -1,14 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Config.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: nmihaile <nmihaile@student.42heilbronn.    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/06 19:12:17 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/23 12:08:59 by nmihaile         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
@@ -51,7 +40,7 @@ public:
 
 	// Multiscope options
 	std::string root;								//	::	root
-	std::string index = "index.html";				//	::	index
+	std::string index;								//	::	index
 };
 
 class Config
@@ -59,6 +48,18 @@ class Config
 public:
 	Config();
 	~Config();
+
+	struct {
+		int							listenPort;
+		std::string					listenHostStr;
+		std::string					route;
+		std::string					root;
+		std::string					index;
+		size_t						clientMaxBodySize;
+		std::vector<HTTP::Method>	allowMethods;
+		bool						autoIndex;
+		bool						allowUpload;
+	} fallback;
 
 	// Subject requirement of this scope
 	std::vector<ServerBlock>	serverBlocks;		//	::	server
