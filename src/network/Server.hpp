@@ -12,7 +12,7 @@ class ServerSocket
 private:
 	int									fd; // File descriptor of the server socket
 	struct sockaddr_in					sockaddr;
-	ServerBlock							serverBlock;
+	std::map<std::string, ServerBlock>	serverNameToServerBlock;
 
 public:
 	ServerSocket(ServerBlock serverBlock);

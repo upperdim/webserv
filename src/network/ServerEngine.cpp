@@ -10,36 +10,23 @@
 
 volatile std::sig_atomic_t ServerEngine::isRunning = false;
 
-// Server creation:
-//   - Same      host:port => same ServerSocket, insert to map as <server_name, serverBlock>
-//   - Different host:port => create a new ServerSocket, insert to map as <server_name, serverBlock>
-//
-// map < host:port , serverBlock >
-//
 ServerEngine::ServerEngine(Config config)
 {
-	if (config.serverBlocks.size() == 0)
-		return;
+	// Key: host:port, value: list of serverBlocks
+	std::map<std::string, std::vector<ServerBlock>> hostPortToServerBlockList;
 
 	// Create servers
 	for (size_t i = 0; i < config.serverBlocks.size(); ++i) {
-		bool isDuplicatePort = false;
+		// Get host:port
 
-		for (size_t j = 0; j < i; ++j) {
-			if (config.serverBlocks[i].listenPort == config.serverBlocks[j].listenPort) {
-				isDuplicatePort = true;
-				break;
-			}
-		}
+		// Insert its serverBlock into map
 
-		if (!isDuplicatePort) {
-			servers.push_back(ServerSocket(config.serverBlocks[i]));
-		}
+		serverSockets.push_back(ServerSocket(config.serverBlocks[i]));
 	}
 
 	// Register servers to pollfds
-	for (size_t i = 0; i < servers.size(); ++i) {
-		addToPollFds(servers[i].getFd());
+	for (size_t i = 0; i < serverSockets.size(); ++i) {
+		addToPollFds(serverSockets[i].getFd());
 	}
 }
 
@@ -47,9 +34,9 @@ ServerEngine::~ServerEngine()
 {
 	LOG("ServerEngine destructor");
 
-	for (size_t i = 0; i < servers.size(); ++i) {
-		close(servers[i].getFd());
-		LOG("closed server fd = " << servers[i].getFd());
+	for (size_t i = 0; i < serverSockets.size(); ++i) {
+		close(serverSockets[i].getFd());
+		LOG("closed server fd = " << serverSockets[i].getFd());
 	}
 	
 	for (auto it = clients.begin(); it != clients.end(); ++it) {
@@ -93,7 +80,7 @@ void ServerEngine::iteratePollFds(int eventCount)
 			if (serverIdx == -1) {
 				readClientIncomingData(pollFds[i].fd);
 			} else {
-				acceptNewClientConnection(servers[serverIdx]);
+				acceptNewClientConnection(serverSockets[serverIdx]);
 			}
 		}
 
@@ -228,7 +215,7 @@ void ServerEngine::stopServer(int serverFd, int serverIdx)
 	close(serverFd);
 	LOG("Server fd = " << serverFd << " is closed");
 	removeFromPollFds(serverFd);
-	servers.erase(servers.begin() + serverIdx);
+	serverSockets.erase(serverSockets.begin() + serverIdx);
 	LOG("Server is removed from the list and queued for removal from pollFds, fd = " << serverFd);
 }
 
@@ -273,8 +260,8 @@ void ServerEngine::writeToClient(int clientFd)
 //=============================================================================
 int ServerEngine::findServerIndexByFd(int fd)
 {
-	for (size_t i = 0; i < servers.size(); ++i)
-		if (servers[i].getFd() == fd)
+	for (size_t i = 0; i < serverSockets.size(); ++i)
+		if (serverSockets[i].getFd() == fd)
 			return i;
 	return -1;
 }

@@ -14,7 +14,7 @@
 class ServerEngine
 {
 private:
-	std::vector<ServerSocket>					servers;
+	std::vector<ServerSocket>					serverSockets;
 	std::unordered_map<int, ClientConnection>	clients;              // Key: fd, value: ClientConnection
 
 	std::vector<struct pollfd>					pollFds;
