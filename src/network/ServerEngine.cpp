@@ -89,7 +89,7 @@ void ServerEngine::iteratePollFds(int eventCount)
 	for (size_t i = 0; i < pollFds.size() && counter < eventCount; ++i) {
 		if (pollFds[i].revents & POLLIN) {
 			LOG("POLLIN event, fd = " << pollFds[i].fd);
-`			int serverSocketIdx = findServerSocketIndexByFd(pollFds[i].fd);
+			int serverSocketIdx = findServerSocketIndexByFd(pollFds[i].fd);
 			if (serverSocketIdx == -1) {
 				readClientIncomingData(pollFds[i].fd);
 			} else {
