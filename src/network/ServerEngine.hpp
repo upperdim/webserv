@@ -2,6 +2,7 @@
 #define SERVERENGINE_HPP
 
 #include <unordered_map>
+#include <csignal>
 #include <vector>
 #include "poll.h"
 #include "ServerSocket.hpp"

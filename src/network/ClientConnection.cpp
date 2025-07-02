@@ -1,5 +1,6 @@
 #include "ClientConnection.hpp"
 #include "RequestParser.hpp"
+#include "colors.hpp"
 #include "Log.hpp"
 
 ClientConnection::ClientConnection(int fd, ServerSocket& _connectedServerSocket) 
@@ -21,7 +22,7 @@ void ClientConnection::receiveRequest()
 		request.rawRequest.append(buffer, bytesRead);
 		LOG("rawRequest.length() = " << request.rawRequest.length());
 		buffer[bytesRead] = '\0';
-		LOG("buffer = <<<" << buffer << ">>>");
+		LOG("buffer = " << LIGHTMAGENTA <<  "<<<\n" << LIGHTCYAN << buffer << LIGHTMAGENTA << ">>>" << DEFAULT);
 		RequestParser::parseNext(request);
 	} else if (bytesRead < 0) {
 		connectionError = true;

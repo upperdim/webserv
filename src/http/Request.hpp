@@ -38,10 +38,11 @@ public:
 	// matched and resolved attributes
 	std::string										URI;		//	decoded and sanatized requesttarget
 	// resolved from header
+	LocationBlock*									resolvedLocationBlock;
 	std::optional<size_t>							contentLength;
+	std::string										resolvedPath;
 
 private:
-	LocationBlock*									m_locationBlock;
 };
 
 #endif

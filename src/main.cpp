@@ -1,3 +1,4 @@
+#include <csignal>
 #include "webserv.hpp"
 #include "Config.hpp"
 #include "Parser.hpp"

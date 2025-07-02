@@ -7,8 +7,11 @@
 #include <vector>
 #include <map>
 #include <netinet/in.h>		// for in_addr
+#include <limits>
 #include "HTTP.hpp"
 #include "colors.hpp"
+
+#define DEFAULT_CLIENT_MAX_BODY_SIZE (1024 * 1024)
 
 class LocationBlock
 {
@@ -22,7 +25,7 @@ public:
 	std::string					uploadDir;									//	::	upload_store
 
 	// Multiscope options
-	size_t 						clientMaxBodySize;	//	::	client_max_body_size
+	size_t 						clientMaxBodySize = std::numeric_limits<size_t>::max();	//	::	client_max_body_size
 	std::string					index;				//	::	index
 	std::string					root;				//	::	root
 };
@@ -35,7 +38,7 @@ public:
 	std::string					listenHostStr;								//		will be set through parseListenDirective in Parser
 	std::vector<std::string>	serverNames;								//	::	server_name
 	std::map<int, std::string>	errorPagePaths;								//	::	error_page
-	size_t						clientMaxBodySize  = 1048576; // 1 MB		//	::	client_max_body_size
+	size_t						clientMaxBodySize  = DEFAULT_CLIENT_MAX_BODY_SIZE; // 1 MB		//	::	client_max_body_size
 	std::vector<LocationBlock>	locationBlocks;
 
 	// Multiscope options
