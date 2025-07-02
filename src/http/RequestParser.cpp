@@ -6,6 +6,7 @@
 #include "Validator.hpp"
 #include "Log.hpp"
 #include "Utils.hpp"
+#include "webserv.hpp"
 
 void	RequestParser::parseNext(Request& request)
 {
@@ -136,6 +137,18 @@ void	RequestParser::parseHeader(Request& request)
 	if (!validateRequiredHeaderFields(request))
 		return;
 
+	// TODO: resolve serverBlock
+
+	// resolve LocationBlock
+	if (!resolveLocationBlock(request)) {
+		// This would be a critical ERROR, we should alwys find a locationBlock.
+		// But if sth bad happen, we return "internal server error"
+		// something went terrible wrong while matching locations: failed to find default "/" location.
+		request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+		request.parsingState = Request::ParsingState::INVALID;
+		return;
+	}
+
 	request.parsingState = Request::ParsingState::BODY;
 }
 
@@ -188,11 +201,15 @@ bool	RequestParser::validateRequestTarget(Request& request)
 		return false;
 	}
 
-	const int MAX_URI_LENGTH = 2048;
 	if (request.URI.empty() ||
-		request.URI.size() > MAX_URI_LENGTH ||
 		request.URI.find('\\') != std::string::npos) {
 		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
+		return false;
+	}
+
+	if (request.URI.size() > MAX_URI_LENGTH) {
+		request.errorStatusCode = WSSC_URI_TOO_LONG;
 		request.parsingState = Request::ParsingState::INVALID;
 		return false;
 	}
@@ -473,5 +490,25 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 		}
 	}
 
+	return true;
+}
+
+bool	RequestParser::resolveLocationBlock(Request& request)
+{
+	const LocationBlock* bestMatch = nullptr;
+	for (const LocationBlock& loc : request.serverBlock.locationBlocks) {
+		if (Utils::startsWith(request.URI, loc.route)) {
+			if (bestMatch == nullptr || bestMatch->route.length() < loc.route.length())
+				bestMatch = &loc;
+		}
+	}
+	if (bestMatch == nullptr) {
+		auto it = std::find_if(request.serverBlock.locationBlocks.begin(), request.serverBlock.locationBlocks.end(),
+		                     [](const LocationBlock& loc){ return loc.route == "/"; });
+		if (it == request.serverBlock.locationBlocks.end())
+			return false;
+		bestMatch = &(*it);
+	}
+	request.resolvedLocationBlock = const_cast<LocationBlock*>(bestMatch);
 	return true;
 }

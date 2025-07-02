@@ -39,9 +39,9 @@ public:
 	std::string										URI;		//	decoded and sanatized requesttarget
 	// resolved from header
 	std::optional<size_t>							contentLength;
+	LocationBlock*									resolvedLocationBlock;
 
 private:
-	LocationBlock*									m_locationBlock;
 };
 
 #endif
