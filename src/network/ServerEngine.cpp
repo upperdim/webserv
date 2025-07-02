@@ -10,6 +10,9 @@
 
 volatile std::sig_atomic_t ServerEngine::isRunning = false;
 
+// Server creation:
+//   - Same      host:port => same ServerSocket, insert to map as <server_name, serverBlock>
+//   - Different host:port => create a new ServerSocket, insert to map as <server_name, serverBlock>
 ServerEngine::ServerEngine(Config config)
 {
 	// Create servers

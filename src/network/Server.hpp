@@ -1,18 +1,7 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: tunsal <tunsal@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/27 02:25:20 by tunsal            #+#    #+#             */
-/*   Updated: 2025/06/29 03:27:46 by tunsal           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#include <unordered_map>
 #include <netinet/in.h>
 #include "Config.hpp"
 
@@ -21,9 +10,9 @@
 class Server
 {
 private:
-	int					fd; 		// File descriptor of the Server socket
-	struct sockaddr_in	sockaddr;
-	ServerBlock			serverBlock;
+	int												fd; 		// File descriptor
+	struct sockaddr_in								sockaddr;
+	std::unordered_map<std::string, ServerBlock>	serverNametoServerBlock;
 
 public:
 	Server(ServerBlock serverBlock);
