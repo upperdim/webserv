@@ -4,6 +4,7 @@
 #include <chrono>   // std::chrono::seconds
 #include "ServerEngine.hpp"
 #include "ClientConnection.hpp"
+#include "ServerSocket.hpp"
 #include "HTTP.hpp"
 #include "HTTPMethodHandler.hpp"
 #include "Log.hpp"
@@ -19,14 +20,12 @@ ServerEngine::ServerEngine(Config config)
 	for (size_t i = 0; i < config.serverBlocks.size(); ++i) {
 		// Get host:port
 
-		// Insert its serverBlock into map
+		// If it doesn't already exist in the map
+		//   => Create its ServerSocket
+		//   => Add it to the ServerEngine::serverSockets list, something like `serverSockets.push_back(ServerSocket(config.serverBlocks[i]));`
+		//   => Register its fd pollfds `addToPollFds( server socket fd )
 
-		serverSockets.push_back(ServerSocket(config.serverBlocks[i]));
-	}
-
-	// Register servers to pollfds
-	for (size_t i = 0; i < serverSockets.size(); ++i) {
-		addToPollFds(serverSockets[i].getFd());
+		// Insert its serverBlock into ServerSocket serverNameToServerBlock map
 	}
 }
 
