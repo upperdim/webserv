@@ -20,7 +20,6 @@ class Parser
 {
 public:
 	Parser(std::string configFilePath, char *programName);
-	~Parser();
 
 	Config	parse(void);
 

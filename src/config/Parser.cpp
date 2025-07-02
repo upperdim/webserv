@@ -2,6 +2,7 @@
 #include "Parser.hpp"
 #include <filesystem>
 #include <algorithm>
+#include <limits>
 #include "Lexer.hpp"
 #include "webserv.hpp"
 #include "Log.hpp"
@@ -12,10 +13,6 @@ Parser::Parser(std::string configFilePath, char *programName)
 {
 	Lexer lexer(readFile(configFilePath));
 	lexer.tokenize(m_tokens);
-}
-
-Parser::~Parser()
-{
 }
 
 
@@ -603,7 +600,7 @@ void	Parser::setFallbacks(Config& config)
 	config.fallback.index = "index.html";
 
 	// set default for CLIENT_MAX_BODY_SIZE
-	config.fallback.clientMaxBodySize = 1024 * 1024;
+	config.fallback.clientMaxBodySize = DEFAULT_CLIENT_MAX_BODY_SIZE;
 
 	// set default for ALLOW_METHODS
 	config.fallback.allowMethods.push_back(HTTP::Method::GET);
@@ -624,25 +621,8 @@ void	Parser::checksServerBlocksAndSetsdefaults(Config& config)
 		if (serverBlock.listenHostStr.empty())
 			serverBlock.listenHostStr = config.fallback.listenHostStr;
 
-		// set a default location if we dont have one
-		auto it = std::find_if(serverBlock.locationBlocks.begin(),
-		                       serverBlock.locationBlocks.end(),
-							   [](const LocationBlock& loc){ return loc.route == "/"; });
-		if (it == serverBlock.locationBlocks.end()) {
-			LocationBlock locatioBlock;
-			locatioBlock.route        = config.fallback.route;
-			locatioBlock.allowMethods = config.fallback.allowMethods;
-			locatioBlock.autoIndex    = config.fallback.autoIndex;
-			locatioBlock.allowUpload  = config.fallback.allowUpload;
-			// and add the new default location to this serverBlock
-			serverBlock.locationBlocks.push_back(locatioBlock);
-		}
-
 		// clientMaxBodySize
-		//		=>	this is currently set in the header file, since the type is
-		//			size_t, there is the std::optional<size_t> which would let
-		//			us to check if the value was set or not
-		//			-> if we want we can go that route
+		// is set by default to DEFAULT_CLIENT_MAX_BODY_SIZE
 
 		// root
 		if (serverBlock.root.empty())
@@ -651,5 +631,34 @@ void	Parser::checksServerBlocksAndSetsdefaults(Config& config)
 		// index
 		if (serverBlock.index.empty())
 			serverBlock.index = config.fallback.index;
+
+		// set a default location if we dont have one
+		auto it = std::find_if(serverBlock.locationBlocks.begin(),
+		                       serverBlock.locationBlocks.end(),
+							   [](const LocationBlock& loc){ return loc.route == "/"; });
+		if (it == serverBlock.locationBlocks.end()) {
+			LocationBlock locationBlock;
+			locationBlock.route             = config.fallback.route;
+			locationBlock.allowMethods      = config.fallback.allowMethods;
+			locationBlock.autoIndex         = config.fallback.autoIndex;
+			locationBlock.allowUpload       = config.fallback.allowUpload;
+			locationBlock.clientMaxBodySize = serverBlock.clientMaxBodySize;
+			locationBlock.index             = serverBlock.index;
+			locationBlock.root              = serverBlock.root;
+			// and add the new default location to this serverBlock
+			serverBlock.locationBlocks.push_back(locationBlock);
+		}
+
+		// and copy down all serverBlock values into all locations for easy safe access
+		for (auto& locationBlock : serverBlock.locationBlocks) {
+			if (locationBlock.allowMethods.size() == 0)
+				locationBlock.allowMethods = config.fallback.allowMethods;
+			if (locationBlock.clientMaxBodySize == std::numeric_limits<size_t>::max())
+				locationBlock.clientMaxBodySize = serverBlock.clientMaxBodySize;
+			if (locationBlock.index.empty())
+				locationBlock.index = serverBlock.index;
+			if (locationBlock.root.empty())
+				locationBlock.root = serverBlock.root;
+		}
 	}
 }
