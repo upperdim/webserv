@@ -441,6 +441,10 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 		return false;
 	}
 
+	//	///////////////////////////
+	//	TODO:	resolve serverBlock
+	//	///////////////////////////
+
 	// check content-length if available on valid field-value
 	it = request.headers.find("content-length");
 	if (it != request.headers.end()) {
@@ -457,7 +461,7 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 			size_t resolvedContentLength = std::stoull(contentLengthStr);
 
 			//	TODO:	use resolved clientMaxBodySize
-			if (resolvedContentLength > request.serverBlock.clientMaxBodySize) {
+			if (resolvedContentLength > request.serverBlocks[0].clientMaxBodySize) {
 				request.errorStatusCode = WSSC_CONTENT_TOO_LARGE;
 				request.parsingState = Request::ParsingState::INVALID;
 				return false;
@@ -492,10 +496,6 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 
 bool	RequestParser::resolveRequestContext(Request& request)
 {
-	//	///////////////////////////
-	//	TODO:	resolve serverBlock
-	//	///////////////////////////
-
 	// resolve LocationBlock
 	if (!resolveLocationBlock(request)) {
 		// This would be a critical ERROR, we should alwys find a locationBlock.
@@ -528,17 +528,18 @@ bool	RequestParser::resolveRequestContext(Request& request)
 
 bool	RequestParser::resolveLocationBlock(Request& request)
 {
+	// TODO: use the resolved serverBlock
 	const LocationBlock* bestMatch = nullptr;
-	for (const LocationBlock& loc : request.serverBlock.locationBlocks) {
+	for (const LocationBlock& loc : request.serverBlocks[0].locationBlocks) {
 		if (Utils::startsWith(request.URI, loc.route)) {
 			if (bestMatch == nullptr || bestMatch->route.length() < loc.route.length())
 				bestMatch = &loc;
 		}
 	}
 	if (bestMatch == nullptr) {
-		auto it = std::find_if(request.serverBlock.locationBlocks.begin(), request.serverBlock.locationBlocks.end(),
+		auto it = std::find_if(request.serverBlocks[0].locationBlocks.begin(), request.serverBlocks[0].locationBlocks.end(),
 		                     [](const LocationBlock& loc){ return loc.route == "/"; });
-		if (it == request.serverBlock.locationBlocks.end())
+		if (it == request.serverBlocks[0].locationBlocks.end())
 			return false;
 		bestMatch = &(*it);
 	}
