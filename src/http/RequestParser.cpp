@@ -563,6 +563,7 @@ bool	RequestParser::resolvePath(Request& request)
 
 	//	TODO:	do we want to sanatize and clean the root and resolvedPath??
 
+	LOGT(Log::INFO, LIGHTMAGENTA << "resolvedPath: " << LIGHTGREEN << BOLD << resolvedPath);
 	request.resolvedPath = resolvedPath;
 	return true;
 }
