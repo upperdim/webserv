@@ -13,19 +13,33 @@ volatile std::sig_atomic_t ServerEngine::isRunning = false;
 
 ServerEngine::ServerEngine(Config config)
 {
-	// Key: host:port, value: list of serverBlocks
-	std::map<std::string, std::vector<ServerBlock>> hostPortToServerBlockList;
-
 	// Create servers
-	for (size_t i = 0; i < config.serverBlocks.size(); ++i) {
-		// Get host:port
 
-		// If it doesn't already exist in the map
-		//   => Create its ServerSocket
-		//   => Add it to the ServerEngine::serverSockets list, something like `serverSockets.push_back(ServerSocket(config.serverBlocks[i]));`
-		//   => Register its fd pollfds `addToPollFds( server socket fd )
+	// Group serverBlocks by host:port
+	std::map<std::string, std::vector<ServerBlock*>> hostPortToServerBlocks;
 
-		// Insert its serverBlock into ServerSocket serverNameToServerBlock map
+	for (ServerBlock& serverBlock : config.serverBlocks) {
+		std::string hostPortStr = serverBlock.listenHostStr + ":" + std::to_string(serverBlock.listenPort);
+
+		hostPortToServerBlocks[hostPortStr].push_back(&serverBlock);
+	}
+	
+	for (const auto& pair : hostPortToServerBlocks) {
+		const std::vector<ServerBlock*>& blocks = pair.second;
+
+		// Create ServerSockets for host:port
+		ServerSocket serverSocket = ServerSocket(*blocks[0]);
+
+		// Add all serverBlocks for host:port
+		for (size_t i = 1; i < blocks.size(); ++i) {
+			serverSocket.serverBlocks.push_back(*blocks[i]);
+		}
+
+		// Add the created ServerSocket to serverSockets list
+		serverSockets.push_back(serverSocket);
+
+		// Register the created ServerSockets fd to pollFds
+		addToPollFds(serverSocket.getFd());
 	}
 }
 

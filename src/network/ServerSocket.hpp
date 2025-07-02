@@ -10,15 +10,17 @@
 class ServerSocket
 {
 private:
-	int									fd; // File descriptor of the server socket
-	struct sockaddr_in					sockaddr;
-	std::map<std::string, ServerBlock>	serverNameToServerBlock;
+	int							fd; // File descriptor of the server socket
+	struct sockaddr_in			sockaddr;
+	
+	void						setupSocket(ServerBlock defaultServerBlock);
 
 public:
-	ServerSocket(ServerBlock serverBlock);
+	std::vector<ServerBlock>	serverBlocks;
 	
-	int									getFd();
-	ServerBlock&						getServerBlockRef();
+	ServerSocket(ServerBlock defaultServerBlock);
+
+	int							getFd();
 };
 
 #endif

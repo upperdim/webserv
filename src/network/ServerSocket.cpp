@@ -5,7 +5,13 @@
 #include "ServerSocket.hpp"
 #include "Log.hpp"
 
-ServerSocket::ServerSocket(ServerBlock sb) : sockaddr(), serverBlock(sb)
+ServerSocket::ServerSocket(ServerBlock defaultServerBlock) : sockaddr()
+{
+	setupSocket(defaultServerBlock);
+	serverBlocks.push_back(defaultServerBlock);
+}
+
+void ServerSocket::setupSocket(ServerBlock defaultServerBlock)
 {
 	fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd < 0) {
@@ -25,7 +31,7 @@ ServerSocket::ServerSocket(ServerBlock sb) : sockaddr(), serverBlock(sb)
 	hints.ai_socktype = SOCK_STREAM;
 
 	addrinfo* res = nullptr;
-	int err = getaddrinfo(serverBlock.listenHostStr.c_str(), nullptr, &hints, &res);
+	int err = getaddrinfo(defaultServerBlock.listenHostStr.c_str(), nullptr, &hints, &res);
 	if (err != 0) {
 		std::string errMsg = std::string("Error setting Server address with getaddrinfo: ") + gai_strerror(err);
 		throw (std::runtime_error(errMsg));
@@ -37,7 +43,7 @@ ServerSocket::ServerSocket(ServerBlock sb) : sockaddr(), serverBlock(sb)
 	freeaddrinfo(res);
 
 	// Set port
-	sockaddr.sin_port = htons(serverBlock.listenPort);
+	sockaddr.sin_port = htons(defaultServerBlock.listenPort);
 
 	// Print host and port
 	char ipStr[INET_ADDRSTRLEN];
@@ -59,4 +65,3 @@ ServerSocket::ServerSocket(ServerBlock sb) : sockaddr(), serverBlock(sb)
 }
 
 int          ServerSocket::getFd()             { return fd; }
-ServerBlock& ServerSocket::getServerBlockRef() { return serverBlock; }
