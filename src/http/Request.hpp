@@ -10,7 +10,7 @@
 class Request
 {
 public:
-	Request(const ServerBlock& _serverBlock);
+	Request(std::vector<ServerBlock>& _serverBlocks);
 
 	enum class ParsingState {
 		REQUEST_LINE,
@@ -33,7 +33,7 @@ public:
 	std::string										protokoll;
 	std::unordered_map<std::string, std::string>	headers;
 
-	const ServerBlock&								serverBlock;
+	std::vector<ServerBlock>& 						serverBlocks;
 
 	// matched and resolved attributes
 	std::string										URI;		//	decoded and sanatized requesttarget

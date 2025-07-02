@@ -6,7 +6,7 @@ ClientConnection::ClientConnection(int fd, ServerSocket& _connectedServerSocket)
 	:	fd(fd),
 		connectedServerSocket(_connectedServerSocket),
 		connectionError(false),
-		request(connectedServerSocket.getServerBlockRef())
+		request(connectedServerSocket.serverBlocks)
 {
 }
 
