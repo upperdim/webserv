@@ -17,7 +17,7 @@ SRCS_NO_MAIN=	Config.cpp \
 				Parser.cpp \
 				ClientConnection.cpp \
 				ServerEngine.cpp \
-				Server.cpp \
+				ServerSocket.cpp \
 				RequestParser.cpp \
 				Request.cpp \
 				FileBufferReader.cpp \
