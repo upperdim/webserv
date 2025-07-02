@@ -137,17 +137,8 @@ void	RequestParser::parseHeader(Request& request)
 	if (!validateRequiredHeaderFields(request))
 		return;
 
-	// TODO: resolve serverBlock
-
-	// resolve LocationBlock
-	if (!resolveLocationBlock(request)) {
-		// This would be a critical ERROR, we should alwys find a locationBlock.
-		// But if sth bad happen, we return "internal server error"
-		// something went terrible wrong while matching locations: failed to find default "/" location.
-		request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
-		request.parsingState = Request::ParsingState::INVALID;
+	if (!resolveRequestContext(request))
 		return;
-	}
 
 	request.parsingState = Request::ParsingState::BODY;
 }
@@ -202,6 +193,7 @@ bool	RequestParser::validateRequestTarget(Request& request)
 	}
 
 	if (request.URI.empty() ||
+		request.URI.front() != '/' ||
 		request.URI.find('\\') != std::string::npos) {
 		request.errorStatusCode = WSSC_BAD_REQUEST;
 		request.parsingState = Request::ParsingState::INVALID;
@@ -493,6 +485,47 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 	return true;
 }
 
+
+//=============================================================================
+// Resolve Request Context
+//=============================================================================
+
+bool	RequestParser::resolveRequestContext(Request& request)
+{
+	//	///////////////////////////
+	//	TODO:	resolve serverBlock
+	//	///////////////////////////
+
+	// resolve LocationBlock
+	if (!resolveLocationBlock(request)) {
+		// This would be a critical ERROR, we should alwys find a locationBlock.
+		// But if sth bad happen, we return "internal server error"
+		LOGT(Log::WARNING, "something went terrible wrong while matching locations: failed to find default \"/\" location in RequestParser::resolveLocationBlock()");
+		request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+		request.parsingState = Request::ParsingState::INVALID;
+		return false;
+	}
+
+	//	all the config attributes are now resolved, and we ca use:
+	//	ServerBlock
+			// listenPort, listenHostStr, serverNames, errorPagePaths
+	//	LocationBlock
+			// route, root, index, clientmaxBodySize, allowMethods, returnRoute,
+			// autoIndex, cgiExtension, allowUpload, uploadDir
+
+	//	resolve path
+	if (!resolvePath(request)) {
+		return false;
+		//	//////////////////////////////////
+		//	TODO	delete Utils::sanitizePath
+		//	//////////////////////////////////
+	}
+
+	// resolve fileName
+
+	return true;
+}
+
 bool	RequestParser::resolveLocationBlock(Request& request)
 {
 	const LocationBlock* bestMatch = nullptr;
@@ -510,5 +543,26 @@ bool	RequestParser::resolveLocationBlock(Request& request)
 		bestMatch = &(*it);
 	}
 	request.resolvedLocationBlock = const_cast<LocationBlock*>(bestMatch);
+	return true;
+}
+
+bool	RequestParser::resolvePath(Request& request)
+{
+	// ensure root path has not a '/'
+	std::string root = request.resolvedLocationBlock->root;
+	if (root.back() == '/')
+		root.pop_back();
+
+	// ensure we have a leading '/' doube check should we eliminate this check?
+	if (request.URI.front() != '/')
+		return false;
+
+	//	TODO:	if we dont sanatize the resolvedPath for /../ or /./ or /////
+	//			we can set it directly to request.resolvedPath
+	std::string resolvedPath = root + request.URI;
+
+	//	TODO:	do we want to sanatize and clean the root and resolvedPath??
+
+	request.resolvedPath = resolvedPath;
 	return true;
 }

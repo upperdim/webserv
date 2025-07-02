@@ -38,8 +38,9 @@ public:
 	// matched and resolved attributes
 	std::string										URI;		//	decoded and sanatized requesttarget
 	// resolved from header
-	std::optional<size_t>							contentLength;
 	LocationBlock*									resolvedLocationBlock;
+	std::optional<size_t>							contentLength;
+	std::string										resolvedPath;
 
 private:
 };
