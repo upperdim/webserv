@@ -1,6 +1,7 @@
 
 #include "Parser.hpp"
 #include <filesystem>
+#include <algorithm>
 #include "Lexer.hpp"
 #include "webserv.hpp"
 #include "Log.hpp"
@@ -25,7 +26,7 @@ Parser::~Parser()
 Config	Parser::parse(void)
 {
 	Config config = {};
-	setFallBacks(config);
+	setFallbacks(config);
 
 	if (m_tokens.size() == 0 || isAtEnd()) {
 		//	TODO:	return a valid default config
@@ -64,7 +65,7 @@ Config	Parser::parse(void)
 		}
 	}
 
-	setFallbacksForServerBlocks(config);
+	checksServerBlocksAndSetsdefaults(config);
 
 	return config;
 }
@@ -575,7 +576,7 @@ void	Parser::parseExtension(const Token& directive, std::vector<const Token*>& p
 //=============================================================================
 
 
-void	Parser::setFallBacks(Config& config)
+void	Parser::setFallbacks(Config& config)
 {
 	// set default PORT and LISTEN_HOST_STR
 	config.fallback.listenPort    = 80;
@@ -612,7 +613,7 @@ void	Parser::setFallBacks(Config& config)
 	config.fallback.allowUpload = false;	
 }
 
-void	Parser::setFallbacksForServerBlocks(Config& config)
+void	Parser::checksServerBlocksAndSetsdefaults(Config& config)
 {
 	for (auto& serverBlock : config.serverBlocks) {
 		// listenPort
@@ -624,7 +625,10 @@ void	Parser::setFallbacksForServerBlocks(Config& config)
 			serverBlock.listenHostStr = config.fallback.listenHostStr;
 
 		// set a default location if we dont have one
-		if (serverBlock.locationBlocks.empty()) {
+		auto it = std::find_if(serverBlock.locationBlocks.begin(),
+		                       serverBlock.locationBlocks.end(),
+							   [](const LocationBlock& loc){ return loc.route == "/"; });
+		if (it == serverBlock.locationBlocks.end()) {
 			LocationBlock locatioBlock;
 			locatioBlock.route        = config.fallback.route;
 			locatioBlock.allowMethods = config.fallback.allowMethods;

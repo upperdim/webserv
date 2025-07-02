@@ -67,8 +67,8 @@ private:
 	void			parseExtension(const Token& directive, std::vector<const Token*>& params, std::string& ext);
 
 	// rules and checks
-	void			setFallBacks(Config& config);
-	void			setFallbacksForServerBlocks(Config& config);
+	void			setFallbacks(Config& config);
+	void			checksServerBlocksAndSetsdefaults(Config& config);
 
 };
 
