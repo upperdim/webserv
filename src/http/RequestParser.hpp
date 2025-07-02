@@ -33,7 +33,12 @@ private:
 	static bool					splitHeaderField(std::string& line, std::pair<std::string, std::string>& headerField);
 	static bool					isValidFieldNameChar(const char c);
 	static bool					isValidFieldValueChar(const char c);
+
 	static bool					validateRequiredHeaderFields(Request& request);
+
+	static bool					resolveRequestContext(Request& request);
+	static bool					resolveLocationBlock(Request& request);
+	static bool					resolvePath(Request& request);
 
 };
 

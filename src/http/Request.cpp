@@ -1,5 +1,6 @@
 #include "Request.hpp"
 #include <algorithm>
+#include "Utils.hpp"
 
 Request::Request(const ServerBlock& _serverBlock)
 	:	parsingState(ParsingState::REQUEST_LINE),
@@ -7,7 +8,7 @@ Request::Request(const ServerBlock& _serverBlock)
 		method(HTTP::Method::GET),
 		errorStatusCode(std::nullopt),
 		serverBlock(_serverBlock),
-		m_locationBlock(nullptr)
+		resolvedLocationBlock(nullptr)
 {
 }
 
@@ -17,17 +18,15 @@ Request::Request(const ServerBlock& _serverBlock)
 // Move this as a validation to the correct place (after resolving request and matching serverBlock)
 bool	Request::isAllowedMethod(void)
 {
-	for (const LocationBlock& locationBlock : serverBlock.locationBlocks) {
-		if (locationBlock.route == URI) {
-			m_locationBlock = const_cast<LocationBlock*>(&locationBlock);
-		}
-	}
 
-	if (m_locationBlock == nullptr) {
-		throw std::runtime_error("locationblock is null");
-	}
+	if (resolvedLocationBlock == nullptr)
+		throw std::runtime_error("something went terrible wrong: reached isAllowedmethod() with unresolved locationBlock.");
 
 	//	TODO:	should we protect this methode here and only accept it if the
 	//			request is complete or has an error????
-	return std::find(m_locationBlock->allowMethods.begin(), m_locationBlock->allowMethods.end(), method) != m_locationBlock->allowMethods.end();
+	return std::find(
+				resolvedLocationBlock->allowMethods.begin(),
+				resolvedLocationBlock->allowMethods.end(),
+				method
+			) != resolvedLocationBlock->allowMethods.end();
 }

@@ -1,3 +1,5 @@
+#include <fstream>
+#include <sstream>
 #include "webserv.hpp"
 
 std::string readFile(const std::string& filename)
