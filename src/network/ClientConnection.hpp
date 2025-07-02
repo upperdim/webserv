@@ -12,20 +12,20 @@ class ClientConnection
 {
 private:
 int					fd;
-	ServerSocket&	connectedServer;
+	ServerSocket&	connectedServerSocket;
 	bool			connectionError;
 	Request			request;
 	Response		response;
 
 public:
-	ClientConnection(int fd, ServerSocket& connectedServer);
+	ClientConnection(int fd, ServerSocket& connectedServerSocket);
 
 	void			receiveRequest();
 	void			sendResponse();
 	
 	int				getFd();
 	bool			getConnectionError();
-	ServerSocket&	getConnectedServer();
+	ServerSocket&	getConnectedServerSocket();
 	Request&		getRequest();
 	Response&		getResponse();
 };

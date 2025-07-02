@@ -29,13 +29,13 @@ private:
 	void										iteratePollFds(int eventCount);
 	void										updatePollFds();
 	
-	void										acceptNewClientConnection(ServerSocket& clientConnectedServer);
+	void										acceptNewClientConnection(ServerSocket& clientConnectedServerSocket);
 	void										disconnectClient(int clientFd);
-	void										stopServer(int serverFd, int serverIdx);
+	void										stopServerSocket(int serverSocketFd, int serverSocketIdx);
 	void										readClientIncomingData(int clientFd);
 	void										writeToClient(int clientFd);
 	
-	int											findServerIndexByFd(int fd); // TODO: (Optimization) fd to server map for speed?
+	int											findServerSocketIndexByFd(int fd); // TODO: (Optimization) fd to ServerSocket map for speed?
 	ClientConnection&							getClientConnectionByFd(int fd);
 	
 public:

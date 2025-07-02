@@ -2,11 +2,11 @@
 #include "RequestParser.hpp"
 #include "Log.hpp"
 
-ClientConnection::ClientConnection(int fd, ServerSocket& connectedServer) 
+ClientConnection::ClientConnection(int fd, ServerSocket& _connectedServerSocket) 
 	:	fd(fd),
-		connectedServer(connectedServer),
+		connectedServerSocket(_connectedServerSocket),
 		connectionError(false),
-		request(connectedServer.getServerBlockRef())
+		request(connectedServerSocket.getServerBlockRef())
 {
 }
 
@@ -40,9 +40,8 @@ void ClientConnection::sendResponse()
 	send(fd, chunk.c_str(), chunk.length(), 0); // TODO: return val & checks
 }
 
-int         	ClientConnection::getFd()                 { return fd; }
-bool        	ClientConnection::getConnectionError()    { return connectionError; }
-ServerSocket&	ClientConnection::getConnectedServer()    { return connectedServer; }
-Request&    	ClientConnection::getRequest()            { return request; }
-Response&   	ClientConnection::getResponse()           { return response; }
-// void        ClientConnection::setResponse(Response r) { response = r; } // TODO: disabled for now due to = overload
+int         	ClientConnection::getFd()                 		{ return fd; }
+bool        	ClientConnection::getConnectionError()    		{ return connectionError; }
+ServerSocket&	ClientConnection::getConnectedServerSocket()    { return connectedServerSocket; }
+Request&    	ClientConnection::getRequest()            		{ return request; }
+Response&   	ClientConnection::getResponse()           		{ return response; }

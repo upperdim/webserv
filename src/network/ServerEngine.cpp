@@ -89,11 +89,11 @@ void ServerEngine::iteratePollFds(int eventCount)
 	for (size_t i = 0; i < pollFds.size() && counter < eventCount; ++i) {
 		if (pollFds[i].revents & POLLIN) {
 			LOG("POLLIN event, fd = " << pollFds[i].fd);
-			int serverIdx = findServerIndexByFd(pollFds[i].fd);
-			if (serverIdx == -1) {
+`			int serverSocketIdx = findServerSocketIndexByFd(pollFds[i].fd);
+			if (serverSocketIdx == -1) {
 				readClientIncomingData(pollFds[i].fd);
 			} else {
-				acceptNewClientConnection(serverSockets[serverIdx]);
+				acceptNewClientConnection(serverSockets[serverSocketIdx]);
 			}
 		}
 
@@ -111,11 +111,11 @@ void ServerEngine::iteratePollFds(int eventCount)
 				LOGT(Log::ERROR, "Socket error on fd = " << pollFds[i].fd);
 			}
 			
-			int serverIdx = findServerIndexByFd(pollFds[i].fd);
-			if (serverIdx == -1) {
+			int serverSocketIdx = findServerSocketIndexByFd(pollFds[i].fd);
+			if (serverSocketIdx == -1) {
 				disconnectClient(pollFds[i].fd);
 			} else {
-				stopServer(pollFds[i].fd, serverIdx);
+				stopServerSocket(pollFds[i].fd, serverSocketIdx);
 			}
 		}
 
@@ -190,9 +190,9 @@ void ServerEngine::printPollFds()
 //=============================================================================
 // Connections & Disconnections
 //=============================================================================
-void ServerEngine::acceptNewClientConnection(ServerSocket& clientConnectedServer)
+void ServerEngine::acceptNewClientConnection(ServerSocket& clientConnectedServerSocket)
 {
-	int clientFd = accept(clientConnectedServer.getFd(), NULL, NULL);
+	int clientFd = accept(clientConnectedServerSocket.getFd(), NULL, NULL);
 	if (clientFd == -1) {
 		throw std::runtime_error("Error accepting client connection");
 	}
@@ -200,7 +200,7 @@ void ServerEngine::acceptNewClientConnection(ServerSocket& clientConnectedServer
 	clients.emplace(
 		std::piecewise_construct,
 		std::forward_as_tuple(static_cast<int>(clientFd)),
-		std::forward_as_tuple(static_cast<int>(clientFd), clientConnectedServer));
+		std::forward_as_tuple(static_cast<int>(clientFd), clientConnectedServerSocket));
 	pollFdsRegisterQueue.push_back(clientFd);
 	LOGT(Log::INFO, "New ClientConnection accepted, fd = " << clientFd);
 }
@@ -215,21 +215,21 @@ void ServerEngine::disconnectClient(int clientFd)
 	LOG("ClientConnection fd = " << clientFd << " is closed");
 }
 
-void ServerEngine::stopServer(int serverFd, int serverIdx)
+void ServerEngine::stopServerSocket(int serverSocketFd, int serverSocketIdx)
 {
-	if (serverIdx < 0) {
+	if (serverSocketIdx < 0) {
 		LOG("stopServer(): serverIdx not provided, attempting to find by server fd...");
-		serverIdx = findServerIndexByFd(serverFd);
-		if (serverIdx < 0) {
-			throw std::runtime_error("stopServer(): serverIdx not provided and not found");
+		serverSocketIdx = findServerSocketIndexByFd(serverSocketFd);
+		if (serverSocketIdx < 0) {
+			throw std::runtime_error("stopServerSocket(): serverIdx not provided and not found");
 		}
 	}
 
-	close(serverFd);
-	LOG("Server fd = " << serverFd << " is closed");
-	removeFromPollFds(serverFd);
-	serverSockets.erase(serverSockets.begin() + serverIdx);
-	LOG("Server is removed from the list and queued for removal from pollFds, fd = " << serverFd);
+	close(serverSocketFd);
+	LOG("Server fd = " << serverSocketFd << " is closed");
+	removeFromPollFds(serverSocketFd);
+	serverSockets.erase(serverSockets.begin() + serverSocketIdx);
+	LOG("ServerSocket is removed from the list and queued for removal from pollFds, fd = " << serverSocketFd);
 }
 
 //=============================================================================
@@ -271,7 +271,7 @@ void ServerEngine::writeToClient(int clientFd)
 //=============================================================================
 // Utility functions
 //=============================================================================
-int ServerEngine::findServerIndexByFd(int fd)
+int ServerEngine::findServerSocketIndexByFd(int fd)
 {
 	for (size_t i = 0; i < serverSockets.size(); ++i)
 		if (serverSockets[i].getFd() == fd)
