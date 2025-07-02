@@ -2,7 +2,7 @@
 #include <netdb.h>		// getaddrinfo()
 #include <arpa/inet.h>	// inet_ntop()
 #include <fcntl.h>		// O_NONBLOCK
-#include "Server.hpp"
+#include "ServerSocket.hpp"
 #include "Log.hpp"
 
 ServerSocket::ServerSocket(ServerBlock sb) : sockaddr(), serverBlock(sb)

@@ -2,7 +2,7 @@
 #define CLIENTCONNECTION_HPP
 
 #include <string>
-#include "Server.hpp"
+#include "ServerSocket.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 

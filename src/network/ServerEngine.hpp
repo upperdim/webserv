@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include "poll.h"
-#include "Server.hpp"
+#include "ServerSocket.hpp"
 #include "Config.hpp"
 #include "ClientConnection.hpp"
 
