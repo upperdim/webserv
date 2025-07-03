@@ -8,6 +8,7 @@ Request::Request(std::vector<ServerBlock>& _serverBlocks)
 		method(HTTP::Method::GET),
 		errorStatusCode(std::nullopt),
 		serverBlocks(_serverBlocks),
+		resolvedServerBlock(nullptr),
 		resolvedLocationBlock(nullptr)
 {
 }

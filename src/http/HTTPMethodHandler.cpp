@@ -56,10 +56,9 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 		return;
 	}
 
-	// TODO: this will use request.resolvedServerBlock
 	// TODO: restructure:
 	// sanitize path
-	std::string path = Utils::sanitizePath(request, request.serverBlocks[0]);
+	std::string path = Utils::sanitizePath(request, *request.resolvedServerBlock);
 	LOG_DEBUG("PATH ----> " + path);
 
 	// does the path resource exist
@@ -86,8 +85,7 @@ void	HTTPMethodHandler::handleDeleteRequest(const Request& request, Response& re
 {
 	LOG_MSG("[handle DELETE Request] ", "...", LIGHTMAGENTA, DEFAULT);
 
-	// TODO: this will use request.resolvedServerBlock
-	std::filesystem::path resourcePath(Utils::sanitizePath(request, request.serverBlocks[0]));
+	std::filesystem::path resourcePath(Utils::sanitizePath(request, *request.resolvedServerBlock));
 	if (!(std::filesystem::exists(resourcePath) && std::filesystem::is_regular_file(resourcePath))) {
 		// resourcePath NOT FOUND
 		response.setStatus(WSSC_NOT_FOUND);
