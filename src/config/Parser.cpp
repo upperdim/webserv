@@ -444,8 +444,13 @@ void	Parser::parseServerNameDirective(const Token& directive, std::vector<const 
 		Throw::InvalidNumberOfArguments(directive);
 
 	for (size_t i = 0; i < params.size(); ++i) {
-		if (params[i]->type == TokenType::PARAM && Validator::isValidServerName(params[i]->value))
-			server.serverNames.emplace_back(params[i]->value);
+		if (params[i]->type == TokenType::PARAM && Validator::isValidServerName(params[i]->value)) {
+			// store lowercase server_names, because they are consider case-insensitive
+			std::string server_name = params[i]->value;
+			std::transform(server_name.begin(), server_name.end(), server_name.begin(),
+			               [](auto c){ return std::tolower(c); });
+			server.serverNames.emplace_back(server_name);
+		}
 		else
 			Throw::AccpetsOnlyDomainNames(*params[i]);
 	}

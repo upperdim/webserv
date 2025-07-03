@@ -134,6 +134,10 @@ void	RequestParser::parseHeader(Request& request)
 	}
 	request.rawRequest.erase(0, headerEnd + 4);
 
+	// first we resolve the serverBlock according to the value of HOST
+	if (!resolveServerBlock(request))
+		return;
+
 	if (!validateRequiredHeaderFields(request))
 		return;
 
@@ -433,20 +437,8 @@ bool	RequestParser::isValidFieldValueChar(const char c)
 
 bool	RequestParser::validateRequiredHeaderFields(Request& request)
 {
-	// checking for available HOST
-	auto it = request.headers.find("host");
-	if (it == request.headers.end()) {
-		request.errorStatusCode = WSSC_BAD_REQUEST;
-		request.parsingState = Request::ParsingState::INVALID;
-		return false;
-	}
-
-	//	///////////////////////////
-	//	TODO:	resolve serverBlock
-	//	///////////////////////////
-
 	// check content-length if available on valid field-value
-	it = request.headers.find("content-length");
+	auto it = request.headers.find("content-length");
 	if (it != request.headers.end()) {
 		const std::string contentLengthStr = it->second;
 		for (auto& c : contentLengthStr) {
@@ -489,10 +481,69 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 	return true;
 }
 
+bool	RequestParser::validateHost(Request& request, std::string& dest)
+{
+	auto hostIT = request.headers.find("host");
+	if (hostIT == request.headers.end())
+		return false;
+
+	// down case host and strip the port if found
+	std::string hostSTR = hostIT->second;
+	size_t colonPos = hostSTR.find(":");
+	if (colonPos != std::string::npos)
+		hostSTR = hostSTR.substr(0, colonPos);
+	std::transform(hostSTR.begin(), hostSTR.end(), hostSTR.begin(),
+	               [](unsigned char c){ return std::tolower(c); });
+
+	// Browsers do not send Host lists, but we check that we have
+	// a valid Host which should be a valid DomainName
+	if (!(Validator::isDomainName(hostSTR) ||
+	      Validator::isIPAddress(hostSTR) ||
+		  hostSTR == "localhost"))
+		return false;
+
+	dest = hostSTR;
+	return true;
+}
+
 
 //=============================================================================
 // Resolve Request Context
 //=============================================================================
+
+bool	RequestParser::resolveServerBlock(Request& request)
+{
+	// we dont have any serverBlocks this should never happen
+	// This is a safety fallback
+	if (request.serverBlocks.empty()) {
+		request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+		request.parsingState = Request::ParsingState::INVALID;
+		return false;
+	}
+
+	// checking for available and valid HOST
+	std::string hostStr;
+	if  (!validateHost(request, hostStr)) {
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
+		return false;
+	}
+
+	for (auto& serverBlock : request.serverBlocks) {
+		for (const auto& name : serverBlock.serverNames) {
+			if (name == hostStr) {
+				// we found our serverBlock
+				request.resolvedServerBlock = &serverBlock;
+				return true;
+			}
+		}
+	}
+
+	// we take the first serverBlock as default	if no server_name matches the host
+	LOG("no host '" << hostSTR << "' matches any server_name: we take the first serverBlock as default");
+	request.resolvedServerBlock = &request.serverBlocks.front();
+	return true;
+}
 
 bool	RequestParser::resolveRequestContext(Request& request)
 {

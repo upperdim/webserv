@@ -35,7 +35,9 @@ private:
 	static bool					isValidFieldValueChar(const char c);
 
 	static bool					validateRequiredHeaderFields(Request& request);
+	static bool					validateHost(Request& request, std::string& dest);
 
+	static bool					resolveServerBlock(Request& request);
 	static bool					resolveRequestContext(Request& request);
 	static bool					resolveLocationBlock(Request& request);
 	static bool					resolvePath(Request& request);
