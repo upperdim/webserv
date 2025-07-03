@@ -36,8 +36,8 @@ public:
 	std::vector<ServerBlock>& 						serverBlocks;
 
 	// matched and resolved attributes
-	std::string										URI;		//	decoded and sanatized requesttarget
-	// resolved from header
+	std::string										URI;	//	decoded and sanatized requesttarget
+	ServerBlock*									resolvedServerBlock;
 	LocationBlock*									resolvedLocationBlock;
 	std::optional<size_t>							contentLength;
 	std::string										resolvedPath;

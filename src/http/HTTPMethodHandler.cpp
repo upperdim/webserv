@@ -85,8 +85,7 @@ void	HTTPMethodHandler::handleDeleteRequest(const Request& request, Response& re
 {
 	LOG_MSG("[handle DELETE Request] ", "...", LIGHTMAGENTA, DEFAULT);
 
-	// TODO: this will use request.resolvedServerBlock
-	std::filesystem::path resourcePath(Utils::sanitizePath(request, request.serverBlocks[0]));
+	std::filesystem::path resourcePath(Utils::sanitizePath(request, *request.resolvedServerBlock));
 	if (!(std::filesystem::exists(resourcePath) && std::filesystem::is_regular_file(resourcePath))) {
 		// resourcePath NOT FOUND
 		response.setStatus(WSSC_NOT_FOUND);
