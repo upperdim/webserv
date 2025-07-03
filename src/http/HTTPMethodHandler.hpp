@@ -19,6 +19,8 @@ private:
 	static void	handleDeleteRequest(const Request& request, Response& response);
 	static void	createErrorResponse(Response& response, int statusCode);
 
+	static std::string	indexModule(const Request& request);
+
 };
 
 #endif

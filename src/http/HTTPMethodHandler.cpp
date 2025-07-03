@@ -56,19 +56,18 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 		return;
 	}
 
-	// TODO: restructure:
-	// sanitize path
-	std::string path = Utils::sanitizePath(request, request.serverBlock);
-	LOG_DEBUG("PATH ----> " + path);
+	// append index if necessary
+	std::string resourcePath = indexModule(request);
+	LOG("resourcePath ----> " << resourcePath);
 
 	// does the path resource exist
-	if (Utils::resourceExist(path)) {
+	if (Utils::resourceExist(resourcePath)) {
 		// fetch content
-		response.addHeader("Content-Type", HTTP::getMimeType(path));
-		response.setBodyFileBufferReader(path);
+		response.addHeader("Content-Type", HTTP::getMimeType(resourcePath));
+		response.setBodyFileBufferReader(resourcePath);
 	}
 	else
-		createErrorResponse(response, WSSC_I_M_A_TEAPOT);
+		createErrorResponse(response, WSSC_NOT_FOUND);
 
 	return;
 }
@@ -111,4 +110,21 @@ void	HTTPMethodHandler::createErrorResponse(Response& response, int statusCode)
 	response.setStatus(statusCode);
 	response.addHeader("Content-Type", HTTP::getMimeType(".html"));
 	response.setBodyString(HTTP::getErrorPageTemplate(statusCode));
+}
+
+
+//=============================================================================
+// Modules
+//=============================================================================
+
+std::string	HTTPMethodHandler::indexModule(const Request& request)
+{
+	std::string indexedPath = request.resolvedPath;
+	if (indexedPath.back() == '/') {
+		indexedPath += request.resolvedLocationBlock->index;
+	} else if (!Utils::resourceExist(indexedPath)) {
+		indexedPath += "/" + request.resolvedLocationBlock->index;
+	}
+	LOGT(Log::INFO, LIGHTMAGENTA << BOLD << "indexedPath: " << LIGHTGREEN << indexedPath);
+	return indexedPath;
 }

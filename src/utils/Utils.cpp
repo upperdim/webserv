@@ -1,7 +1,7 @@
 #include "Utils.hpp"
 #include <iomanip>
-#include <fstream>
 #include <sstream>
+#include <filesystem>
 
 std::string	Utils::sanitizePath(const Request& request, const ServerBlock serverBlock)
 {
@@ -31,8 +31,9 @@ std::string	Utils::sanitizePath(const Request& request, const ServerBlock server
 
 bool	Utils::resourceExist(const std::string& path)
 {
-	std::ifstream	file(path);
-	return ( file.good() );
+	std::filesystem::path pathToFile(path);
+	return (std::filesystem::exists(pathToFile)
+	       && std::filesystem::is_regular_file(pathToFile));
 }
 
 bool	Utils::startsWith(const std::string& str, const std::string& prefix)
