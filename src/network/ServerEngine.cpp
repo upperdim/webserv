@@ -4,6 +4,7 @@
 #include <chrono>   // std::chrono::seconds
 #include "ServerEngine.hpp"
 #include "ClientConnection.hpp"
+#include "ServerSocket.hpp"
 #include "HTTP.hpp"
 #include "HTTPMethodHandler.hpp"
 #include "Log.hpp"
@@ -12,28 +13,33 @@ volatile std::sig_atomic_t ServerEngine::isRunning = false;
 
 ServerEngine::ServerEngine(Config config)
 {
-	if (config.serverBlocks.size() == 0)
-		return;
-
 	// Create servers
-	for (size_t i = 0; i < config.serverBlocks.size(); ++i) {
-		bool isDuplicatePort = false;
 
-		for (size_t j = 0; j < i; ++j) {
-			if (config.serverBlocks[i].listenPort == config.serverBlocks[j].listenPort) {
-				isDuplicatePort = true;
-				break;
-			}
-		}
+	// Group serverBlocks by host:port
+	std::map<std::string, std::vector<ServerBlock*>> hostPortToServerBlocks;
 
-		if (!isDuplicatePort) {
-			servers.push_back(Server(config.serverBlocks[i]));
-		}
+	for (ServerBlock& serverBlock : config.serverBlocks) {
+		std::string hostPortStr = serverBlock.listenHostStr + ":" + std::to_string(serverBlock.listenPort);
+
+		hostPortToServerBlocks[hostPortStr].push_back(&serverBlock);
 	}
+	
+	for (const auto& pair : hostPortToServerBlocks) {
+		const std::vector<ServerBlock*>& blocks = pair.second;
 
-	// Register servers to pollfds
-	for (size_t i = 0; i < servers.size(); ++i) {
-		addToPollFds(servers[i].getFd());
+		// Create ServerSockets for host:port
+		ServerSocket serverSocket = ServerSocket(*blocks[0]);
+
+		// Add all serverBlocks for host:port
+		for (size_t i = 1; i < blocks.size(); ++i) {
+			serverSocket.serverBlocks.push_back(*blocks[i]);
+		}
+
+		// Add the created ServerSocket to serverSockets list
+		serverSockets.push_back(serverSocket);
+
+		// Register the created ServerSockets fd to pollFds
+		addToPollFds(serverSocket.getFd());
 	}
 }
 
@@ -41,9 +47,9 @@ ServerEngine::~ServerEngine()
 {
 	LOG("ServerEngine destructor");
 
-	for (size_t i = 0; i < servers.size(); ++i) {
-		close(servers[i].getFd());
-		LOG("closed server fd = " << servers[i].getFd());
+	for (size_t i = 0; i < serverSockets.size(); ++i) {
+		close(serverSockets[i].getFd());
+		LOG("closed server fd = " << serverSockets[i].getFd());
 	}
 	
 	for (auto it = clients.begin(); it != clients.end(); ++it) {
@@ -83,11 +89,11 @@ void ServerEngine::iteratePollFds(int eventCount)
 	for (size_t i = 0; i < pollFds.size() && counter < eventCount; ++i) {
 		if (pollFds[i].revents & POLLIN) {
 			LOG("POLLIN event, fd = " << pollFds[i].fd);
-			int serverIdx = findServerIndexByFd(pollFds[i].fd);
-			if (serverIdx == -1) {
+			int serverSocketIdx = findServerSocketIndexByFd(pollFds[i].fd);
+			if (serverSocketIdx == -1) {
 				readClientIncomingData(pollFds[i].fd);
 			} else {
-				acceptNewClientConnection(servers[serverIdx]);
+				acceptNewClientConnection(serverSockets[serverSocketIdx]);
 			}
 		}
 
@@ -105,11 +111,11 @@ void ServerEngine::iteratePollFds(int eventCount)
 				LOGT(Log::ERROR, "Socket error on fd = " << pollFds[i].fd);
 			}
 			
-			int serverIdx = findServerIndexByFd(pollFds[i].fd);
-			if (serverIdx == -1) {
+			int serverSocketIdx = findServerSocketIndexByFd(pollFds[i].fd);
+			if (serverSocketIdx == -1) {
 				disconnectClient(pollFds[i].fd);
 			} else {
-				stopServer(pollFds[i].fd, serverIdx);
+				stopServerSocket(pollFds[i].fd, serverSocketIdx);
 			}
 		}
 
@@ -184,9 +190,9 @@ void ServerEngine::printPollFds()
 //=============================================================================
 // Connections & Disconnections
 //=============================================================================
-void ServerEngine::acceptNewClientConnection(Server& clientConnectedServer)
+void ServerEngine::acceptNewClientConnection(ServerSocket& clientConnectedServerSocket)
 {
-	int clientFd = accept(clientConnectedServer.getFd(), NULL, NULL);
+	int clientFd = accept(clientConnectedServerSocket.getFd(), NULL, NULL);
 	if (clientFd == -1) {
 		throw std::runtime_error("Error accepting client connection");
 	}
@@ -194,7 +200,7 @@ void ServerEngine::acceptNewClientConnection(Server& clientConnectedServer)
 	clients.emplace(
 		std::piecewise_construct,
 		std::forward_as_tuple(static_cast<int>(clientFd)),
-		std::forward_as_tuple(static_cast<int>(clientFd), clientConnectedServer));
+		std::forward_as_tuple(static_cast<int>(clientFd), clientConnectedServerSocket));
 	pollFdsRegisterQueue.push_back(clientFd);
 	LOGT(Log::INFO, "New ClientConnection accepted, fd = " << clientFd);
 }
@@ -209,21 +215,21 @@ void ServerEngine::disconnectClient(int clientFd)
 	LOG("ClientConnection fd = " << clientFd << " is closed");
 }
 
-void ServerEngine::stopServer(int serverFd, int serverIdx)
+void ServerEngine::stopServerSocket(int serverSocketFd, int serverSocketIdx)
 {
-	if (serverIdx < 0) {
+	if (serverSocketIdx < 0) {
 		LOG("stopServer(): serverIdx not provided, attempting to find by server fd...");
-		serverIdx = findServerIndexByFd(serverFd);
-		if (serverIdx < 0) {
-			throw std::runtime_error("stopServer(): serverIdx not provided and not found");
+		serverSocketIdx = findServerSocketIndexByFd(serverSocketFd);
+		if (serverSocketIdx < 0) {
+			throw std::runtime_error("stopServerSocket(): serverIdx not provided and not found");
 		}
 	}
 
-	close(serverFd);
-	LOG("Server fd = " << serverFd << " is closed");
-	removeFromPollFds(serverFd);
-	servers.erase(servers.begin() + serverIdx);
-	LOG("Server is removed from the list and queued for removal from pollFds, fd = " << serverFd);
+	close(serverSocketFd);
+	LOG("Server fd = " << serverSocketFd << " is closed");
+	removeFromPollFds(serverSocketFd);
+	serverSockets.erase(serverSockets.begin() + serverSocketIdx);
+	LOG("ServerSocket is removed from the list and queued for removal from pollFds, fd = " << serverSocketFd);
 }
 
 //=============================================================================
@@ -265,10 +271,10 @@ void ServerEngine::writeToClient(int clientFd)
 //=============================================================================
 // Utility functions
 //=============================================================================
-int ServerEngine::findServerIndexByFd(int fd)
+int ServerEngine::findServerSocketIndexByFd(int fd)
 {
-	for (size_t i = 0; i < servers.size(); ++i)
-		if (servers[i].getFd() == fd)
+	for (size_t i = 0; i < serverSockets.size(); ++i)
+		if (serverSockets[i].getFd() == fd)
 			return i;
 	return -1;
 }

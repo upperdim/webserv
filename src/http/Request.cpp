@@ -2,12 +2,12 @@
 #include <algorithm>
 #include "Utils.hpp"
 
-Request::Request(const ServerBlock& _serverBlock)
+Request::Request(std::vector<ServerBlock>& _serverBlocks)
 	:	parsingState(ParsingState::REQUEST_LINE),
 		doneReceiving(false),
 		method(HTTP::Method::GET),
 		errorStatusCode(std::nullopt),
-		serverBlock(_serverBlock),
+		serverBlocks(_serverBlocks),
 		resolvedLocationBlock(nullptr)
 {
 }

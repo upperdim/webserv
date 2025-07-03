@@ -2,7 +2,7 @@
 #define CLIENTCONNECTION_HPP
 
 #include <string>
-#include "Server.hpp"
+#include "ServerSocket.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 
@@ -11,23 +11,23 @@
 class ClientConnection
 {
 private:
-	int			fd;
-	Server&		connectedServer;
-	bool		connectionError;
-	Request		request;
-	Response	response;
+int					fd;
+	ServerSocket&	connectedServerSocket;
+	bool			connectionError;
+	Request			request;
+	Response		response;
 
 public:
-	ClientConnection(int fd, Server& connectedServer);
+	ClientConnection(int fd, ServerSocket& connectedServerSocket);
 
-	void		receiveRequest();
-	void		sendResponse();
+	void			receiveRequest();
+	void			sendResponse();
 	
-	int			getFd();
-	bool		getConnectionError();
-	Server&		getConnectedServer();
-	Request&	getRequest();
-	Response&	getResponse();
+	int				getFd();
+	bool			getConnectionError();
+	ServerSocket&	getConnectedServerSocket();
+	Request&		getRequest();
+	Response&		getResponse();
 };
 
 #endif

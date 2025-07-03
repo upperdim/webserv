@@ -5,7 +5,7 @@
 #include <csignal>
 #include <vector>
 #include "poll.h"
-#include "Server.hpp"
+#include "ServerSocket.hpp"
 #include "Config.hpp"
 #include "ClientConnection.hpp"
 
@@ -15,7 +15,7 @@
 class ServerEngine
 {
 private:
-	std::vector<Server>							servers;
+	std::vector<ServerSocket>					serverSockets;
 	std::unordered_map<int, ClientConnection>	clients;              // Key: fd, value: ClientConnection
 
 	std::vector<struct pollfd>					pollFds;
@@ -30,13 +30,13 @@ private:
 	void										iteratePollFds(int eventCount);
 	void										updatePollFds();
 	
-	void										acceptNewClientConnection(Server& clientConnectedServer);
+	void										acceptNewClientConnection(ServerSocket& clientConnectedServerSocket);
 	void										disconnectClient(int clientFd);
-	void										stopServer(int serverFd, int serverIdx);
+	void										stopServerSocket(int serverSocketFd, int serverSocketIdx);
 	void										readClientIncomingData(int clientFd);
 	void										writeToClient(int clientFd);
 	
-	int											findServerIndexByFd(int fd); // TODO: (Optimization) fd to server map for speed?
+	int											findServerSocketIndexByFd(int fd); // TODO: (Optimization) fd to ServerSocket map for speed?
 	ClientConnection&							getClientConnectionByFd(int fd);
 	
 public:
