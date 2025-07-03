@@ -453,7 +453,7 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 			size_t resolvedContentLength = std::stoull(contentLengthStr);
 
 			//	TODO:	use resolved clientMaxBodySize
-			if (resolvedContentLength > request.serverBlocks[0].clientMaxBodySize) {
+			if (resolvedContentLength > request.resolvedServerBlock->clientMaxBodySize) {
 				request.errorStatusCode = WSSC_CONTENT_TOO_LARGE;
 				request.parsingState = Request::ParsingState::INVALID;
 				return false;
@@ -498,7 +498,7 @@ bool	RequestParser::validateHost(Request& request, std::string& dest)
 	// Browsers do not send Host lists, but we check that we have
 	// a valid Host which should be a valid DomainName
 	if (!(Validator::isDomainName(hostSTR) ||
-	      Validator::isIPAddress(hostSTR) ||
+	      Validator::isIPAddr(hostSTR) ||
 		  hostSTR == "localhost"))
 		return false;
 
@@ -540,7 +540,7 @@ bool	RequestParser::resolveServerBlock(Request& request)
 	}
 
 	// we take the first serverBlock as default	if no server_name matches the host
-	LOG("no host '" << hostSTR << "' matches any server_name: we take the first serverBlock as default");
+	LOG("no host '" << hostStr << "' matches any server_name: we take the first serverBlock as default");
 	request.resolvedServerBlock = &request.serverBlocks.front();
 	return true;
 }
@@ -581,16 +581,16 @@ bool	RequestParser::resolveLocationBlock(Request& request)
 {
 	// TODO: use the resolved serverBlock
 	const LocationBlock* bestMatch = nullptr;
-	for (const LocationBlock& loc : request.serverBlocks[0].locationBlocks) {
+	for (const LocationBlock& loc : request.resolvedServerBlock->locationBlocks) {
 		if (Utils::startsWith(request.URI, loc.route)) {
 			if (bestMatch == nullptr || bestMatch->route.length() < loc.route.length())
 				bestMatch = &loc;
 		}
 	}
 	if (bestMatch == nullptr) {
-		auto it = std::find_if(request.serverBlocks[0].locationBlocks.begin(), request.serverBlocks[0].locationBlocks.end(),
+		auto it = std::find_if(request.resolvedServerBlock->locationBlocks.begin(), request.resolvedServerBlock->locationBlocks.end(),
 		                     [](const LocationBlock& loc){ return loc.route == "/"; });
-		if (it == request.serverBlocks[0].locationBlocks.end())
+		if (it == request.resolvedServerBlock->locationBlocks.end())
 			return false;
 		bestMatch = &(*it);
 	}
