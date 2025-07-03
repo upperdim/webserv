@@ -2,6 +2,8 @@
 #include <iomanip>
 #include <sstream>
 #include <filesystem>
+#include "Log.hpp"
+#include "unistd.h"
 
 std::string	Utils::sanitizePath(const Request& request, const ServerBlock serverBlock)
 {
@@ -29,11 +31,34 @@ std::string	Utils::sanitizePath(const Request& request, const ServerBlock server
 	return root_path + path;
 }
 
-bool	Utils::resourceExist(const std::string& path)
+bool	Utils::isDirectory(const std::string& path)
 {
-	std::filesystem::path pathToFile(path);
-	return (std::filesystem::exists(pathToFile)
-	       && std::filesystem::is_regular_file(pathToFile));
+	try {
+		std::filesystem::path pathToDir(path);
+		return (std::filesystem::exists(pathToDir)
+				&& std::filesystem::is_directory(pathToDir));
+	} catch(const std::filesystem::filesystem_error& e) {
+		LOGT(Log::WARNING, e.what());
+		return false;
+	}
+}
+
+bool	Utils::fileExist(const std::string& path)
+{
+	try {
+		std::filesystem::path pathToFile(path);
+		return (std::filesystem::exists(pathToFile) 
+		        && std::filesystem::is_regular_file(pathToFile));
+	} catch(const std::filesystem::filesystem_error& e) {
+		LOGT(Log::WARNING, e.what());
+		return false;
+	}
+}
+
+bool	Utils::hasPermission(const std::string& path, int mode)
+{
+	// mode can be R_OK, W_OK, X_OK, or F_OK
+	return (access(path.c_str(), mode) == 0);
 }
 
 bool	Utils::startsWith(const std::string& str, const std::string& prefix)

@@ -21,6 +21,8 @@ private:
 
 	static std::string	indexModule(const Request& request);
 
+	static void	handleAutoIndex(const Request& request, Response& response);
+
 };
 
 #endif
