@@ -109,20 +109,18 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 	}
 
 	// does the resource exist and do we have permissons
-	if (Utils::fileExists(request.resolvedPath)) {
-		if (!Utils::hasPermission(request.resolvedPath, R_OK)) {
-			createErrorResponse(response, WSSC_FORBIDDEN);
-			return;
-		}
-		// fetch content
-		response.setStatusCode(WSSC_OK);
-		response.addHeader("Content-Type", HTTP::getMimeType(request.resolvedPath));
-		response.setBodyFileBufferReader(request.resolvedPath);
+	if (!Utils::fileExists(request.resolvedPath)) {
+		// we have not found the resource:
+		createErrorResponse(response, WSSC_NOT_FOUND);
+	}
+	if (!Utils::hasPermission(request.resolvedPath, R_OK)) {
+		createErrorResponse(response, WSSC_FORBIDDEN);
 		return;
 	}
-
-	// we have not found the resource:
-	createErrorResponse(response, WSSC_NOT_FOUND);
+	// fetch content
+	response.setStatusCode(WSSC_OK);
+	response.addHeader("Content-Type", HTTP::getMimeType(request.resolvedPath));
+	response.setBodyFileBufferReader(request.resolvedPath);
 }
 
 void	HTTPMethodHandler::handlePostRequest(const Request& request, Response& response)
