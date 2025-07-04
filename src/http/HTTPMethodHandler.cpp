@@ -270,18 +270,13 @@ void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& respon
 		if (entry.is_directory())
 			e += '/';
 
-		// std::string url(request.URI);
-		// if (url.back() != '/')
-		// 	url += '/';
-		// url += e;
-
 		// trimm e to 50 characters
 		if (e.length() > 50) {
 			e.resize(47);
 			e += "..>";
 		}
 
-		std::string anchor;				// should be 'e' down here not 'url'
+		std::string anchor;
 		anchor += "<a href=\"" + Utils::encodePath(e) + "\">" + e + "</a>";
 
 		os << anchor;
