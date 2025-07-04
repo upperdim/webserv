@@ -557,7 +557,7 @@ bool	RequestParser::resolveRequestContext(Request& request)
 		return false;
 	}
 
-	//	all the config attributes are now resolved, and we ca use:
+	//	all the config attributes are now resolved, and we can use:
 	//	ServerBlock
 			// listenPort, listenHostStr, serverNames, errorPagePaths
 	//	LocationBlock
@@ -567,12 +567,7 @@ bool	RequestParser::resolveRequestContext(Request& request)
 	//	resolve path
 	if (!resolvePath(request)) {
 		return false;
-		//	//////////////////////////////////
-		//	TODO	delete Utils::sanitizePath
-		//	//////////////////////////////////
 	}
-
-	// resolve fileName
 
 	return true;
 }
