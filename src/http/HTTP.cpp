@@ -163,8 +163,8 @@ std::string HTTP::getStatusMessage(int _status_code)
 std::string	HTTP::getMimeType(const std::string& path)
 {
 	size_t	pos = path.find_last_of(".");
-	if (pos == std::string::npos)
-		return ("application/octet-stream");
+	if (pos == std::string::npos || pos == path.length() - 1)
+		return ("text/plain");
 		
 	std::string ext = path.substr(pos);
 	auto it = m_mime_types.find(ext);
