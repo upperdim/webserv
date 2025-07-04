@@ -49,12 +49,6 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 {
 	LOGC("HTTP_METHOD_HANDLER", "-> handle GET Request", LIGHTMAGENTA, LIGHTCYAN);
 
-	// TODO: repetitive?
-	if (request.errorStatusCode.has_value()) {
-		createErrorResponse(response, request.errorStatusCode.value());
-		return;
-	}
-
 	if (Utils::isDirectory(request.resolvedPath)) {
 		// Check trailng slash or redirect
 		if (request.resolvedPath.back() != '/') {
