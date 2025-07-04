@@ -18,6 +18,8 @@ public:
 	static bool			startsWith(const std::string& str, const std::string& prefix);
 	static void			trimWhitespaces(std::string& str);
 	static std::string	charToHex(char c);
+	static std::string	percentEncode(const std::string& str);
+	static std::string	encodePath(const std::string& path);
 };
 
 #endif

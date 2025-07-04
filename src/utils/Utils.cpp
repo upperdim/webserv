@@ -89,3 +89,49 @@ std::string	Utils::charToHex(char c)
 	os << "0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(c);
 	return os.str();
 }
+
+std::string	Utils::percentEncode(const std::string& str)
+{
+	std::ostringstream encoded;
+
+	encoded.fill('0');		// set fill character
+	encoded << std::hex;	// numbers as hex
+
+	for (char c : str) {
+		if (std::isalnum(static_cast<unsigned char>(c)) ||
+			c == '-' || c == '_' || c == '.' || c == '~') {
+			encoded << c;
+		} else {
+			encoded << '%' << std::setw(2) << std::uppercase
+			        << static_cast<unsigned int>(static_cast<unsigned char>(c));
+		}
+	}
+	return encoded.str();
+}
+
+std::string	Utils::encodePath(const std::string& path)
+{
+	if (path.empty())
+		return path;
+
+	std::ostringstream oss;
+	std::istringstream iss(path);
+	std::string segment;
+
+	bool firstSegment = true;
+
+	while (std::getline(iss, segment, '/')) {
+		if (!firstSegment)
+			oss << '/';
+
+		if (!segment.empty())
+			oss << percentEncode(segment);
+
+		firstSegment = false;
+	}
+
+	if (path.back() == '/')
+		oss << '/';
+
+	return oss.str();
+}

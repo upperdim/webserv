@@ -76,6 +76,8 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 			}
 
 			// we have permission and we serv the index
+			response.setStatus(200);
+			response.setProtokoll("HTTP/1.1");
 			response.addHeader("Content-Type", HTTP::getMimeType(indexedResource));
 			response.setBodyFileBufferReader(indexedResource);
 			return;
@@ -117,6 +119,8 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 			return;
 		}
 		// fetch content
+		response.setStatus(200);
+		response.setProtokoll("HTTP/1.1");
 		response.addHeader("Content-Type", HTTP::getMimeType(request.resolvedPath));
 		response.setBodyFileBufferReader(request.resolvedPath);
 		return;
@@ -160,8 +164,8 @@ void	HTTPMethodHandler::createErrorResponse(Response& response, int statusCode)
 {
 	//	TODO:	reexamen this will we need it like that or can we reduce
 	//			the statusCode for exameple etc…
-	response.setProtokoll("HTTP/1.1");
 	response.setStatus(statusCode);
+	response.setProtokoll("HTTP/1.1");
 	response.addHeader("Content-Type", HTTP::getMimeType(".html"));
 	response.setBodyString(HTTP::getErrorPageTemplate(statusCode));
 }
@@ -229,10 +233,10 @@ void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& respon
 		if (entry.is_directory())
 			e += '/';
 
-		std::string url(request.URI);
-		if (url.back() != '/')
-			url += '/';
-		url += e;
+		// std::string url(request.URI);
+		// if (url.back() != '/')
+		// 	url += '/';
+		// url += e;
 
 		// trimm e to 50 characters
 		if (e.length() > 50) {
@@ -240,8 +244,8 @@ void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& respon
 			e += "..>";
 		}
 
-		std::string anchor;
-		anchor += "<a href=\"" + url + "\">" + e + "</a>";
+		std::string anchor;				// should be 'e' down here not 'url'
+		anchor += "<a href=\"" + Utils::encodePath(e) + "\">" + e + "</a>";
 
 		os << anchor;
 
@@ -254,15 +258,23 @@ void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& respon
 		os << std::put_time(&tm, "%d-%b-%Y %H:%M");
 
 		os << "                   ";
-		if (!entry.is_directory())
-			os << std::to_string(entry.file_size());
+		if (!entry.is_directory()) {
+			try {
+				os << std::to_string(entry.file_size());
+			} catch(...) {
+				os << "unavailable";
+			} 
+		}
 		else
 			os << "-";
 
 		os << '\n';
 	}
-	os << "</pre><hr><body><html>";
+	os << "</pre><hr></body></html>";
 
+	response.setStatus(200);
+	response.setProtokoll("HTTP/1.1");
+	response.addHeader("Content-Type", "text/html; charset=utf-8");
 	response.setBodyString(os.str());
 }
 
