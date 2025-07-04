@@ -41,7 +41,6 @@ void	HTTPMethodHandler::handle(Request& request, Response& response)
 
 }
 
-
 //=============================================================================
 // Handlers
 //=============================================================================
@@ -56,14 +55,11 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 		return;
 	}
 
-	// do we have a file or directory
 	if (Utils::isDirectory(request.resolvedPath)) {
-		// =====================================================================
-		// DIRECTORY
-		// =====================================================================
-
-		// check trailng slash or redirect
+		// Check trailng slash or redirect
 		if (request.resolvedPath.back() != '/') {
+			// If requested resource is a directory but looks like a file,
+			// we redirect to another URI
 			response.setStatusCode(WSSC_MOVED_PERMANENTLY);
 			response.addHeader("Location", std::string(request.URI) + '/');
 			response.addHeader("content-length", "0");
@@ -76,7 +72,7 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 		}
 
 		// 1. do we have index files we could serve?
-		std::string indexedResource = indexModule(request);
+		std::string indexedResource = getIndexAppendedResource(request);
 		if (Utils::fileExists(indexedResource)) {
 			// check permission to serve the index
 			if (!Utils::hasPermission(indexedResource, R_OK)) {
@@ -103,9 +99,7 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 		return;
 	}
 
-	// =========================================================================
 	// FILE
-	// =========================================================================
 	size_t lastSlashPos = request.resolvedPath.find_last_of('/');
 	std::string resourceDir = request.resolvedPath.substr(0, lastSlashPos);
 	LOGT(Log::INFO, "resourceDir: " << resourceDir);
@@ -202,12 +196,7 @@ void	HTTPMethodHandler::createErrorResponse(Response& response, int statusCode)
 	response.setBodyString(HTTP::getErrorPageTemplate(statusCode));
 }
 
-
-//=============================================================================
-// Modules
-//=============================================================================
-
-std::string	HTTPMethodHandler::indexModule(const Request& request)
+std::string	HTTPMethodHandler::getIndexAppendedResource(const Request& request)
 {
 	std::string indexedResource = request.resolvedPath;
 	if (indexedResource.back() == '/') {
@@ -218,11 +207,6 @@ std::string	HTTPMethodHandler::indexModule(const Request& request)
 	LOGT(Log::INFO, LIGHTMAGENTA << BOLD << "indexedResource: " << LIGHTGREEN << indexedResource);
 	return indexedResource;
 }
-
-
-//=============================================================================
-// Sections
-//=============================================================================
 
 void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& response)
 {
