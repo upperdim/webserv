@@ -3,7 +3,7 @@
 Response::Response()
 	:	statusCode(200),
 		m_state(ResponseState::SEND_HEADER),
-		m_protokoll("HTTP/1.1"),
+		m_protocol("HTTP/1.1"),
 		m_status_msg(HTTP::getStatusMessage(WSSC_OK)),
 		m_bodyType(BodyType::BODY_NONE),
 		m_done(false)
@@ -17,9 +17,9 @@ Response::~Response()
 /* ************************************************************************** */
 /* ************************************************************************** */
 
-void	Response::setProtokoll(const std::string& _protokoll)
+void	Response::setProtocol(const std::string& _protocol)
 {
-	m_protokoll = _protokoll;
+	m_protocol = _protocol;
 }
 
 void	Response::setStatusCode(const int& _statusCode)
@@ -126,7 +126,7 @@ std::string			Response::getResponseStateString()
 std::string	Response::getHeader(void) const
 {
 	std::string	buff;
-	buff	+= m_protokoll + " "
+	buff	+= m_protocol + " "
 			+ std::to_string(statusCode) + " "
 			+ m_status_msg + "\r\n";
 	for (const auto& header : m_headers)

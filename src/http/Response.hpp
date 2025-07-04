@@ -15,7 +15,7 @@ public:
 	Response();
 	~Response();
 
-	void				setProtokoll(const std::string& _protokoll);
+	void				setProtocol(const std::string& _protocol);
 	void				setStatusCode(const int& _statusCode);
 	void				addHeader(const std::string& key, const std::string& value);
 	void				setBodyString(const std::string& _body);
@@ -45,7 +45,7 @@ private:
 	};
 
 	ResponseState		m_state;
-	std::string			m_protokoll;
+	std::string			m_protocol;
 	std::string			m_status_msg;
 	HeaderMap			m_headers;
 	std::string			m_body;
