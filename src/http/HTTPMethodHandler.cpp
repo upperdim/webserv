@@ -65,7 +65,6 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 		// check trailng slash or redirect
 		if (request.resolvedPath.back() != '/') {
 			response.setStatusCode(WSSC_MOVED_PERMANENTLY);
-			response.setProtocol("HTTP/1.1");	// TODO:	This might be redundant, and is anyway the default
 			response.addHeader("Location", std::string(request.URI) + '/');
 			response.addHeader("content-length", "0");
 			return;
@@ -87,7 +86,6 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 
 			// we have permission and we serv the index
 			response.setStatusCode(WSSC_OK);
-			response.setProtocol("HTTP/1.1");	// TODO:	This might be redundant, and is anyway the default
 			response.addHeader("Content-Type", HTTP::getMimeType(indexedResource));
 			response.setBodyFileBufferReader(indexedResource);
 			return;
@@ -130,7 +128,6 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 		}
 		// fetch content
 		response.setStatusCode(WSSC_OK);
-		response.setProtocol("HTTP/1.1");	// TODO:	This might be redundant, and is anyway the default
 		response.addHeader("Content-Type", HTTP::getMimeType(request.resolvedPath));
 		response.setBodyFileBufferReader(request.resolvedPath);
 		return;
@@ -184,7 +181,6 @@ void	HTTPMethodHandler::handleDeleteRequest(const Request& request, Response& re
 			LOG_SUCCESS(std::string("deleted: ") + resourcePath.c_str());
 
 			response.setStatusCode(WSSC_OK);
-			response.setProtocol("HTTP/1.1");	// TODO:	This might be redundant, and is anyway the default
 			return;
 		} catch(const std::exception& e) {
 			LOGT(Log::ERROR, "Failed to remove file: " << e.what());
@@ -202,7 +198,6 @@ void	HTTPMethodHandler::createErrorResponse(Response& response, int statusCode)
 	//	TODO:	reexamen this will we need it like that or can we reduce
 	//			the statusCode for exameple etc…
 	response.setStatusCode(statusCode);
-	response.setProtocol("HTTP/1.1");	// TODO:	This might be redundant, and is anyway the default
 	response.addHeader("Content-Type", HTTP::getMimeType(".html"));
 	response.setBodyString(HTTP::getErrorPageTemplate(statusCode));
 }
@@ -305,7 +300,6 @@ void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& respon
 	os << "</pre><hr></body></html>";
 
 	response.setStatusCode(WSSC_OK);
-	response.setProtocol("HTTP/1.1");	// TODO:	This might be redundant, and is anyway the default
 	response.addHeader("Content-Type", "text/html; charset=utf-8");
 	response.setBodyString(os.str());
 }
