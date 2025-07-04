@@ -95,7 +95,7 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 	}
 
 	// does the resource exist and do we have permissons
-	if (Utils::fileExist(resourcePath)) {
+	if (Utils::fileExists(resourcePath)) {
 		if (!Utils::hasPermission(resourcePath, R_OK)) {
 			createErrorResponse(response, WSSC_FORBIDDEN);
 			return;
@@ -160,7 +160,7 @@ std::string	HTTPMethodHandler::indexModule(const Request& request)
 	std::string indexedPath = request.resolvedPath;
 	if (indexedPath.back() == '/') {
 		indexedPath += request.resolvedLocationBlock->index;
-	} else if (!Utils::fileExist(indexedPath)) {
+	} else if (!Utils::fileExists(indexedPath)) {
 		indexedPath += "/" + request.resolvedLocationBlock->index;
 	}
 	LOGT(Log::INFO, LIGHTMAGENTA << BOLD << "indexedPath: " << LIGHTGREEN << indexedPath);

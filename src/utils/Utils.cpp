@@ -43,7 +43,7 @@ bool	Utils::isDirectory(const std::string& path)
 	}
 }
 
-bool	Utils::fileExist(const std::string& path)
+bool	Utils::fileExists(const std::string& path)
 {
 	try {
 		std::filesystem::path pathToFile(path);

@@ -13,7 +13,7 @@ public:
 
 	static std::string	sanitizePath(const Request& request, const ServerBlock serverBlock);
 	static bool			isDirectory(const std::string& path);
-	static bool			fileExist(const std::string& path);
+	static bool			fileExists(const std::string& path);
 	static bool			hasPermission(const std::string& path, int mode);
 	static bool			startsWith(const std::string& str, const std::string& prefix);
 	static void			trimWhitespaces(std::string& str);
