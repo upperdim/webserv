@@ -151,32 +151,31 @@ void	HTTPMethodHandler::handleDeleteRequest(const Request& request, Response& re
 		return;
 	}
 
-	if (Utils::fileExists(request.resolvedPath)) {
-		if (!Utils::hasPermission(request.resolvedPath, W_OK)) {
-			createErrorResponse(response, WSSC_FORBIDDEN);
-			return;
-		}
-		// we have a valid resource to DELETE
-		try {
-			LOG_WARNING_LM("DELETING", resourcePath.c_str());
-			if (!std::filesystem::remove(resourcePath)) {
-				// failed to remove
-				createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
-				return;
-			}
-			LOG_SUCCESS(std::string("deleted: ") + resourcePath.c_str());
+	if (!Utils::fileExists(request.resolvedPath)) {
+		createErrorResponse(response, WSSC_NOT_FOUND);
+	}
 
-			response.setStatusCode(WSSC_OK);
-			return;
-		} catch(const std::exception& e) {
-			LOGT(Log::ERROR, "Failed to remove file: " << e.what());
+	if (!Utils::hasPermission(request.resolvedPath, W_OK)) {
+		createErrorResponse(response, WSSC_FORBIDDEN);
+		return;
+	}
+
+	try {
+		LOG_WARNING_LM("DELETING", resourcePath.c_str());
+		if (!std::filesystem::remove(resourcePath)) {
+			// failed to remove
 			createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
 			return;
 		}
-	} 
+		LOG_SUCCESS(std::string("deleted: ") + resourcePath.c_str());
 
-	// resourcePath NOT FOUND
-	createErrorResponse(response, WSSC_NOT_FOUND);
+		response.setStatusCode(WSSC_OK);
+		return;
+	} catch(const std::exception& e) {
+		LOGT(Log::ERROR, "Failed to remove file: " << e.what());
+		createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
+		return;
+	}
 }
 
 void	HTTPMethodHandler::createErrorResponse(Response& response, int statusCode)
