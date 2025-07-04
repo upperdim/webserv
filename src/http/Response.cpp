@@ -1,9 +1,9 @@
 #include "Response.hpp"
 
 Response::Response()
-	:	m_state(ResponseState::SEND_HEADER),
-		m_protokoll("HTTP/1.1"),
-		m_status_code(200),
+	:	statusCode(200),
+		m_state(ResponseState::SEND_HEADER),
+		m_protocol("HTTP/1.1"),
 		m_status_msg(HTTP::getStatusMessage(WSSC_OK)),
 		m_bodyType(BodyType::BODY_NONE),
 		m_done(false)
@@ -17,15 +17,15 @@ Response::~Response()
 /* ************************************************************************** */
 /* ************************************************************************** */
 
-void	Response::setProtokoll(const std::string& _protokoll)
+void	Response::setProtocol(const std::string& _protocol)
 {
-	m_protokoll = _protokoll;
+	m_protocol = _protocol;
 }
 
-void	Response::setStatus(const int& _status_code)
+void	Response::setStatusCode(const int& _statusCode)
 {
-	m_status_code = _status_code;
-	m_status_msg = HTTP::getStatusMessage(_status_code);
+	statusCode = _statusCode;
+	m_status_msg = HTTP::getStatusMessage(statusCode);
 }
 
 void	Response::addHeader(const std::string& key, const std::string& value)
@@ -126,8 +126,8 @@ std::string			Response::getResponseStateString()
 std::string	Response::getHeader(void) const
 {
 	std::string	buff;
-	buff	+= m_protokoll + " "
-			+ std::to_string(m_status_code) + " "
+	buff	+= m_protocol + " "
+			+ std::to_string(statusCode) + " "
 			+ m_status_msg + "\r\n";
 	for (const auto& header : m_headers)
 		buff += header.first + ": " + header.second + "\r\n";

@@ -67,6 +67,9 @@ t: $(NAME)
 
 ret: re t
 
-debug: fclean
 debug: CPPFLAGS += -g
 debug: $(NAME)
+
+fdebug: fclean
+fdebug: CPPFLAGS += -g
+fdebug: $(NAME)
