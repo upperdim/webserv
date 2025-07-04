@@ -192,61 +192,54 @@ std::string	HTTPMethodHandler::indexModule(const Request& request)
 
 void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& response)
 {
-	(void)request;
-	(void)response;
-	// if (Utils::isDirectory(resourcePath) && request.resolvedLocationBlock->autoIndex) {
-	// 	// respond with the index of files in the directory
-	// 	// TODO: implementation
-	// 	LOG_DEBUG(" ----------------------------------------------> AUTO INDEX ");
+	LOG(" --AUTO INDEX------------------------------------------------------ ");
+	
+	std::ostringstream os;
+	os	<< "<html><head><title>" << request.resolvedLocationBlock->route
+		<< "</title></head><body><h1>Index of " << request.URI
+		<< "</h1><hr><pre>"
+		<< "<a href=\"../\">../</a>\n";
 
+	std::filesystem::path dirPath(request.resolvedPath);	//end
+
+	for (auto const& entry : std::filesystem::directory_iterator(dirPath)) {
+
+		std::string e = entry.path();
+		// remove root path
+		e = e.substr(request.resolvedPath.length() - 1); // -1 or not
+		if (e.front() == '/')
+			e = e.substr(1);
+		if (entry.is_directory())
+			e += '/';
 		
-	// 	std::ostringstream os;
-	// 	os	<< "<html><head><title>" << location.route
-	// 		<< "</title></head><body><h1>Index of " << request.getRequestTarget()
-	// 		<< "</h1><hr><pre>"
-	// 		<< "<a href=\"../\">../</a>\n";
+		std::string url(request.URI);
+		url += e;
 
-	// 	std::filesystem::path dirPath(resourcePath), end;
+		std::string anchor;
+		// anchor += request.getRequestTarget();
+		anchor += "<a href=\"" + url + "\">" + e + "</a>";
 
-	// 	for (auto const& entry : std::filesystem::directory_iterator(dirPath)) {
+		os << anchor;
 
-	// 		std::string e = entry.path();
-	// 		// remove root path
-	// 		e = e.substr(m_serverBlock.root.length() + request.getRequestTarget().length() - 1);
-	// 		if (e.front() == '/')
-	// 			e = e.substr(1);
-	// 		if (entry.is_directory())
-	// 			e += '/';
-			
-	// 		std::string url(request.getRequestTarget());
-	// 		url += e;
+		auto ftime = std::filesystem::last_write_time(entry);
+		auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(ftime - std::filesystem::file_time_type::clock::now() + std::chrono::system_clock::now());
+		std::time_t cftime = std::chrono::system_clock::to_time_t(sctp);
+		std::tm tm = *std::gmtime(&cftime);
+		
+		os << Utils::getDirListingPadding(e.size());
+		os << std::put_time(&tm, "%d-%b-%Y %H:%M");
 
-	// 		std::string anchor;
-	// 		// anchor += request.getRequestTarget();
-	// 		anchor += "<a href=\"" + url + "\">" + e + "</a>";
+		os << "                   ";
+		if (!entry.is_directory())
+			os << std::to_string(entry.file_size());
+		else
+			os << "-";
 
-	// 		os << anchor;
-
-	// 		auto ftime = std::filesystem::last_write_time(entry);
-	// 		auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(ftime - std::filesystem::file_time_type::clock::now() + std::chrono::system_clock::now());
-	// 		std::time_t cftime = std::chrono::system_clock::to_time_t(sctp);
-	// 		std::tm tm = *std::gmtime(&cftime);
-			
-	// 		os << Utils::getDirListingPadding(e.size());
-	// 		os << std::put_time(&tm, "%d-%b-%Y %H:%M");
-
-	// 		os << "                   ";
-	// 		if (!entry.is_directory())
-	// 			os << std::to_string(entry.file_size());
-	// 		else
-	// 			os << "-";
-
-	// 		os << '\n';
-	// 	}
-	// 	os << "</pre><hr><body><html>";
+		os << '\n';
+	}
+	os << "</pre><hr><body><html>";
 
 
-	// 	response.setBodyString(os.str());
-	// 	return response;
-	// }
+	response.setBodyString(os.str());
+	return response;
 }
