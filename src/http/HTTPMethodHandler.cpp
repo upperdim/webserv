@@ -18,12 +18,12 @@ void	HTTPMethodHandler::handle(Request& request, Response& response)
 	}
 	
 	if (request.URI.empty()) {
-		response.setStatus(WSSC_NOT_FOUND);
+		createErrorResponse(response, WSSC_NOT_FOUND);
 		return;
 	}
 	
 	if (!request.isAllowedMethod()) {
-		response.setStatus(WSSC_METHOD_NOT_ALLOWED);
+		createErrorResponse(response, WSSC_METHOD_NOT_ALLOWED);
 		return;
 	}
 	
@@ -38,7 +38,7 @@ void	HTTPMethodHandler::handle(Request& request, Response& response)
 			handleDeleteRequest(request, response);
 			break;
 	}
-	
+
 }
 
 
@@ -64,8 +64,8 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 
 		// check trailng slash or redirect
 		if (request.resolvedPath.back() != '/') {
-			response.setStatus(WSSC_MOVED_PERMANENTLY);
-			response.setProtokoll("HTTP/1.1");
+			response.setStatusCode(WSSC_MOVED_PERMANENTLY);
+			response.setProtocol("HTTP/1.1");	// TODO:	This might be redundant, and is anyway the default
 			response.addHeader("Location", std::string(request.URI) + '/');
 			response.addHeader("content-length", "0");
 			return;
@@ -86,8 +86,8 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 			}
 
 			// we have permission and we serv the index
-			response.setStatus(200);
-			response.setProtokoll("HTTP/1.1");
+			response.setStatusCode(WSSC_OK);
+			response.setProtocol("HTTP/1.1");	// TODO:	This might be redundant, and is anyway the default
 			response.addHeader("Content-Type", HTTP::getMimeType(indexedResource));
 			response.setBodyFileBufferReader(indexedResource);
 			return;
@@ -129,8 +129,8 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 			return;
 		}
 		// fetch content
-		response.setStatus(200);
-		response.setProtokoll("HTTP/1.1");
+		response.setStatusCode(WSSC_OK);
+		response.setProtocol("HTTP/1.1");	// TODO:	This might be redundant, and is anyway the default
 		response.addHeader("Content-Type", HTTP::getMimeType(request.resolvedPath));
 		response.setBodyFileBufferReader(request.resolvedPath);
 		return;
@@ -152,30 +152,57 @@ void	HTTPMethodHandler::handleDeleteRequest(const Request& request, Response& re
 {
 	LOGC("HTTP_METHOD_HANDLER", "-> handle DELETE Request", LIGHTMAGENTA, LIGHTCYAN);
 
-	std::filesystem::path resourcePath(Utils::sanitizePath(request, *request.resolvedServerBlock));
-	if (!(std::filesystem::exists(resourcePath) && std::filesystem::is_regular_file(resourcePath))) {
-		// resourcePath NOT FOUND
-		response.setStatus(WSSC_NOT_FOUND);
+	std::filesystem::path resourcePath(request.resolvedPath);
+
+	// do we have the permissions in this path
+	std::filesystem::path parentPath = resourcePath.parent_path();
+	if (!parentPath.empty() && Utils::isDirectory(parentPath)) {
+		if (!Utils::hasPermission(parentPath, W_OK)) {
+			createErrorResponse(response, WSSC_FORBIDDEN);
+			return;
+		}
+	}
+
+	if (Utils::isDirectory(resourcePath)) {
+		createErrorResponse(response, WSSC_FORBIDDEN);
 		return;
 	}
 
-	LOG_WARNING_LM("DELETING", resourcePath.c_str());
-	if (!std::filesystem::remove(resourcePath)) {
-		// failed to remove
-		response.setStatus(WSSC_INTERNAL_SERVER_ERROR);
-		return;
-	}
-	LOG_SUCCESS(std::string("deleted: ") + resourcePath.c_str());
+	if (Utils::fileExists(request.resolvedPath)) {
+		if (!Utils::hasPermission(request.resolvedPath, W_OK)) {
+			createErrorResponse(response, WSSC_FORBIDDEN);
+			return;
+		}
+		// we have a valid resource to DELETE
+		try {
+			LOG_WARNING_LM("DELETING", resourcePath.c_str());
+			if (!std::filesystem::remove(resourcePath)) {
+				// failed to remove
+				createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
+				return;
+			}
+			LOG_SUCCESS(std::string("deleted: ") + resourcePath.c_str());
 
-	response.setStatus(WSSC_OK);
+			response.setStatusCode(WSSC_OK);
+			response.setProtocol("HTTP/1.1");	// TODO:	This might be redundant, and is anyway the default
+			return;
+		} catch(const std::exception& e) {
+			LOGT(Log::ERROR, "Failed to remove file: " << e.what());
+			createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
+			return;
+		}
+	} 
+
+	// resourcePath NOT FOUND
+	createErrorResponse(response, WSSC_NOT_FOUND);
 }
 
 void	HTTPMethodHandler::createErrorResponse(Response& response, int statusCode)
 {
 	//	TODO:	reexamen this will we need it like that or can we reduce
 	//			the statusCode for exameple etc…
-	response.setStatus(statusCode);
-	response.setProtokoll("HTTP/1.1");
+	response.setStatusCode(statusCode);
+	response.setProtocol("HTTP/1.1");	// TODO:	This might be redundant, and is anyway the default
 	response.addHeader("Content-Type", HTTP::getMimeType(".html"));
 	response.setBodyString(HTTP::getErrorPageTemplate(statusCode));
 }
@@ -282,8 +309,8 @@ void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& respon
 	}
 	os << "</pre><hr></body></html>";
 
-	response.setStatus(200);
-	response.setProtokoll("HTTP/1.1");
+	response.setStatusCode(WSSC_OK);
+	response.setProtocol("HTTP/1.1");	// TODO:	This might be redundant, and is anyway the default
 	response.addHeader("Content-Type", "text/html; charset=utf-8");
 	response.setBodyString(os.str());
 }
