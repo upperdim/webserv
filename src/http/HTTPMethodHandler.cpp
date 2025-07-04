@@ -61,6 +61,16 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 		// =====================================================================
 		// DIRECTORY
 		// =====================================================================
+
+		// check trailng slash or redirect
+		if (request.resolvedPath.back() != '/') {
+			response.setStatus(WSSC_MOVED_PERMANENTLY);
+			response.setProtokoll("HTTP/1.1");
+			response.addHeader("Location", std::string(request.URI) + '/');
+			response.addHeader("content-length", "0");
+			return;
+		}
+
 		if (!Utils::hasPermission(request.resolvedPath, R_OK)) {
 			createErrorResponse(response, WSSC_FORBIDDEN);
 			return;
