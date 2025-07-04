@@ -1,4 +1,6 @@
 #include <filesystem>
+#include <vector>
+#include <algorithm>
 #include "HTTPMethodHandler.hpp"
 #include "Utils.hpp"
 #include "unistd.h"	// for R_OK
@@ -189,16 +191,33 @@ std::string	HTTPMethodHandler::indexModule(const Request& request)
 void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& response)
 {
 	LOGT(Log::INFO, LIGHTMAGENTA << "handle Auto Index");
+
+	std::filesystem::path dirPath(request.resolvedPath);
+
+	// sort directories first
+	std::vector<std::filesystem::directory_entry> entries;
+
+	// first store all entries
+	for (const auto& entry : std::filesystem::directory_iterator(dirPath)) {
+		entries.emplace_back(entry);
+	}
 	
+	// now we sort
+	std::sort(entries.begin(), entries.end(),
+		[](const std::filesystem::directory_entry& a, const std::filesystem::directory_entry& b){
+			if (a.is_directory() != b.is_directory())
+				return a.is_directory();
+			return a.path().filename().string() < b.path().filename().string();
+		});
+
+	// prepering our output stream	
 	std::ostringstream os;
 	os	<< "<html><head><title>" << request.resolvedLocationBlock->route
 		<< "</title></head><body><h1>Index of " << request.URI
 		<< "</h1><hr><pre>"
 		<< "<a href=\"../\">../</a>\n";
 
-	std::filesystem::path dirPath(request.resolvedPath);
-
-	for (auto const& entry : std::filesystem::directory_iterator(dirPath)) {
+	for (auto const& entry : entries) {
 
 		std::string e = entry.path();
 
