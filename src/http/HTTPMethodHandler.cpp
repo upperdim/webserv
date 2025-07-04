@@ -59,27 +59,45 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 	}
 
 	// do we have a file or directory
-	std::string resourcePath;
 	if (Utils::isDirectory(request.resolvedPath)) {
+		// =====================================================================
 		// DIRECTORY
+		// =====================================================================
 		if (!Utils::hasPermission(request.resolvedPath, R_OK)) {
 			createErrorResponse(response, WSSC_FORBIDDEN);
 			return;
 		}
 
-		// do we do autoIndex ??
+		// 1. do we have index files we could serve?
+		std::string indexedResource = indexModule(request);
+		if (Utils::fileExists(indexedResource)) {
+			// check permission to serve the index
+			if (!Utils::hasPermission(indexedResource, R_OK)) {
+				createErrorResponse(response, WSSC_FORBIDDEN);
+				return;
+			}
+
+			// we have permission and we serv the index
+			response.addHeader("Content-Type", HTTP::getMimeType(indexedResource));
+			response.setBodyFileBufferReader(indexedResource);
+			return;
+		}
+
+		// 2. is autoIndex enabled
 		if (request.resolvedLocationBlock->autoIndex) {
 			// handle autoIndex
 			handleAutoIndex(request, response);
 			return;
 		}
 
-		// otherwise append index
-		resourcePath = indexModule(request);
-		LOG("resourcePath ----> " << resourcePath);
+		// we dont have indexedResource and no autoIndex -> Forbidden
+		createErrorResponse(response, WSSC_FORBIDDEN);
+		return;
 	}
 
+	// =========================================================================
 	// FILE
+	// =========================================================================
 	size_t lastSlashPos = request.resolvedPath.find_last_of('/');
 	std::string resourceDir = request.resolvedPath.substr(0, lastSlashPos);
 	LOGT(Log::INFO, "resourceDir: " << resourceDir);
@@ -95,14 +113,14 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 	}
 
 	// does the resource exist and do we have permissons
-	if (Utils::fileExists(resourcePath)) {
-		if (!Utils::hasPermission(resourcePath, R_OK)) {
+	if (Utils::fileExists(request.resolvedPath)) {
+		if (!Utils::hasPermission(request.resolvedPath, R_OK)) {
 			createErrorResponse(response, WSSC_FORBIDDEN);
 			return;
 		}
 		// fetch content
-		response.addHeader("Content-Type", HTTP::getMimeType(resourcePath));
-		response.setBodyFileBufferReader(resourcePath);
+		response.addHeader("Content-Type", HTTP::getMimeType(request.resolvedPath));
+		response.setBodyFileBufferReader(request.resolvedPath);
 		return;
 	}
 
@@ -157,14 +175,14 @@ void	HTTPMethodHandler::createErrorResponse(Response& response, int statusCode)
 
 std::string	HTTPMethodHandler::indexModule(const Request& request)
 {
-	std::string indexedPath = request.resolvedPath;
-	if (indexedPath.back() == '/') {
-		indexedPath += request.resolvedLocationBlock->index;
-	} else if (!Utils::fileExists(indexedPath)) {
-		indexedPath += "/" + request.resolvedLocationBlock->index;
+	std::string indexedResource = request.resolvedPath;
+	if (indexedResource.back() == '/') {
+		indexedResource += request.resolvedLocationBlock->index;
+	} else if (!Utils::fileExists(indexedResource)) {
+		indexedResource += "/" + request.resolvedLocationBlock->index;
 	}
-	LOGT(Log::INFO, LIGHTMAGENTA << BOLD << "indexedPath: " << LIGHTGREEN << indexedPath);
-	return indexedPath;
+	LOGT(Log::INFO, LIGHTMAGENTA << BOLD << "indexedResource: " << LIGHTGREEN << indexedResource);
+	return indexedResource;
 }
 
 
