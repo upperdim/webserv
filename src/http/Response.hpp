@@ -16,7 +16,7 @@ public:
 	~Response();
 
 	void				setProtokoll(const std::string& _protokoll);
-	void				setStatus(const int& _status_code);
+	void				setStatusCode(const int& _statusCode);
 	void				addHeader(const std::string& key, const std::string& value);
 	void				setBodyString(const std::string& _body);
 	void				setBodyFileBufferReader(std::string path);
@@ -25,6 +25,8 @@ public:
 	bool				complete(void) const;
 	bool				error(void) const;
 	
+	int					statusCode;
+
 	// for debugging
 	std::string			getResponseStateString();
 
@@ -44,7 +46,6 @@ private:
 
 	ResponseState		m_state;
 	std::string			m_protokoll;
-	int					m_status_code;
 	std::string			m_status_msg;
 	HeaderMap			m_headers;
 	std::string			m_body;
