@@ -3,13 +3,10 @@
 #include "Utils.hpp"
 #include "unistd.h"	// for R_OK
 
-HTTPMethodHandler::~HTTPMethodHandler()
-{
-}
 
-/* ************************************************************************** */
-/* ************************************************************************** */
-
+//=============================================================================
+// Public Methods
+//=============================================================================
 
 void	HTTPMethodHandler::handle(Request& request, Response& response)
 {
@@ -46,7 +43,6 @@ void	HTTPMethodHandler::handle(Request& request, Response& response)
 //=============================================================================
 // Handlers
 //=============================================================================
-
 
 void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& response)
 {
@@ -192,7 +188,7 @@ std::string	HTTPMethodHandler::indexModule(const Request& request)
 
 void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& response)
 {
-	LOG(" --AUTO INDEX------------------------------------------------------ ");
+	LOGT(Log::INFO, LIGHTMAGENTA << "handle Auto Index");
 	
 	std::ostringstream os;
 	os	<< "<html><head><title>" << request.resolvedLocationBlock->route
@@ -200,23 +196,32 @@ void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& respon
 		<< "</h1><hr><pre>"
 		<< "<a href=\"../\">../</a>\n";
 
-	std::filesystem::path dirPath(request.resolvedPath);	//end
+	std::filesystem::path dirPath(request.resolvedPath);
 
 	for (auto const& entry : std::filesystem::directory_iterator(dirPath)) {
 
 		std::string e = entry.path();
+
 		// remove root path
-		e = e.substr(request.resolvedPath.length() - 1); // -1 or not
+		e = e.substr(request.resolvedPath.length());
+
 		if (e.front() == '/')
 			e = e.substr(1);
 		if (entry.is_directory())
 			e += '/';
-		
+
 		std::string url(request.URI);
+		if (url.back() != '/')
+			url += '/';
 		url += e;
 
+		// trimm e to 50 characters
+		if (e.length() > 50) {
+			e.resize(47);
+			e += "..>";
+		}
+
 		std::string anchor;
-		// anchor += request.getRequestTarget();
 		anchor += "<a href=\"" + url + "\">" + e + "</a>";
 
 		os << anchor;
@@ -225,8 +230,8 @@ void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& respon
 		auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(ftime - std::filesystem::file_time_type::clock::now() + std::chrono::system_clock::now());
 		std::time_t cftime = std::chrono::system_clock::to_time_t(sctp);
 		std::tm tm = *std::gmtime(&cftime);
-		
-		os << Utils::getDirListingPadding(e.size());
+
+		os << getDirListingPadding(e.size());
 		os << std::put_time(&tm, "%d-%b-%Y %H:%M");
 
 		os << "                   ";
@@ -239,7 +244,20 @@ void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& respon
 	}
 	os << "</pre><hr><body><html>";
 
-
 	response.setBodyString(os.str());
-	return response;
+}
+
+const std::string	HTTPMethodHandler::getDirListingPadding(size_t entrySize)
+{
+	size_t padSize = 51;
+	size_t count = 0;
+
+	if (entrySize == 0)
+		count = padSize;
+	else if (entrySize >= padSize)
+		count = 0;
+	else
+		count = padSize - entrySize;
+	
+	return std::string(count, ' ');
 }
