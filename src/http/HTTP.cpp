@@ -70,8 +70,9 @@ const std::map<int, std::string>	HTTP::m_status_messages = {
 
 const std::map<std::string, std::string>	HTTP::m_mime_types = {
 	{".txt", "text/plain"},
+	{".htm", "text/html"},
 	{".html", "text/html"},
-	{".html", "text/html"},
+	{".css", "text/css"},
 	{".jpg", "image/jpeg"},
 	{".jpeg", "image/jpeg"},
 	{".png", "image/png"},
