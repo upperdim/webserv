@@ -103,6 +103,7 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 		createErrorResponse(response, WSSC_NOT_FOUND);
 		return;
 	}
+
 	if (!Utils::hasPermission(resourceDir, R_OK)) {
 		createErrorResponse(response, WSSC_FORBIDDEN);
 		return;
@@ -110,9 +111,10 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 
 	// does the resource exist and do we have permissons
 	if (!Utils::fileExists(request.resolvedPath)) {
-		// we have not found the resource:
 		createErrorResponse(response, WSSC_NOT_FOUND);
+		return;
 	}
+
 	if (!Utils::hasPermission(request.resolvedPath, R_OK)) {
 		createErrorResponse(response, WSSC_FORBIDDEN);
 		return;
@@ -176,6 +178,7 @@ void	HTTPMethodHandler::handleDeleteRequest(const Request& request, Response& re
 
 	if (!Utils::fileExists(request.resolvedPath)) {
 		createErrorResponse(response, WSSC_NOT_FOUND);
+		return;
 	}
 
 	if (!Utils::hasPermission(request.resolvedPath, W_OK)) {
@@ -282,7 +285,7 @@ void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& respon
 		os << getDirListingPadding(e.size());
 		os << std::put_time(&tm, "%d-%b-%Y %H:%M");
 
-		os << "                   ";
+		os << "  " << std::setw(18) << std::setfill(' ') << std::right;
 		if (!entry.is_directory()) {
 			try {
 				os << std::to_string(entry.file_size());
