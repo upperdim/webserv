@@ -138,7 +138,7 @@ void	RequestParser::parseHeader(Request& request)
 	if (!resolveServerBlock(request))
 		return;
 
-	if (!validateRequiredHeaderFields(request))
+	if (!validateOptionalHeaderFields(request))
 		return;
 
 	if (!resolveRequestContext(request))
@@ -435,7 +435,7 @@ bool	RequestParser::isValidFieldValueChar(const char c)
 	return (uc >= ' ' && uc <= '~') || uc == '\t';
 }
 
-bool	RequestParser::validateRequiredHeaderFields(Request& request)
+bool	RequestParser::validateOptionalHeaderFields(Request& request)
 {
 	// check content-length if available on valid field-value
 	auto it = request.headers.find("content-length");
@@ -463,6 +463,16 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 			request.errorStatusCode = WSSC_BAD_REQUEST;
 			request.parsingState = Request::ParsingState::INVALID;
 			return false;
+		}
+	}
+
+	// check content-type
+	it = request.headers.find("content-type");
+	if (it != request.headers.end()) {
+		request.contentType = HTTP::getContentTypeInfo(it->second);
+		if (request.contentType.has_value()) {
+			std::string b = request.contentType.value().boundary.has_value() ? request.contentType.value().boundary.value() : "";
+			LOGTL(Log::WARNING, "content-type", "\nraw:" << request.contentType.value().raw << "\nType:" << static_cast<int>(request.contentType.value().type) << "\nboundary:" << b);
 		}
 	}
 

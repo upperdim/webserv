@@ -80,14 +80,36 @@ public:
 		DELETE
 	};
 
+	enum class ContentType
+	{
+		MULTIPART_FORM_DATA,
+		APPLICATION_OCTET_STREAM,
+		APPLICATION_JSON,
+		// FORM_URLENCODED,
+		TEXT_PLAIN,
+		TEXT_HTML,
+		TEXT_JAVASCRIPT,
+		TEXT_CSS,
+		// TEXT_MARKDOWN,
+		UNKNOWN
+	};
+
+	typedef struct s_ContentTypeInfo
+	{
+		HTTP::ContentType			type;
+		std::optional<std::string>	boundary;
+		std::string					raw;
+	} ContentTypeInfo_t;
+
 	~HTTP();
 
-	static std::string	getStatusMessage(int _status_code);
-	static std::string	getMimeType(const std::string& path);
-	static std::string	getErrorPageTemplate(const int& status_code);
-	static bool			isValidStatusCode(int& statusCode);
-	static std::string	methodToString(const HTTP::Method& method);
-	static HTTP::Method	strToMethod(const std::string& str);
+	static std::string			getStatusMessage(int _status_code);
+	static std::string			getMimeType(const std::string& path);
+	static ContentTypeInfo_t	getContentTypeInfo(const std::string& fieldValue);
+	static std::string			getErrorPageTemplate(const int& status_code);
+	static bool					isValidStatusCode(int& statusCode);
+	static std::string			methodToString(const HTTP::Method& method);
+	static HTTP::Method			strToMethod(const std::string& str);
 
 private:
 	static const std::map<int, std::string>			m_status_messages;

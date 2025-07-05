@@ -40,6 +40,7 @@ public:
 	ServerBlock*									resolvedServerBlock;
 	LocationBlock*									resolvedLocationBlock;
 	std::optional<size_t>							contentLength;
+	std::optional<HTTP::ContentTypeInfo_t>			contentType;
 	std::string										resolvedPath;
 
 private:
