@@ -50,15 +50,8 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 	LOGC("HTTP_METHOD_HANDLER", "-> handle GET Request", LIGHTMAGENTA, LIGHTCYAN);
 
 	if (Utils::isDirectory(request.resolvedPath)) {
-		// Check trailng slash or redirect
-		if (request.resolvedPath.back() != '/') {
-			// If requested resource is a directory but looks like a file,
-			// we redirect to another URI
-			response.setStatusCode(WSSC_MOVED_PERMANENTLY);
-			response.addHeader("Location", std::string(request.URI) + '/');
-			response.addHeader("content-length", "0");
+		if (redirectOnMissingTrailingSlasch(request, response))
 			return;
-		}
 
 		if (!Utils::hasPermission(request.resolvedPath, R_OK)) {
 			createErrorResponse(response, WSSC_FORBIDDEN);
@@ -134,16 +127,8 @@ void	HTTPMethodHandler::handlePostRequest(const Request& request, Response& resp
 		return;
 	}
 
-	//	TODO:	this is repetitive, shall we create a function =)
-	//			also used in handleGetRequest()
-	if (request.resolvedPath.back() != '/') {
-		// If requested resource is a directory but looks like a file,
-		// we redirect to another URI
-		response.setStatusCode(WSSC_MOVED_PERMANENTLY);
-		response.addHeader("Location", std::string(request.URI) + '/');
-		response.addHeader("content-length", "0");
+	if (redirectOnMissingTrailingSlasch(request, response))
 		return;
-	}
 
 	if (!Utils::hasPermission(request.resolvedPath, W_OK)) {
 		createErrorResponse(response, WSSC_FORBIDDEN);
@@ -318,4 +303,17 @@ const std::string	HTTPMethodHandler::getDirListingPadding(size_t entrySize)
 		count = padSize - entrySize;
 	
 	return std::string(count, ' ');
+}
+
+bool	HTTPMethodHandler::redirectOnMissingTrailingSlasch(const Request& request, Response& response)
+{
+	if (request.resolvedPath.back() != '/') {
+		// If requested resource is a directory but looks like a file,
+		// we redirect to another URI
+		response.setStatusCode(WSSC_MOVED_PERMANENTLY);
+		response.addHeader("Location", std::string(request.URI) + '/');
+		response.addHeader("content-length", "0");
+		return true;
+	}
+	return false;
 }

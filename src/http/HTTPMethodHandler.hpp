@@ -24,6 +24,8 @@ private:
 	static void					handleAutoIndex(const Request& request, Response& response);
 	static const std::string	getDirListingPadding(size_t entrySize);
 
+	static bool					redirectOnMissingTrailingSlasch(const Request& request, Response& response);
+
 };
 
 #endif
