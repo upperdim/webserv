@@ -126,9 +126,32 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 void	HTTPMethodHandler::handlePostRequest(const Request& request, Response& response)
 {
 	LOGC("HTTP_METHOD_HANDLER", "-> handle POST Request", LIGHTMAGENTA, LIGHTCYAN);
-	(void) request;
-	(void) response;
-	throw std::runtime_error("Work in progress...");
+
+	if (!Utils::isDirectory(request.resolvedPath)) {
+		createErrorResponse(response, WSSC_METHOD_NOT_ALLOWED);
+		return;
+	}
+
+	//	TODO:	this is repetitive, shall we create a function =)
+	//			also used in handleGetRequest()
+	if (request.resolvedPath.back() != '/') {
+		// If requested resource is a directory but looks like a file,
+		// we redirect to another URI
+		response.setStatusCode(WSSC_MOVED_PERMANENTLY);
+		response.addHeader("Location", std::string(request.URI) + '/');
+		response.addHeader("content-length", "0");
+		return;
+	}
+
+	if (!Utils::hasPermission(request.resolvedPath, W_OK)) {
+		createErrorResponse(response, WSSC_FORBIDDEN);
+		return;
+	}
+
+	//	////////////////////
+	//	TODO:
+	//	////////////////////
+
 }
 
 void	HTTPMethodHandler::handleDeleteRequest(const Request& request, Response& response)
