@@ -259,7 +259,7 @@ void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& respon
 		os << getDirListingPadding(e.size());
 		os << std::put_time(&tm, "%d-%b-%Y %H:%M");
 
-		os << "                   ";
+		os << "  " << std::setw(18) << std::setfill(' ') << std::right;
 		if (!entry.is_directory()) {
 			try {
 				os << std::to_string(entry.file_size());
