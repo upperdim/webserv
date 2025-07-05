@@ -471,8 +471,23 @@ bool	RequestParser::validateOptionalHeaderFields(Request& request)
 	if (it != request.headers.end()) {
 		request.contentType = HTTP::getContentTypeInfo(it->second);
 		if (request.contentType.has_value()) {
-			std::string b = request.contentType.value().boundary.has_value() ? request.contentType.value().boundary.value() : "";
-			LOGTL(Log::WARNING, "content-type", "\nraw:" << request.contentType.value().raw << "\nType:" << static_cast<int>(request.contentType.value().type) << "\nboundary:" << b);
+			const HTTP::ContentTypeInfo_t& contentType = request.contentType.value();
+			std::string boundary = contentType.boundary.value_or("");
+
+			LOGTL(Log::WARNING, "content-type", "\nraw:" << contentType.raw
+								<< "\nType:" << static_cast<int>(contentType.type)
+								<< "\nboundary:" << boundary);
+
+			// validate boundary for multipart/form-data
+			if (contentType.type == HTTP::ContentType::MULTIPART_FORM_DATA &&
+				!boundary.empty() &&
+				!Validator::isValidContentTypeBoundary(boundary)) {
+				request.errorStatusCode = WSSC_BAD_REQUEST;
+				request.parsingState = Request::ParsingState::INVALID;
+				return false;
+			}
+			// set the quote striped boundery back the original request attribute
+			request.contentType.value().boundary = boundary;
 		}
 	}
 
