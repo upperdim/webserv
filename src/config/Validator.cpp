@@ -1,5 +1,6 @@
 #include "Validator.hpp"
 #include <unordered_set>
+#include "Utils.hpp"
 
 Validator::~Validator()
 {
@@ -189,10 +190,7 @@ bool	Validator::isValidContentTypeBoundary(std::string& boundary)
 	};
 
 	// strip quotes
-	while (boundary.size() > 2 && boundary.front() == '"' && boundary.back() == '"') {
-		boundary.erase(0, 1);
-		boundary.erase(boundary.length() - 1, 1);
-	}
+	Utils::unquote(boundary);
 
 	if (boundary.empty() || boundary.length() > 70)
 		return false;

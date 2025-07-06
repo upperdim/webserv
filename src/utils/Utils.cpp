@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <sstream>
 #include <filesystem>
+#include <unordered_set>
 #include "Log.hpp"
 #include "unistd.h"
 
@@ -108,4 +109,84 @@ std::string	Utils::encodePath(const std::string& path)
 		oss << '/';
 
 	return oss.str();
+}
+
+void	Utils::unquote(std::string& str)
+{
+	while (str.size() > 2 && str.front() == '"' && str.back() == '"') {
+		str.erase(0, 1);
+		str.erase(str.length() - 1, 1);
+	}
+}
+
+
+bool	Utils::splitHeaderLine(std::string& line, std::pair<std::string, std::string>& headerField)
+{
+	if (line.empty()) 
+		return false;
+
+	// clean trailing '\r' character
+	if (!line.empty() && line.back() == '\r') 
+		line.pop_back();
+
+	if (!splitHeaderField(line, headerField)) {
+		LOGT(Log::WARNING, "failed to split Header-Field: " << line);
+		return false;
+	}
+
+	std::transform(headerField.first.begin(), headerField.first.end(),
+					headerField.first.begin(),
+					[](unsigned char c){ return std::tolower(c); });
+	return true;
+}
+
+
+//=============================================================================
+// Private methods
+//=============================================================================
+
+bool	Utils::splitHeaderField(std::string& line, std::pair<std::string, std::string>& headerField)
+{
+	// no whitespace allowed before the field-name
+	if (line.size() > 0 && std::isspace(line[0]))
+		return false;
+
+	// has valid ':'
+	size_t pos = line.find_first_of(":");
+	if (pos == std::string::npos)
+		return false;
+	
+	// check if field-name has valid chars of tchar: RFC 7230: 3.2.6.
+	for (size_t i = 0; i < pos; ++i) {
+		if (!isValidFieldNameChar(line[i]))
+			return false;		              
+	}
+	
+	headerField.first = line.substr(0, pos);
+	headerField.second = line.substr(pos + 1);
+
+	// trim whitespaces from front and back ONLY for field-value
+	Utils::trimWhitespaces(headerField.second);
+	// validate field-value after trimming
+	for (auto it = headerField.second.cbegin(); it < headerField.second.cend(); ++it) {
+		if (!isValidFieldValueChar(*it))
+			return false;		              
+	}
+
+	return true;
+}
+
+bool	Utils::isValidFieldNameChar(const char c)
+{
+	static const std::unordered_set<char> tChars = {
+		'!', '#' , '$', '%', '&', '\'', '*', '+',
+		'-', '.' , '^', '_', '`', '|',  '~'
+	};
+	return std::isalnum(static_cast<unsigned char>(c)) || tChars.count(c);
+}
+
+bool	Utils::isValidFieldValueChar(const char c)
+{
+	const unsigned char uc = static_cast<unsigned char>(c);
+	return (uc >= ' ' && uc <= '~') || uc == '\t';
 }
