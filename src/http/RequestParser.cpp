@@ -105,28 +105,6 @@ void	RequestParser::parseHeader(Request& request)
 
 		std::string line = request.rawRequest.substr(start, pos - start);
 
-		// // clean trailing '\r' character
-		// if (!line.empty() && line.back() == '\r') 
-		// 	line.pop_back();
-
-		// if (line.empty()) {
-		// 	request.errorStatusCode = WSSC_BAD_REQUEST;
-		// 	request.parsingState = Request::ParsingState::INVALID;
-		// 	return;
-		// }
-
-		// std::pair<std::string, std::string> headerField;
-		// if (!splitHeaderField(line, headerField)) {
-		// 	LOGT(Log::WARNING, "failed to split Header-Field: " << line);
-		// 	request.errorStatusCode = WSSC_BAD_REQUEST;
-		// 	request.parsingState = Request::ParsingState::INVALID;
-		// 	return;
-		// }
-
-		// std::transform(headerField.first.begin(), headerField.first.end(),
-		//                headerField.first.begin(),
-		// 			   [](unsigned char c){ return std::tolower(c); });
-
 		std::pair<std::string, std::string> headerField;
 		if (!Utils::splitHeaderLine(line, headerField)) {
 			request.errorStatusCode = WSSC_BAD_REQUEST;
