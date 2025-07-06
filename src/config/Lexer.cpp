@@ -191,7 +191,7 @@ Token	Lexer::readAndClassify()
 	if (keywordType != KeywordType::NONE) {
 		return Token(TokenType::KEYWORD, keywordType, lexeme, m_line);
 	} else if (lexeme[0] == '/') {
-		return Token(TokenType::URI, lexeme, m_line);
+		return Token(TokenType::PATH, lexeme, m_line);
 	}
 
 	// By default we return a PARAM

@@ -118,7 +118,7 @@ void	Parser::expectNoArguments(void)
 {
 	// throw if param is available
 	if (peek().type == TokenType::PARAM ||
-	    peek().type == TokenType::URI ||
+	    peek().type == TokenType::PATH ||
 	    peek().type == TokenType::NUMBER ||
 	    peek().type == TokenType::INVALID)
 		Throw::InvalidNumberOfArguments(prev());
@@ -219,7 +219,7 @@ void	Parser::parseServerDirectives(ServerBlock& server, t_parsedDirectives& pars
 	std::vector<const Token*>	params;
 	while (m_pos < m_tokens.size() && (
 	       peek().type == TokenType::PARAM ||
-	       peek().type == TokenType::URI ||
+	       peek().type == TokenType::PATH ||
 	       peek().type == TokenType::NUMBER ||
 	       peek().type == TokenType::COLON ||
 	       peek().type == TokenType::INVALID)) {
@@ -269,7 +269,7 @@ void	Parser::parseLocationBlock(LocationBlock& location, t_parsedDirectives& par
 	std::vector<const Token*>	params;
 	while (m_pos < m_tokens.size() && (
 	       peek().type == TokenType::PARAM ||
-	       peek().type == TokenType::URI ||
+	       peek().type == TokenType::PATH ||
 	       peek().type == TokenType::NUMBER ||
 	       peek().type == TokenType::COLON ||
 	       peek().type == TokenType::INVALID)) {
@@ -281,7 +281,7 @@ void	Parser::parseLocationBlock(LocationBlock& location, t_parsedDirectives& par
 	//	validate PARAMS
 	if (params.size() != 1)
 		Throw::InvalidNumberOfArguments(directive);
-	if (params[0]->type != TokenType::URI)
+	if (params[0]->type != TokenType::PATH)
 		Throw::InvalidValue(directive);
 
 	location.route = params[0]->value;
@@ -303,7 +303,7 @@ void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives
 	std::vector<const Token*>	params;
 	while (m_pos < m_tokens.size() && (
 	       peek().type == TokenType::PARAM ||
-	       peek().type == TokenType::URI ||
+	       peek().type == TokenType::PATH ||
 	       peek().type == TokenType::NUMBER ||
 	       peek().type == TokenType::COLON ||
 	       peek().type == TokenType::INVALID)) {
@@ -366,7 +366,7 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 		Throw::InvalidNumberOfArguments(directive);
 	if (params[0]->type == TokenType::INVALID)
 		Throw::HostNotFound(directive);
-	if (params[0]->type == TokenType::URI)
+	if (params[0]->type == TokenType::PATH)
 		Throw::InavlidHost(directive, *params[0]);
 	if (params[0]->type == TokenType::COLON) {
 		if (params.size() > 1 && params[1]->type == TokenType::NUMBER) {
@@ -464,7 +464,7 @@ void	Parser::parseErrorPageDirective(const Token& directive, std::vector<const T
 	if (params[0]->type != TokenType::NUMBER)
 		Throw::InvalidValue(*params[0]);
 	if (!(params[1]->type != TokenType::PARAM ||
-	      params[1]->type != TokenType::URI ||
+	      params[1]->type != TokenType::PATH ||
 	      params[1]->type != TokenType::NUMBER))
 		Throw::InvalidValue(*params[1]);
 
@@ -523,7 +523,7 @@ void	Parser::parseIndexDirective(const Token& directive, std::vector<const Token
 	if (params.size() != 1)
 		Throw::InvalidNumberOfArguments(directive);
 	if (!(params[0]->type == TokenType::PARAM ||
-		  params[0]->type == TokenType::URI ||
+		  params[0]->type == TokenType::PATH ||
 		  params[0]->type == TokenType::NUMBER))
 		Throw::InvalidValue(*params[0]);
 
@@ -537,7 +537,7 @@ void	Parser::parseUri(const Token& directive, std::vector<const Token*>& params,
 {
 	if (params.size() != 1)
 		Throw::InvalidNumberOfArguments(directive);
-	if (params[0]->type != TokenType::URI)
+	if (params[0]->type != TokenType::PATH)
 		Throw::InvalidValue(*params[0]);
 
 	//	TODO:	we currently accept any URI

@@ -12,7 +12,7 @@ enum class TokenType
 {
 	KEYWORD,		//	server, location, root, etc.
 	PARAM,			//	VALUES, DomainName, IP
-	URI,			//	URI
+	PATH,			//	URI
 	NUMBER,			//	80, 443, 1024, etc.
 
 	COLON,			//	:
