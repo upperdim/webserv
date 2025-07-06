@@ -14,6 +14,7 @@ private:
 	static void					parseRequestLine(Request& request);
 	static void					parseHeader(Request& request);
 	static void					parseBody(Request& request);
+	static void					parseFormDataPart(Request& request);
 
 	static bool					validateHttpMethod(std::string& methodStr, Request& request);
 	static bool					validateRequestTarget(Request& request);

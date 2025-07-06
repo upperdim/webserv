@@ -39,8 +39,15 @@ bool	Utils::hasPermission(const std::string& path, int mode)
 bool	Utils::startsWith(const std::string& str, const std::string& prefix)
 {
 	if (str.size() < prefix.size())
-		return (false);
-	return ( std::equal(prefix.begin(), prefix.end(), str.begin()) );
+		return false;
+	return std::equal(prefix.begin(), prefix.end(), str.begin());
+}
+
+bool	Utils::endsWith(const std::string& str, const std::string& suffix)
+{
+	if (str.size() < suffix.size())
+		return false;
+	return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
 }
 
 void	Utils::trimWhitespaces(std::string& str)
@@ -48,15 +55,13 @@ void	Utils::trimWhitespaces(std::string& str)
 	size_t	start	= 0;
 	size_t	end		= str.length();
 	start = str.find_first_not_of("\t\n\v\f\r ");
-	if (start == std::string::npos)
-	{
+	if (start == std::string::npos) {
 		str.clear();
 		return ;
 	}
 	end = str.find_last_not_of("\t\n\v\f\r ");
 	str = str.substr(start, end - start + 1);
 }
-
 
 std::string	Utils::charToHex(char c)
 {

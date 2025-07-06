@@ -16,6 +16,7 @@ public:
 		REQUEST_LINE,
 		HEADERS,
 		BODY,
+		FORM_DATA,
 		COMPLETE,
 		INVALID
 	};

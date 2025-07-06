@@ -22,6 +22,10 @@ void	RequestParser::parseNext(Request& request)
 		LOGT(Log::INFO, "---> Request: parser body");
 		parseBody(request);
 	}
+	if (request.parsingState == Request::ParsingState::FORM_DATA) {
+		LOGT(Log::INFO, "---> Request: recieiving form-data until next boundary");
+		parseFormDataPart(request);
+	}
 	if (request.parsingState == Request::ParsingState::COMPLETE || request.parsingState == Request::ParsingState::INVALID) {
 		LOGT(Log::INFO, "---> Request: " << (request.parsingState == Request::ParsingState::COMPLETE ? "COMPLETE" : "INVALID"));
 		request.doneReceiving = true;
@@ -193,20 +197,47 @@ void	RequestParser::parseBody(Request& request)
 				request.currentUploadFileName = filename;
 				//	TODO:	do we want to set a state for recv and writing this file
 				//			what would a nice structure be?
+				request.parsingState = Request::ParsingState::FORM_DATA;
+
 				LOGT(Log::SUCCESS, "filename: " << LIGHTGREEN << BOLD << filename);
 			}
 			start = pos + 1;
 		}
+		request.rawRequest.erase(0, headerEnd + 4);
+
 		//	TODO:	After we parsed the body header we might want to set a State
 		//			same as just above when we find the filename.
 		//			we might want to discuss the approach on how to buffer recv
 		//			files and multi files
-
+		if (request.parsingState != Request::ParsingState::FORM_DATA) {
+			// here we return INVALID because we expect to find a filename
+			request.parsingState = Request::ParsingState::INVALID;
+		}
+		return;
 	}
 
 	//	TODO:	this state change is from before parsing Body - we need to
 	//			keep track and update it accordingly
 	request.parsingState = Request::ParsingState::COMPLETE;
+}
+
+void	RequestParser::parseFormDataPart(Request& request)
+{
+	//	///////////////////////
+	//	TODO: 
+	//	///////////////////////
+
+	if (!request.contentType.has_value() || request.contentType.value().boundary.has_value()) {
+		// something went very wrong
+		//	TODO:	do we have to close any FD from writeing our file
+		request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+		request.parsingState = Request::ParsingState::INVALID;
+		return;
+	}
+
+	if (Utils::endsWith(request.rawRequest, request.contentType.value().boundary.value())) {
+		// after we read the last chunk we should check for the next multiPART
+	}
 }
 
 bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
