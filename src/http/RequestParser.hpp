@@ -30,10 +30,6 @@ private:
 	static void					popLastSegment(std::string& oBuf);
 	static bool					collapseDuplicateSlashes(std::string& oBuf);
 
-	static bool					splitHeaderField(std::string& line, std::pair<std::string, std::string>& headerField);
-	static bool					isValidFieldNameChar(const char c);
-	static bool					isValidFieldValueChar(const char c);
-
 	static bool					validateOptionalHeaderFields(Request& request);
 	static bool					validateHost(Request& request, std::string& dest);
 

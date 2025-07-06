@@ -1,7 +1,6 @@
 #include "RequestParser.hpp"
 #include <sstream>
 #include <algorithm>
-#include <unordered_set>
 #include "HTTP.hpp"
 #include "Validator.hpp"
 #include "Log.hpp"
@@ -106,27 +105,34 @@ void	RequestParser::parseHeader(Request& request)
 
 		std::string line = request.rawRequest.substr(start, pos - start);
 
-		// clean trailing '\r' character
-		if (!line.empty() && line.back() == '\r') 
-			line.pop_back();
+		// // clean trailing '\r' character
+		// if (!line.empty() && line.back() == '\r') 
+		// 	line.pop_back();
 
-		if (line.empty()) {
-			request.errorStatusCode = WSSC_BAD_REQUEST;
-			request.parsingState = Request::ParsingState::INVALID;
-			return;
-		}
+		// if (line.empty()) {
+		// 	request.errorStatusCode = WSSC_BAD_REQUEST;
+		// 	request.parsingState = Request::ParsingState::INVALID;
+		// 	return;
+		// }
+
+		// std::pair<std::string, std::string> headerField;
+		// if (!splitHeaderField(line, headerField)) {
+		// 	LOGT(Log::WARNING, "failed to split Header-Field: " << line);
+		// 	request.errorStatusCode = WSSC_BAD_REQUEST;
+		// 	request.parsingState = Request::ParsingState::INVALID;
+		// 	return;
+		// }
+
+		// std::transform(headerField.first.begin(), headerField.first.end(),
+		//                headerField.first.begin(),
+		// 			   [](unsigned char c){ return std::tolower(c); });
 
 		std::pair<std::string, std::string> headerField;
-		if (!splitHeaderField(line, headerField)) {
-			LOGT(Log::WARNING, "failed to split Header-Field: " << line);
+		if (!Utils::splitHeaderLine(line, headerField)) {
 			request.errorStatusCode = WSSC_BAD_REQUEST;
 			request.parsingState = Request::ParsingState::INVALID;
 			return;
 		}
-
-		std::transform(headerField.first.begin(), headerField.first.end(),
-		               headerField.first.begin(),
-					   [](unsigned char c){ return std::tolower(c); });
 
 		request.headers[headerField.first] = headerField.second;
 
@@ -149,7 +155,79 @@ void	RequestParser::parseHeader(Request& request)
 
 void	RequestParser::parseBody(Request& request)
 {
-	// TODO: Implement
+	//	///////////////////////
+	//	TODO: DOING
+	//	///////////////////////
+	if (request.contentType.has_value() && request.contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA) {
+		size_t headerEnd  = request.rawRequest.find("\r\n\r\n");
+
+		if (headerEnd == std::string::npos)
+			return; // we have not recieved enough data to read multipart header
+		
+		size_t start = 0;
+		while (start < headerEnd) {
+			size_t	pos = request.rawRequest.find_first_of('\n', start);
+
+			if (pos == std::string::npos) {
+				request.errorStatusCode = WSSC_BAD_REQUEST;
+				request.parsingState = Request::ParsingState::INVALID;
+				return;
+			}
+
+			std::string line = request.rawRequest.substr(start, pos - start);
+	
+			// clean trailing '\r' character
+			if (!line.empty() && line.back() == '\r') 
+				line.pop_back();
+
+			// first HeaderField of Body should be the boundary
+			if (start == 0) {
+				std::string expectedBoundary = "--" + request.contentType.value().boundary.value();
+				if (Utils::startsWith(line, expectedBoundary)) {
+					start = pos + 1;
+					continue;
+				}
+				// reject request inavlid request
+				request.errorStatusCode = WSSC_BAD_REQUEST;
+				request.parsingState = Request::ParsingState::INVALID;
+				return;
+			}
+
+			std::pair<std::string, std::string> headerField;
+			if (!Utils::splitHeaderLine(line, headerField)) {
+				request.errorStatusCode = WSSC_BAD_REQUEST;
+				request.parsingState = Request::ParsingState::INVALID;
+				return;
+			}
+
+			if (headerField.first == "content-disposition") {
+				LOGT(Log::SUCCESS, "found: " <<  BOLD << headerField.first << REGULAR << " in the multipart/form-data header, parsing parameters(filename)");
+				
+				size_t posFilname;
+				if (headerField.second.find("form-data;") == std::string::npos || (posFilname = headerField.second.find("filename=")) == std::string::npos) {
+					// invalid content-disposition
+					request.errorStatusCode = WSSC_BAD_REQUEST;
+					request.parsingState = Request::ParsingState::INVALID;
+					return;
+				}
+				std::string filename = headerField.second.substr(posFilname + 9);
+				Utils::unquote(filename);
+				request.currentUploadFileName = filename;
+				//	TODO:	do we want to set a state for recv and writing this file
+				//			what would a nice structure be?
+				LOGT(Log::SUCCESS, "filename: " << LIGHTGREEN << BOLD << filename);
+			}
+			start = pos + 1;
+		}
+		//	TODO:	After we parsed the body header we might want to set a State
+		//			same as just above when we find the filename.
+		//			we might want to discuss the approach on how to buffer recv
+		//			files and multi files
+
+	}
+
+	//	TODO:	this state change is from before parsing Body - we need to
+	//			keep track and update it accordingly
 	request.parsingState = Request::ParsingState::COMPLETE;
 }
 
@@ -389,52 +467,6 @@ bool	RequestParser::collapseDuplicateSlashes(std::string& oBuf)
 	return true;
 }
 
-bool	RequestParser::splitHeaderField(std::string& line, std::pair<std::string, std::string>& headerField)
-{
-	// no whitespace allowed before the field-name
-	if (line.size() > 0 && std::isspace(line[0]))
-		return false;
-
-	// has valid ':'
-	size_t pos = line.find_first_of(":");
-	if (pos == std::string::npos)
-		return false;
-	
-	// check if field-name has valid chars of tchar: RFC 7230: 3.2.6.
-	for (size_t i = 0; i < pos; ++i) {
-		if (!isValidFieldNameChar(line[i]))
-			return false;		              
-	}
-	
-	headerField.first = line.substr(0, pos);
-	headerField.second = line.substr(pos + 1);
-
-	// trim whitespaces from front and back ONLY for field-value
-	Utils::trimWhitespaces(headerField.second);
-	// validate field-value after trimming
-	for (auto it = headerField.second.cbegin(); it < headerField.second.cend(); ++it) {
-		if (!isValidFieldValueChar(*it))
-			return false;		              
-	}
-
-	return true;
-}
-
-bool	RequestParser::isValidFieldNameChar(const char c)
-{
-	static const std::unordered_set<char> tChars = {
-		'!', '#' , '$', '%', '&', '\'', '*', '+',
-		'-', '.' , '^', '_', '`', '|',  '~'
-	};
-	return std::isalnum(static_cast<unsigned char>(c)) || tChars.count(c);
-}
-
-bool	RequestParser::isValidFieldValueChar(const char c)
-{
-	const unsigned char uc = static_cast<unsigned char>(c);
-	return (uc >= ' ' && uc <= '~') || uc == '\t';
-}
-
 bool	RequestParser::validateOptionalHeaderFields(Request& request)
 {
 	// check content-length if available on valid field-value
@@ -474,13 +506,13 @@ bool	RequestParser::validateOptionalHeaderFields(Request& request)
 			const HTTP::ContentTypeInfo_t& contentType = request.contentType.value();
 			std::string boundary = contentType.boundary.value_or("");
 
-			LOGTL(Log::WARNING, "content-type", "\nraw:" << contentType.raw
-								<< "\nType:" << static_cast<int>(contentType.type)
-								<< "\nboundary:" << boundary);
+			LOGTL(Log::INFO, "content-type",
+				LIGHTYELLOW << "\nraw:" << contentType.raw
+				<< "\nType:" << static_cast<int>(contentType.type)
+				<< "\nboundary:" << boundary);
 
 			// validate boundary for multipart/form-data
 			if (contentType.type == HTTP::ContentType::MULTIPART_FORM_DATA &&
-				!boundary.empty() &&
 				!Validator::isValidContentTypeBoundary(boundary)) {
 				request.errorStatusCode = WSSC_BAD_REQUEST;
 				request.parsingState = Request::ParsingState::INVALID;
