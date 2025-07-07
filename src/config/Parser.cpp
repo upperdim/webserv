@@ -122,9 +122,27 @@ void	Parser::expectNoArguments(void)
 	// throw if param is available
 	if (peek().type == TokenType::PARAM ||
 	    peek().type == TokenType::PATH ||
+	    peek().type == TokenType::URL ||
 	    peek().type == TokenType::NUMBER ||
+	    peek().type == TokenType::STRING ||
+	    peek().type == TokenType::COLON ||
 	    peek().type == TokenType::INVALID)
 		Throw::InvalidNumberOfArguments(prev());
+}
+
+void	Parser::collectParameters(std::vector<const Token*>& params)
+{
+	while (m_pos < m_tokens.size() && (
+	       peek().type == TokenType::PARAM ||
+	       peek().type == TokenType::PATH ||
+	       peek().type == TokenType::URL ||
+	       peek().type == TokenType::NUMBER ||
+	       peek().type == TokenType::STRING ||
+	       peek().type == TokenType::COLON ||
+	       peek().type == TokenType::INVALID)) {
+		const Token& current = advance();
+		params.emplace_back(&current);
+	}
 }
 
 void	Parser::skipEventsDirective(void)
@@ -218,18 +236,9 @@ void	Parser::parseServerDirectives(ServerBlock& server, t_parsedDirectives& pars
 {
 	const Token& directive = advance();	// grab the current directive token
 
-	// grab all parameters
+	// collect all parameters
 	std::vector<const Token*>	params;
-	while (m_pos < m_tokens.size() && (
-	       peek().type == TokenType::PARAM ||
-	       peek().type == TokenType::PATH ||
-	       peek().type == TokenType::URL ||
-	       peek().type == TokenType::NUMBER ||
-	       peek().type == TokenType::COLON ||
-	       peek().type == TokenType::INVALID)) {
-		const Token& current = advance();
-		params.emplace_back(&current);
-	}
+	collectParameters(params);
 	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
 
 	switch (directive.keywordType) {
@@ -269,18 +278,9 @@ void	Parser::parseLocationBlock(LocationBlock& location, t_parsedDirectives& par
 {
 	const Token& directive = advance();	//	consumes LOCATION directive
 
-	// grab all parameters
+	// collect all parameters
 	std::vector<const Token*>	params;
-	while (m_pos < m_tokens.size() && (
-	       peek().type == TokenType::PARAM ||
-	       peek().type == TokenType::PATH ||
-	       peek().type == TokenType::URL ||
-	       peek().type == TokenType::NUMBER ||
-	       peek().type == TokenType::COLON ||
-	       peek().type == TokenType::INVALID)) {
-		const Token& current = advance();
-		params.emplace_back(&current);
-	}
+	collectParameters(params);
 	expect(TokenType::OPEN_BRACE, directive, "expected \"{\"");
 
 	//	validate PARAMS
@@ -304,18 +304,9 @@ void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives
 {
 	const Token& directive = advance();	// grab the current directive token
 
-	// grab all parameters
+	// collect all parameters
 	std::vector<const Token*>	params;
-	while (m_pos < m_tokens.size() && (
-	       peek().type == TokenType::PARAM ||
-	       peek().type == TokenType::PATH ||
-	       peek().type == TokenType::URL ||
-	       peek().type == TokenType::NUMBER ||
-	       peek().type == TokenType::COLON ||
-	       peek().type == TokenType::INVALID)) {
-		const Token& current = advance();
-		params.emplace_back(&current);
-	}
+	collectParameters(params);
 	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
 
 	switch (directive.keywordType) {
@@ -508,12 +499,9 @@ void	Parser::parseReturnDirective(const Token& directive, std::vector<const Toke
 	      params[0]->type == TokenType::PATH ||
 	      params[0]->type == TokenType::URL ||
 	      params[0]->type == TokenType::NUMBER ||
+	      params[0]->type == TokenType::STRING ||
 	      params[0]->type == TokenType::COLON))
 		Throw::InvalidValue(*params[0]);
-
-	//	////////////////////////////
-	//	TODO:	work here
-	//	////////////////////////////
 
 	target = params[0]->value;
 }

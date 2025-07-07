@@ -47,6 +47,7 @@ private:
 	bool			isValidKeyword(const Token& token) const;
 	void			expect(TokenType _type, const Token& directive, const std::string& msg);
 	void			expectNoArguments(void);
+	void			collectParameters(std::vector<const Token*>& params);
 
 	void			skipEventsDirective(void);
 	void			parseHttpDirective(Config& config);

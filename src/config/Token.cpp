@@ -72,6 +72,7 @@ std::string	Token::getTokenValue(void) const
 		case (TokenType::PATH):			return value;
 		case (TokenType::URL):			return value;
 		case (TokenType::NUMBER):		return value;
+		case (TokenType::STRING):		return value;
 		case (TokenType::COLON):		return value;
 		case (TokenType::SEMICOLON):	return value;
 		case (TokenType::OPEN_BRACE):	return value;
@@ -100,6 +101,7 @@ std::string	Token::tokenTypeToString(void) const
 		case TokenType::PATH:			return "PATH";
 		case TokenType::URL:			return "URL";
 		case TokenType::NUMBER: 		return "NUMBER";
+		case TokenType::STRING: 		return "STRING";
 		case TokenType::COLON:			return "COLON";
 		case TokenType::SEMICOLON:		return "SEMICOLON";
 		case TokenType::OPEN_BRACE:		return "OPEN_BRACE";

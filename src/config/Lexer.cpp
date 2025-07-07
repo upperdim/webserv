@@ -75,6 +75,11 @@ Token	Lexer::nextToken(bool _precededByComment)
 			return Token(TokenType::CLOSE_BRACE, "}", m_line);
 	}
 
+	// Handle STRINGS
+	if (c == '"' || c == '\'') {
+		readString(c);
+	}
+
 	//	Handle numbers
 	if (std::isdigit(c)) {
 		if (isMixedAlphanumeric())
@@ -169,6 +174,24 @@ bool	Lexer::isMixedAlphanumeric() const
 	}
 
 	return false;
+}
+
+Token	Lexer::readString(char quote)
+{
+	advance();
+	while (m_pos < m_input.length() && peek() != quote)
+		advance();
+	advance();
+	std::string lexem = getCurrentLexeme();
+
+	// 	//////////////////////////////////////////////////////////
+	//	TODO:	add unquote here from branch 47-handle-post-method
+	// Utils::unquote(lexem, quote)
+	// 	//////////////////////////////////////////////////////////
+	LOGT(Log::WARNING, "c=" << quote << " " << "|" << lexem << "|");
+	// 	//////////////////////////////////////////////////////////
+
+	return Token(TokenType::NUMBER, getCurrentLexeme(), m_line);
 }
 
 Token	Lexer::readNumber()
