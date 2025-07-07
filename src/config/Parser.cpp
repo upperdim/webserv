@@ -13,9 +13,6 @@ Parser::Parser(std::string configFilePath, char *programName)
 {
 	Lexer lexer(readFile(configFilePath));
 	lexer.tokenize(m_tokens);
-
-	//	TODO:	delete remove (prints tokens)
-	lexer.printTokens(m_tokens);
 }
 
 
