@@ -62,7 +62,7 @@ private:
 	void			parseReturnDirective(const Token& directive, std::vector<const Token*>& params, std::string& target);
 	void			parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, size_t& value);
 	void			parseIndexDirective(const Token& directive, std::vector<const Token*>& params, std::string& index);
-	void			parseUri(const Token& directive, std::vector<const Token*>& params, std::string& path);
+	void			parsePath(const Token& directive, std::vector<const Token*>& params, std::string& path);
 	void			parseToggle(const Token& directive, std::vector<const Token*>& params, bool& autoIndex);
 	void			parseExtension(const Token& directive, std::vector<const Token*>& params, std::string& ext);
 

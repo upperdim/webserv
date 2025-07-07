@@ -14,10 +14,8 @@ Parser::Parser(std::string configFilePath, char *programName)
 	Lexer lexer(readFile(configFilePath));
 	lexer.tokenize(m_tokens);
 
-	for (auto token : m_tokens) {
-		std::cout << token << std::endl;
-	}
-
+	//	TODO:	delete remove (prints tokens)
+	lexer.printTokens(m_tokens);
 }
 
 
@@ -257,7 +255,7 @@ void	Parser::parseServerDirectives(ServerBlock& server, t_parsedDirectives& pars
 			if (parsedServerDirectives.root)
 				Throw::DuplicateDirective(directive);
 			parsedServerDirectives.root = true;
-			parseUri(directive, params, server.root);
+			parsePath(directive, params, server.root);
 			break;
 		case KeywordType::INDEX:
 			parseIndexDirective(directive, params, server.index);
@@ -331,7 +329,7 @@ void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives
 			if (parsedLocationDirectives.root)
 				Throw::DuplicateDirective(directive);
 			parsedLocationDirectives.root = true;
-			parseUri(directive, params, location.root);
+			parsePath(directive, params, location.root);
 			break;
 		case KeywordType::INDEX:
 			parseIndexDirective(directive, params, location.index);
@@ -361,7 +359,7 @@ void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives
 			if (parsedLocationDirectives.uploadStore)
 				Throw::DuplicateDirective(directive);
 			parsedLocationDirectives.uploadStore = true;
-			parseUri(directive, params, location.uploadDir);
+			parsePath(directive, params, location.uploadDir);
 			break;
 		default:
 			Throw::UnknownOrUnsupportedDirective(directive);
@@ -505,10 +503,17 @@ void	Parser::parseReturnDirective(const Token& directive, std::vector<const Toke
 {
 	if (params.size() != 1)
 		Throw::InvalidNumberOfArguments(directive);
-	if (!(params[0]->type == TokenType::PATH || params[0]->type == TokenType::URL))
+	if (!(params[0]->type == TokenType::KEYWORD ||
+	      params[0]->type == TokenType::PARAM ||
+	      params[0]->type == TokenType::PATH ||
+	      params[0]->type == TokenType::URL ||
+	      params[0]->type == TokenType::NUMBER ||
+	      params[0]->type == TokenType::COLON))
 		Throw::InvalidValue(*params[0]);
 
-	sollen wir
+	//	////////////////////////////
+	//	TODO:	work here
+	//	////////////////////////////
 
 	target = params[0]->value;
 }
@@ -553,15 +558,17 @@ void	Parser::parseIndexDirective(const Token& directive, std::vector<const Token
 }
 
 //	multiscope directive for URI, expects a single URI as param
-void	Parser::parseUri(const Token& directive, std::vector<const Token*>& params, std::string& path)
+void	Parser::parsePath(const Token& directive, std::vector<const Token*>& params, std::string& path)
 {
 	if (params.size() != 1)
 		Throw::InvalidNumberOfArguments(directive);
 	if (params[0]->type != TokenType::PATH)
 		Throw::InvalidValue(*params[0]);
 
-	//	TODO:	we currently accept any URI
-	//			IS this good enough for use ??
+	//	TODO:	we currently accept any absolute path // IS this good enough for use ??
+	//			(A path like /images/logo.png in your config does not mean an absolute filesystem path (like /home/user/project/images/logo.png) unless your server interprets it that way.)
+	//			- should we accept relative path as well?
+	//			- do we have to remove Dot Segments
 	path = params[0]->value;
 }
 
