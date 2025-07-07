@@ -77,7 +77,7 @@ Token	Lexer::nextToken(bool _precededByComment)
 
 	// Handle STRINGS
 	if (c == '"' || c == '\'') {
-		readString(c);
+		return readString(c);
 	}
 
 	//	Handle numbers
@@ -184,14 +184,10 @@ Token	Lexer::readString(char quote)
 	advance();
 	std::string lexem = getCurrentLexeme();
 
-	// 	//////////////////////////////////////////////////////////
-	//	TODO:	add unquote here from branch 47-handle-post-method
-	// Utils::unquote(lexem, quote)
-	// 	//////////////////////////////////////////////////////////
+	Utils::unquote(lexem, quote);
 	LOGT(Log::WARNING, "c=" << quote << " " << "|" << lexem << "|");
-	// 	//////////////////////////////////////////////////////////
 
-	return Token(TokenType::NUMBER, getCurrentLexeme(), m_line);
+	return Token(TokenType::STRING, lexem, m_line);
 }
 
 Token	Lexer::readNumber()
