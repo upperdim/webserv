@@ -13,6 +13,11 @@ Parser::Parser(std::string configFilePath, char *programName)
 {
 	Lexer lexer(readFile(configFilePath));
 	lexer.tokenize(m_tokens);
+
+	for (auto token : m_tokens) {
+		std::cout << token << std::endl;
+	}
+
 }
 
 
@@ -220,6 +225,7 @@ void	Parser::parseServerDirectives(ServerBlock& server, t_parsedDirectives& pars
 	while (m_pos < m_tokens.size() && (
 	       peek().type == TokenType::PARAM ||
 	       peek().type == TokenType::PATH ||
+	       peek().type == TokenType::URL ||
 	       peek().type == TokenType::NUMBER ||
 	       peek().type == TokenType::COLON ||
 	       peek().type == TokenType::INVALID)) {
@@ -270,6 +276,7 @@ void	Parser::parseLocationBlock(LocationBlock& location, t_parsedDirectives& par
 	while (m_pos < m_tokens.size() && (
 	       peek().type == TokenType::PARAM ||
 	       peek().type == TokenType::PATH ||
+	       peek().type == TokenType::URL ||
 	       peek().type == TokenType::NUMBER ||
 	       peek().type == TokenType::COLON ||
 	       peek().type == TokenType::INVALID)) {
@@ -304,6 +311,7 @@ void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives
 	while (m_pos < m_tokens.size() && (
 	       peek().type == TokenType::PARAM ||
 	       peek().type == TokenType::PATH ||
+	       peek().type == TokenType::URL ||
 	       peek().type == TokenType::NUMBER ||
 	       peek().type == TokenType::COLON ||
 	       peek().type == TokenType::INVALID)) {
@@ -332,7 +340,7 @@ void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives
 			parseAllowMethodsDirective(directive, params, location);
 			break;
 		case KeywordType::RETURN:
-			parseUri(directive, params, location.returnRoute);
+			parseReturnDirective(directive, params, location.returnRoute);
 			break;
 		case KeywordType::AUTOINDEX:
 			if (parsedLocationDirectives.autoIndex)
@@ -493,6 +501,18 @@ void	Parser::parseAllowMethodsDirective(const Token& directive, std::vector<cons
 	}
 }
 
+void	Parser::parseReturnDirective(const Token& directive, std::vector<const Token*>& params, std::string& target)
+{
+	if (params.size() != 1)
+		Throw::InvalidNumberOfArguments(directive);
+	if (!(params[0]->type == TokenType::PATH || params[0]->type == TokenType::URL))
+		Throw::InvalidValue(*params[0]);
+
+	sollen wir
+
+	target = params[0]->value;
+}
+
 //	multiscope directive method expects the clientMaxBodySize value, so it can be set in the different scopes
 void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, size_t& value)
 {
@@ -533,7 +553,7 @@ void	Parser::parseIndexDirective(const Token& directive, std::vector<const Token
 }
 
 //	multiscope directive for URI, expects a single URI as param
-void	Parser::parseUri(const Token& directive, std::vector<const Token*>& params, std::string& uri)
+void	Parser::parseUri(const Token& directive, std::vector<const Token*>& params, std::string& path)
 {
 	if (params.size() != 1)
 		Throw::InvalidNumberOfArguments(directive);
@@ -542,7 +562,7 @@ void	Parser::parseUri(const Token& directive, std::vector<const Token*>& params,
 
 	//	TODO:	we currently accept any URI
 	//			IS this good enough for use ??
-	uri = params[0]->value;
+	path = params[0]->value;
 }
 
 void	Parser::parseToggle(const Token& directive, std::vector<const Token*>& params, bool& toggle)

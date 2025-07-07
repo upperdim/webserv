@@ -1,5 +1,6 @@
-
 #include "Lexer.hpp"
+#include <unordered_set>
+#include "Utils.hpp"
 
 Lexer::Lexer(const std::string& _input)
 	:	m_input(_input),
@@ -186,9 +187,33 @@ Token	Lexer::readAndClassify()
 
 	std::string lexeme = getCurrentLexeme();
 
-	// check if it is a supported directive aka KEYWORD or URI
+	// check if it is a supported directive aka KEYWORD, PATH or URL
 	KeywordType keywordType = getKeywordType(lexeme);
-	if (keywordType != KeywordType::NONE) {
+	if (Utils::startsWithHttp(lexeme) && 
+		((peek() == ':' && peek(1) == '/' && peek(2) == '/') ||
+		 (lexeme[4] == 's' && peek() == ':' && peek(1) == '/' && peek(2) == '/'))) {
+		// advance all valid URL characrers
+		// we are accepting queries '?' and fragments '#'
+		// to support return directivs like:
+		// return https://www.google.com/search?q=openai#top;
+		// do we support: with user authority
+		// https://user:pa$$w0rd@sub.domain-example.com:8080/path/to/resource?q=glsl+shading#section2
+		// do we support: with ';'
+		// https://example.com/products/item;id=42;color=blue?sort=price#details;
+
+		static std::unordered_set<unsigned char> pathChars = {
+			'-', '.', '_', '~', '!', '$', '&', '\'', '(', ')',
+			'*', '+', ',', ';', '=', ':', '@', '/', '?', '#'
+		};
+
+		while (m_pos < m_input.length() && (std::isalnum(peek()) || pathChars.count(peek())) &&
+		       !(peek() == ';' && std::isspace(peek(1)))) {
+			advance();
+		}
+		lexeme = getCurrentLexeme();
+	
+		return Token(TokenType::URL, lexeme, m_line);
+	} else if (keywordType != KeywordType::NONE) {
 		return Token(TokenType::KEYWORD, keywordType, lexeme, m_line);
 	} else if (lexeme[0] == '/') {
 		return Token(TokenType::PATH, lexeme, m_line);
