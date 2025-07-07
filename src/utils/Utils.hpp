@@ -19,6 +19,7 @@ public:
 	static std::string	charToHex(char c);
 	static std::string	percentEncode(const std::string& str);
 	static std::string	encodePath(const std::string& path);
+	static void			unquote(std::string& str, char quote);
 };
 
 #endif
