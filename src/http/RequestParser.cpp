@@ -189,8 +189,8 @@ bool	RequestParser::validateRequestTarget(Request& request)
 		!percentDecoding(request.requestTarget, request.URI) ||
 		!validDecodedCharacters(request.URI) ||
 	    !isRelativeForm_EnsureLeadingSlash(request.URI) ||
-	    !removeDotSegments(request.URI) ||
-		!collapseDuplicateSlashes(request.URI)) {
+	    !Utils::removeDotSegments(request.URI) ||
+		!Utils::collapseDuplicateSlashes(request.URI)) {
 		request.errorStatusCode = WSSC_BAD_REQUEST;
 		request.parsingState = Request::ParsingState::INVALID;
 		return false;
@@ -302,90 +302,6 @@ bool	RequestParser::isRelativeForm_EnsureLeadingSlash(std::string& uri)
 	if (!uri.empty() && uri[0] != '/')
 		uri.insert(0, "/");
 
-	return true;
-}
-
-//	RFC:	5.2.4.  Remove Dot Segments
-bool	RequestParser::removeDotSegments(std::string& uri)
-{
-	// ensure we have an absolute path startiung with '/'
-	if (uri.empty() || uri[0] != '/')
-		return false;
-
-	std::string iBuf = uri;
-	std::string oBuf;
-	oBuf.reserve(uri.size());
-
-	while (!iBuf.empty()) {
-		if (Utils::startsWith(iBuf, "../")) {
-			iBuf.erase(0, 3);
-		} else if (Utils::startsWith(iBuf, "./")) {
-			iBuf.erase(0, 2);
-		} else if (Utils::startsWith(iBuf, "/./")) {
-			iBuf.replace(0, 3, "/");
-		} else if (Utils::startsWith(iBuf, "/.") &&
-		           (iBuf.size() == 2 || iBuf[2] == '/')) {
-			iBuf.replace(0, 2, "/");
-		} else if (Utils::startsWith(iBuf,"/../")) {
-			iBuf.replace(0, 4, "/");
-			popLastSegment(oBuf);
-		} else if (Utils::startsWith(iBuf,"/..") &&
-		           (iBuf.size() == 3 || iBuf[3] == '/')) {
-			iBuf.replace(0, 3, "/");
-			popLastSegment(oBuf);
-		} else if (iBuf == "." || iBuf == "..") {
-			iBuf.clear();
-		} else {
-			// move first seg from iBuf to oBuf
-			size_t pos;
-			if (iBuf[0] == '/') {
-				if ((pos = iBuf.find("/", 1)) != std::string::npos) {
-					oBuf += iBuf.substr(0, pos);
-					iBuf.erase(0, pos);
-				} else {
-					oBuf += iBuf;
-					iBuf.clear();
-				}
-			} else {
-				// Unexpected uri segment without leading '/' => _400_BAD_REQUEST
-				return false;
-			}
-		}
-	}
-	if (oBuf.empty())
-		oBuf = "/";
-	uri = oBuf;
-	return true;
-}
-
-void	RequestParser::popLastSegment(std::string& oBuf)
-{
-	size_t pos = oBuf.rfind("/");
-	if (pos != std::string::npos) {
-		if (pos == 0)
-			oBuf = "/";
-		else
-			oBuf.erase(pos);
-	}
-}
-
-bool	RequestParser::collapseDuplicateSlashes(std::string& oBuf)
-{
-	size_t write = 0;
-	bool prevWasSlash = false;
-
-	for (size_t read = 0; read < oBuf.size(); ++read) {
-		if (oBuf[read] == '/') {
-			if (!prevWasSlash) {
-				oBuf[write++] = '/';
-				prevWasSlash = true;
-			}
-		} else {
-			oBuf[write++] = oBuf[read];
-			prevWasSlash = false;
-		}
-	}
-	oBuf.resize(write);
 	return true;
 }
 
