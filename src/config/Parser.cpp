@@ -118,10 +118,28 @@ void	Parser::expectNoArguments(void)
 {
 	// throw if param is available
 	if (peek().type == TokenType::PARAM ||
-	    peek().type == TokenType::URI ||
+	    peek().type == TokenType::PATH ||
+	    peek().type == TokenType::URL ||
 	    peek().type == TokenType::NUMBER ||
+	    peek().type == TokenType::STRING ||
+	    peek().type == TokenType::COLON ||
 	    peek().type == TokenType::INVALID)
 		Throw::InvalidNumberOfArguments(prev());
+}
+
+void	Parser::collectParameters(std::vector<const Token*>& params)
+{
+	while (m_pos < m_tokens.size() && (
+	       peek().type == TokenType::PARAM ||
+	       peek().type == TokenType::PATH ||
+	       peek().type == TokenType::URL ||
+	       peek().type == TokenType::NUMBER ||
+	       peek().type == TokenType::STRING ||
+	       peek().type == TokenType::COLON ||
+	       peek().type == TokenType::INVALID)) {
+		const Token& current = advance();
+		params.emplace_back(&current);
+	}
 }
 
 void	Parser::skipEventsDirective(void)
@@ -215,17 +233,9 @@ void	Parser::parseServerDirectives(ServerBlock& server, t_parsedDirectives& pars
 {
 	const Token& directive = advance();	// grab the current directive token
 
-	// grab all parameters
+	// collect all parameters
 	std::vector<const Token*>	params;
-	while (m_pos < m_tokens.size() && (
-	       peek().type == TokenType::PARAM ||
-	       peek().type == TokenType::URI ||
-	       peek().type == TokenType::NUMBER ||
-	       peek().type == TokenType::COLON ||
-	       peek().type == TokenType::INVALID)) {
-		const Token& current = advance();
-		params.emplace_back(&current);
-	}
+	collectParameters(params);
 	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
 
 	switch (directive.keywordType) {
@@ -251,7 +261,7 @@ void	Parser::parseServerDirectives(ServerBlock& server, t_parsedDirectives& pars
 			if (parsedServerDirectives.root)
 				Throw::DuplicateDirective(directive);
 			parsedServerDirectives.root = true;
-			parseUri(directive, params, server.root);
+			parsePath(directive, params, server.root);
 			break;
 		case KeywordType::INDEX:
 			parseIndexDirective(directive, params, server.index);
@@ -265,23 +275,15 @@ void	Parser::parseLocationBlock(LocationBlock& location, t_parsedDirectives& par
 {
 	const Token& directive = advance();	//	consumes LOCATION directive
 
-	// grab all parameters
+	// collect all parameters
 	std::vector<const Token*>	params;
-	while (m_pos < m_tokens.size() && (
-	       peek().type == TokenType::PARAM ||
-	       peek().type == TokenType::URI ||
-	       peek().type == TokenType::NUMBER ||
-	       peek().type == TokenType::COLON ||
-	       peek().type == TokenType::INVALID)) {
-		const Token& current = advance();
-		params.emplace_back(&current);
-	}
+	collectParameters(params);
 	expect(TokenType::OPEN_BRACE, directive, "expected \"{\"");
 
 	//	validate PARAMS
 	if (params.size() != 1)
 		Throw::InvalidNumberOfArguments(directive);
-	if (params[0]->type != TokenType::URI)
+	if (params[0]->type != TokenType::PATH)
 		Throw::InvalidValue(directive);
 
 	location.route = params[0]->value;
@@ -299,17 +301,9 @@ void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives
 {
 	const Token& directive = advance();	// grab the current directive token
 
-	// grab all parameters
+	// collect all parameters
 	std::vector<const Token*>	params;
-	while (m_pos < m_tokens.size() && (
-	       peek().type == TokenType::PARAM ||
-	       peek().type == TokenType::URI ||
-	       peek().type == TokenType::NUMBER ||
-	       peek().type == TokenType::COLON ||
-	       peek().type == TokenType::INVALID)) {
-		const Token& current = advance();
-		params.emplace_back(&current);
-	}
+	collectParameters(params);
 	expect(TokenType::SEMICOLON, directive,  "expected \";\"");
 
 	switch (directive.keywordType) {
@@ -323,7 +317,7 @@ void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives
 			if (parsedLocationDirectives.root)
 				Throw::DuplicateDirective(directive);
 			parsedLocationDirectives.root = true;
-			parseUri(directive, params, location.root);
+			parsePath(directive, params, location.root);
 			break;
 		case KeywordType::INDEX:
 			parseIndexDirective(directive, params, location.index);
@@ -332,7 +326,7 @@ void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives
 			parseAllowMethodsDirective(directive, params, location);
 			break;
 		case KeywordType::RETURN:
-			parseUri(directive, params, location.returnRoute);
+			parseReturnDirective(directive, params, location.returnRoute);
 			break;
 		case KeywordType::AUTOINDEX:
 			if (parsedLocationDirectives.autoIndex)
@@ -353,7 +347,7 @@ void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives
 			if (parsedLocationDirectives.uploadStore)
 				Throw::DuplicateDirective(directive);
 			parsedLocationDirectives.uploadStore = true;
-			parseUri(directive, params, location.uploadDir);
+			parsePath(directive, params, location.uploadDir);
 			break;
 		default:
 			Throw::UnknownOrUnsupportedDirective(directive);
@@ -366,7 +360,7 @@ void	Parser::parseListenDirective(const Token& directive, std::vector<const Toke
 		Throw::InvalidNumberOfArguments(directive);
 	if (params[0]->type == TokenType::INVALID)
 		Throw::HostNotFound(directive);
-	if (params[0]->type == TokenType::URI)
+	if (params[0]->type == TokenType::PATH)
 		Throw::InavlidHost(directive, *params[0]);
 	if (params[0]->type == TokenType::COLON) {
 		if (params.size() > 1 && params[1]->type == TokenType::NUMBER) {
@@ -464,7 +458,7 @@ void	Parser::parseErrorPageDirective(const Token& directive, std::vector<const T
 	if (params[0]->type != TokenType::NUMBER)
 		Throw::InvalidValue(*params[0]);
 	if (!(params[1]->type != TokenType::PARAM ||
-	      params[1]->type != TokenType::URI ||
+	      params[1]->type != TokenType::PATH ||
 	      params[1]->type != TokenType::NUMBER))
 		Throw::InvalidValue(*params[1]);
 
@@ -491,6 +485,22 @@ void	Parser::parseAllowMethodsDirective(const Token& directive, std::vector<cons
 		else
 			Throw::InvalidValue(*params[i]);
 	}
+}
+
+void	Parser::parseReturnDirective(const Token& directive, std::vector<const Token*>& params, std::string& target)
+{
+	if (params.size() != 1)
+		Throw::InvalidNumberOfArguments(directive);
+	if (!(params[0]->type == TokenType::KEYWORD ||
+	      params[0]->type == TokenType::PARAM ||
+	      params[0]->type == TokenType::PATH ||
+	      params[0]->type == TokenType::URL ||
+	      params[0]->type == TokenType::NUMBER ||
+	      params[0]->type == TokenType::STRING ||
+	      params[0]->type == TokenType::COLON))
+		Throw::InvalidValue(*params[0]);
+
+	target = params[0]->value;
 }
 
 //	multiscope directive method expects the clientMaxBodySize value, so it can be set in the different scopes
@@ -523,7 +533,7 @@ void	Parser::parseIndexDirective(const Token& directive, std::vector<const Token
 	if (params.size() != 1)
 		Throw::InvalidNumberOfArguments(directive);
 	if (!(params[0]->type == TokenType::PARAM ||
-		  params[0]->type == TokenType::URI ||
+		  params[0]->type == TokenType::PATH ||
 		  params[0]->type == TokenType::NUMBER))
 		Throw::InvalidValue(*params[0]);
 
@@ -533,16 +543,18 @@ void	Parser::parseIndexDirective(const Token& directive, std::vector<const Token
 }
 
 //	multiscope directive for URI, expects a single URI as param
-void	Parser::parseUri(const Token& directive, std::vector<const Token*>& params, std::string& uri)
+void	Parser::parsePath(const Token& directive, std::vector<const Token*>& params, std::string& path)
 {
 	if (params.size() != 1)
 		Throw::InvalidNumberOfArguments(directive);
-	if (params[0]->type != TokenType::URI)
+	if (params[0]->type != TokenType::PATH)
 		Throw::InvalidValue(*params[0]);
 
-	//	TODO:	we currently accept any URI
-	//			IS this good enough for use ??
-	uri = params[0]->value;
+	//	TODO:	we currently accept any absolute path // IS this good enough for use ??
+	//			(A path like /images/logo.png in your config does not mean an absolute filesystem path (like /home/user/project/images/logo.png) unless your server interprets it that way.)
+	//			- should we accept relative path as well?
+	//			- do we have to remove Dot Segments
+	path = params[0]->value;
 }
 
 void	Parser::parseToggle(const Token& directive, std::vector<const Token*>& params, bool& toggle)

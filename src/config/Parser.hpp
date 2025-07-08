@@ -47,6 +47,7 @@ private:
 	bool			isValidKeyword(const Token& token) const;
 	void			expect(TokenType _type, const Token& directive, const std::string& msg);
 	void			expectNoArguments(void);
+	void			collectParameters(std::vector<const Token*>& params);
 
 	void			skipEventsDirective(void);
 	void			parseHttpDirective(Config& config);
@@ -59,9 +60,10 @@ private:
 	void			parseServerNameDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseErrorPageDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseAllowMethodsDirective(const Token& directive, std::vector<const Token*>& params, LocationBlock& location);
+	void			parseReturnDirective(const Token& directive, std::vector<const Token*>& params, std::string& target);
 	void			parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, size_t& value);
 	void			parseIndexDirective(const Token& directive, std::vector<const Token*>& params, std::string& index);
-	void			parseUri(const Token& directive, std::vector<const Token*>& params, std::string& root);
+	void			parsePath(const Token& directive, std::vector<const Token*>& params, std::string& path);
 	void			parseToggle(const Token& directive, std::vector<const Token*>& params, bool& autoIndex);
 	void			parseExtension(const Token& directive, std::vector<const Token*>& params, std::string& ext);
 

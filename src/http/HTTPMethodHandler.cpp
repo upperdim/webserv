@@ -3,12 +3,7 @@
 #include <algorithm>
 #include "HTTPMethodHandler.hpp"
 #include "Utils.hpp"
-#include "unistd.h"	// for R_OK
-
-
-//=============================================================================
-// Public Methods
-//=============================================================================
+#include "unistd.h"	// R_OK
 
 void	HTTPMethodHandler::handle(Request& request, Response& response)
 {
@@ -22,8 +17,12 @@ void	HTTPMethodHandler::handle(Request& request, Response& response)
 		return;
 	}
 	
-	if (!request.isAllowedMethod()) {
-		createErrorResponse(response, WSSC_METHOD_NOT_ALLOWED);
+	if (!isAllowedMethod(request)) {
+		createErrorResponse(response, WSSC_FORBIDDEN);
+		return;
+	}
+	
+	if (handleIfRedirect(request, response)) {
 		return;
 	}
 	
@@ -41,9 +40,29 @@ void	HTTPMethodHandler::handle(Request& request, Response& response)
 
 }
 
-//=============================================================================
-// Handlers
-//=============================================================================
+bool	HTTPMethodHandler::handleIfRedirect(const Request& request, Response& response)
+{
+	if (!request.resolvedLocationBlock->returnRoute.empty()) {
+		response.setStatusCode(WSSC_PERMANENT_REDIRECT);
+		response.addHeader("Location", request.resolvedLocationBlock->returnRoute);
+		response.addHeader("content-length", "0");
+		return true;
+	}
+	return false;
+}
+
+bool	HTTPMethodHandler::isAllowedMethod(const Request& request)
+{
+	if (request.resolvedLocationBlock == nullptr) {
+		throw std::runtime_error("isAllowedmethod() with unresolved locationBlock");
+	}
+
+	return std::find(
+			request.resolvedLocationBlock->allowMethods.begin(),
+			request.resolvedLocationBlock->allowMethods.end(),
+			request.method
+		) != request.resolvedLocationBlock->allowMethods.end();
+}
 
 void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& response)
 {

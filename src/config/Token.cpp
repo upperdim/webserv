@@ -69,8 +69,10 @@ std::string	Token::getTokenValue(void) const
 	switch (type) {
 		case (TokenType::KEYWORD):		return lowerCase(tokenKeywordTypeToString());
 		case (TokenType::PARAM):		return value;
-		case (TokenType::URI):			return value;
+		case (TokenType::PATH):			return value;
+		case (TokenType::URL):			return value;
 		case (TokenType::NUMBER):		return value;
+		case (TokenType::STRING):		return value;
 		case (TokenType::COLON):		return value;
 		case (TokenType::SEMICOLON):	return value;
 		case (TokenType::OPEN_BRACE):	return value;
@@ -96,8 +98,10 @@ std::string	Token::tokenTypeToString(void) const
 	switch (type) {
 		case TokenType::KEYWORD:		return "KEYWORD";
 		case TokenType::PARAM:			return "PARAM";
-		case TokenType::URI:			return "URI";
+		case TokenType::PATH:			return "PATH";
+		case TokenType::URL:			return "URL";
 		case TokenType::NUMBER: 		return "NUMBER";
+		case TokenType::STRING: 		return "STRING";
 		case TokenType::COLON:			return "COLON";
 		case TokenType::SEMICOLON:		return "SEMICOLON";
 		case TokenType::OPEN_BRACE:		return "OPEN_BRACE";

@@ -20,8 +20,6 @@ public:
 		INVALID
 	};
 
-	bool											isAllowedMethod(void);
-
 	std::string										rawRequest;
 	ParsingState									parsingState;
 	bool											doneReceiving;

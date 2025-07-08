@@ -7,12 +7,13 @@
 class HTTPMethodHandler
 {
 public:
-	~HTTPMethodHandler();
-
 	static void			handle(Request& request, Response& response);
 
 private:
 	HTTPMethodHandler();
+
+	static bool					handleIfRedirect(const Request& request, Response& response);
+	static bool					isAllowedMethod(const Request& request);
 
 	static void					handleGetRequest(const Request& request, Response& response);
 	static void					handlePostRequest(const Request& request, Response& response);

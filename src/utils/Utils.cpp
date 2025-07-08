@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <sstream>
 #include <filesystem>
+#include <algorithm>
 #include "Log.hpp"
 #include "unistd.h"
 
@@ -40,6 +41,21 @@ bool	Utils::startsWith(const std::string& str, const std::string& prefix)
 	if (str.size() < prefix.size())
 		return (false);
 	return ( std::equal(prefix.begin(), prefix.end(), str.begin()) );
+}
+
+bool	Utils::startsWithHttp(const std::string& str)
+{
+	auto equalCheck = [](char a, char b){
+		return std::tolower(static_cast<unsigned char>(a)) ==
+		       std::tolower(static_cast<unsigned char>(b));
+	};
+
+	static const char* http  = "http";
+
+	if (str.size() >= 4 && std::equal(http, http + 4, str.begin(), equalCheck))
+		return true;
+
+	return false;
 }
 
 void	Utils::trimWhitespaces(std::string& str)

@@ -12,8 +12,10 @@ enum class TokenType
 {
 	KEYWORD,		//	server, location, root, etc.
 	PARAM,			//	VALUES, DomainName, IP
-	URI,			//	URI
+	PATH,			//	PATH
+	URL,			//	Absolute-URL, staring with: http:// https://
 	NUMBER,			//	80, 443, 1024, etc.
+	STRING,			//	quoted strings
 
 	COLON,			//	:
 	SEMICOLON,		//	;
