@@ -42,8 +42,9 @@ public:
 	std::vector<LocationBlock>	locationBlocks;
 
 	// Multiscope options
-	std::string root;								//	::	root
-	std::string index;								//	::	index
+	std::string					root;				//	::	root
+	std::string					index;				//	::	index
+	std::string					returnRoute;		//	::	return
 };
 
 class Config

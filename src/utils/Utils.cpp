@@ -128,7 +128,7 @@ std::string	Utils::encodePath(const std::string& path)
 
 void	Utils::unquote(std::string& str, char quote)
 {
-	while (str.size() > 2 && str.front() == quote && str.back() == quote) {
+	while (str.size() >= 2 && str.front() == quote && str.back() == quote) {
 		str.erase(0, 1);
 		str.erase(str.length() - 1, 1);
 	}
