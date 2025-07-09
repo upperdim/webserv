@@ -33,6 +33,7 @@ private:
 	bool		isMixedAlphanumeric() const;
 
 	Token		nextToken(bool _precededByComment = false);
+	Token		readString(char quote);
     Token		readNumber();
 	Token		readAndClassify();
 

@@ -190,7 +190,7 @@ bool	Validator::isValidContentTypeBoundary(std::string& boundary)
 	};
 
 	// strip quotes
-	Utils::unquote(boundary);
+	Utils::unquote(boundary, '"');
 
 	if (boundary.empty() || boundary.length() > 70)
 		return false;

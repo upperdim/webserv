@@ -4,6 +4,7 @@ SRC_FOLDERS	=	src \
 				src/utils \
 				src/config \
 				src/network \
+				src/handler  \
 
 
 VPATH		=	$(SRC_FOLDERS)
@@ -22,7 +23,10 @@ SRCS_NO_MAIN=	Config.cpp \
 				Request.cpp \
 				FileBufferReader.cpp \
 				Response.cpp \
-				HTTPMethodHandler.cpp \
+				RequestHandler.cpp \
+				GetHandler.cpp \
+				PostHandler.cpp \
+				DeleteHandler.cpp \
 				signal.cpp \
 				HTTP.cpp \
 				Log.cpp \
