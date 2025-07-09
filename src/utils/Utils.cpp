@@ -133,3 +133,92 @@ void	Utils::unquote(std::string& str, char quote)
 		str.erase(str.length() - 1, 1);
 	}
 }
+
+//	RFC:	5.2.4.  Remove Dot Segments
+bool	Utils::removeDotSegments(std::string& uri)
+{
+	// ensure we have an absolute path startiung with '/'
+	if (uri.empty() || uri[0] != '/')
+		return false;
+
+	std::string iBuf = uri;
+	std::string oBuf;
+	oBuf.reserve(uri.size());
+
+	while (!iBuf.empty()) {
+		if (Utils::startsWith(iBuf, "../")) {
+			iBuf.erase(0, 3);
+		} else if (Utils::startsWith(iBuf, "./")) {
+			iBuf.erase(0, 2);
+		} else if (Utils::startsWith(iBuf, "/./")) {
+			iBuf.replace(0, 3, "/");
+		} else if (Utils::startsWith(iBuf, "/.") &&
+		           (iBuf.size() == 2 || iBuf[2] == '/')) {
+			iBuf.replace(0, 2, "/");
+		} else if (Utils::startsWith(iBuf,"/../")) {
+			iBuf.replace(0, 4, "/");
+			popLastSegment(oBuf);
+		} else if (Utils::startsWith(iBuf,"/..") &&
+		           (iBuf.size() == 3 || iBuf[3] == '/')) {
+			iBuf.replace(0, 3, "/");
+			popLastSegment(oBuf);
+		} else if (iBuf == "." || iBuf == "..") {
+			iBuf.clear();
+		} else {
+			// move first seg from iBuf to oBuf
+			size_t pos;
+			if (iBuf[0] == '/') {
+				if ((pos = iBuf.find("/", 1)) != std::string::npos) {
+					oBuf += iBuf.substr(0, pos);
+					iBuf.erase(0, pos);
+				} else {
+					oBuf += iBuf;
+					iBuf.clear();
+				}
+			} else {
+				// Unexpected uri segment without leading '/' => _400_BAD_REQUEST
+				return false;
+			}
+		}
+	}
+	if (oBuf.empty())
+		oBuf = "/";
+	uri = oBuf;
+	return true;
+}
+
+bool	Utils::collapseDuplicateSlashes(std::string& oBuf)
+{
+	size_t write = 0;
+	bool prevWasSlash = false;
+
+	for (size_t read = 0; read < oBuf.size(); ++read) {
+		if (oBuf[read] == '/') {
+			if (!prevWasSlash) {
+				oBuf[write++] = '/';
+				prevWasSlash = true;
+			}
+		} else {
+			oBuf[write++] = oBuf[read];
+			prevWasSlash = false;
+		}
+	}
+	oBuf.resize(write);
+	return true;
+}
+
+
+//=============================================================================
+// Private Methods
+//=============================================================================
+
+void	Utils::popLastSegment(std::string& oBuf)
+{
+	size_t pos = oBuf.rfind("/");
+	if (pos != std::string::npos) {
+		if (pos == 0)
+			oBuf = "/";
+		else
+			oBuf.erase(pos);
+	}
+}

@@ -3,8 +3,9 @@
 #include <filesystem>
 #include <algorithm>
 #include <limits>
-#include "Lexer.hpp"
 #include "webserv.hpp"
+#include "Lexer.hpp"
+#include "Utils.hpp"
 #include "Log.hpp"
 
 Parser::Parser(std::string configFilePath, char *programName)
@@ -667,6 +668,7 @@ void	Parser::checksServerBlocksAndSetsdefaults(Config& config)
 		}
 
 		// and copy down all serverBlock values into all locations for easy safe access
+		// and remove Dot-Segments and collapse slashes
 		for (auto& locationBlock : serverBlock.locationBlocks) {
 			if (locationBlock.allowMethods.size() == 0)
 				locationBlock.allowMethods = config.fallback.allowMethods;
@@ -676,6 +678,9 @@ void	Parser::checksServerBlocksAndSetsdefaults(Config& config)
 				locationBlock.index = serverBlock.index;
 			if (locationBlock.root.empty())
 				locationBlock.root = serverBlock.root;
+			
+			Utils::removeDotSegments(locationBlock.route);
+			Utils::collapseDuplicateSlashes(locationBlock.route);
 		}
 
 		// and sort the locations, longes route first
