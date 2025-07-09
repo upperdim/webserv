@@ -26,13 +26,13 @@ void	RequestHandler::handle(Request& request, Response& response)
 	
 	switch (request.method) {
 		case HTTP::Method::GET:
-			GetHandler::handleGetRequest(request, response);
+			GetHandler::handle(request, response);
 			break;
 		case HTTP::Method::POST:
-			PostHandler::handlePostRequest(request, response);
+			PostHandler::handle(request, response);
 			break;
 		case HTTP::Method::DELETE:
-			DeleteHandler::handleDeleteRequest(request, response);
+			DeleteHandler::handle(request, response);
 			break;
 	}
 }

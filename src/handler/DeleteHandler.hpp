@@ -6,7 +6,7 @@
 class DeleteHandler : RequestHandler
 {
 public:
-	static void	handleDeleteRequest(const Request& request, Response& response);
+	static void	handle(const Request& request, Response& response);
 };
 
 #endif

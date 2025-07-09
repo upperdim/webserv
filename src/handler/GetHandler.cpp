@@ -2,7 +2,7 @@
 #include "GetHandler.hpp"
 #include "Utils.hpp"
 
-void	GetHandler::handleGetRequest(const Request& request, Response& response)
+void	GetHandler::handle(const Request& request, Response& response)
 {
 	LOGC("HTTP_METHOD_HANDLER", "-> handle GET Request", LIGHTMAGENTA, LIGHTCYAN);
 

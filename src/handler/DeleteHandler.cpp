@@ -2,7 +2,7 @@
 #include "DeleteHandler.hpp"
 #include "Utils.hpp"
 
-void	DeleteHandler::handleDeleteRequest(const Request& request, Response& response)
+void	DeleteHandler::handle(const Request& request, Response& response)
 {
 	LOGC("HTTP_METHOD_HANDLER", "-> handle DELETE Request", LIGHTMAGENTA, LIGHTCYAN);
 

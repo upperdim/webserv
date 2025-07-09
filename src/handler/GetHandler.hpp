@@ -6,7 +6,7 @@
 class GetHandler : RequestHandler
 {
 public:
-	static void					handleGetRequest(const Request& request, Response& response);
+	static void					handle(const Request& request, Response& response);
 
 private:
 	static std::string			getIndexAppendedResource(const Request& request);
