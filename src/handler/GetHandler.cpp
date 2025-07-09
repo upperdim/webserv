@@ -1,70 +1,8 @@
-#include <filesystem>
-#include <vector>
-#include <algorithm>
-#include "HTTPMethodHandler.hpp"
+#include <unistd.h>	// R_OK
+#include "GetHandler.hpp"
 #include "Utils.hpp"
-#include "unistd.h"	// R_OK
 
-void	HTTPMethodHandler::handle(Request& request, Response& response)
-{
-	if (request.errorStatusCode.has_value()) {
-		createErrorResponse(response, request.errorStatusCode.value());
-		return;
-	}
-	
-	if (request.URI.empty()) {
-		createErrorResponse(response, WSSC_NOT_FOUND);
-		return;
-	}
-	
-	if (!isAllowedMethod(request)) {
-		createErrorResponse(response, WSSC_FORBIDDEN);
-		return;
-	}
-	
-	if (handleIfRedirect(request, response)) {
-		return;
-	}
-	
-	switch (request.method) {
-		case HTTP::Method::GET:
-			handleGetRequest(request, response);
-			break;
-		case HTTP::Method::POST:
-			handlePostRequest(request, response);
-			break;
-		case HTTP::Method::DELETE:
-			handleDeleteRequest(request, response);
-			break;
-	}
-
-}
-
-bool	HTTPMethodHandler::handleIfRedirect(const Request& request, Response& response)
-{
-	if (!request.resolvedLocationBlock->returnRoute.empty()) {
-		response.setStatusCode(WSSC_PERMANENT_REDIRECT);
-		response.addHeader("Location", request.resolvedLocationBlock->returnRoute);
-		response.addHeader("content-length", "0");
-		return true;
-	}
-	return false;
-}
-
-bool	HTTPMethodHandler::isAllowedMethod(const Request& request)
-{
-	if (request.resolvedLocationBlock == nullptr) {
-		throw std::runtime_error("isAllowedmethod() with unresolved locationBlock");
-	}
-
-	return std::find(
-			request.resolvedLocationBlock->allowMethods.begin(),
-			request.resolvedLocationBlock->allowMethods.end(),
-			request.method
-		) != request.resolvedLocationBlock->allowMethods.end();
-}
-
-void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& response)
+void	GetHandler::handle(const Request& request, Response& response)
 {
 	LOGC("HTTP_METHOD_HANDLER", "-> handle GET Request", LIGHTMAGENTA, LIGHTCYAN);
 
@@ -144,72 +82,7 @@ void	HTTPMethodHandler::handleGetRequest(const Request& request, Response& respo
 	response.setBodyFileBufferReader(request.resolvedPath);
 }
 
-void	HTTPMethodHandler::handlePostRequest(const Request& request, Response& response)
-{
-	LOGC("HTTP_METHOD_HANDLER", "-> handle POST Request", LIGHTMAGENTA, LIGHTCYAN);
-	(void) request;
-	(void) response;
-	throw std::runtime_error("Work in progress...");
-}
-
-void	HTTPMethodHandler::handleDeleteRequest(const Request& request, Response& response)
-{
-	LOGC("HTTP_METHOD_HANDLER", "-> handle DELETE Request", LIGHTMAGENTA, LIGHTCYAN);
-
-	std::filesystem::path resourcePath(request.resolvedPath);
-
-	// do we have the permissions in this path
-	std::filesystem::path parentPath = resourcePath.parent_path();
-	if (!parentPath.empty() && Utils::isDirectory(parentPath)) {
-		if (!Utils::hasPermission(parentPath, W_OK)) {
-			createErrorResponse(response, WSSC_FORBIDDEN);
-			return;
-		}
-	}
-
-	if (Utils::isDirectory(resourcePath)) {
-		createErrorResponse(response, WSSC_FORBIDDEN);
-		return;
-	}
-
-	if (!Utils::fileExists(request.resolvedPath)) {
-		createErrorResponse(response, WSSC_NOT_FOUND);
-		return;
-	}
-
-	if (!Utils::hasPermission(request.resolvedPath, W_OK)) {
-		createErrorResponse(response, WSSC_FORBIDDEN);
-		return;
-	}
-
-	try {
-		LOG_WARNING_LM("DELETING", resourcePath.c_str());
-		if (!std::filesystem::remove(resourcePath)) {
-			// failed to remove
-			createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
-			return;
-		}
-		LOG_SUCCESS(std::string("deleted: ") + resourcePath.c_str());
-
-		response.setStatusCode(WSSC_OK);
-		return;
-	} catch(const std::exception& e) {
-		LOGT(Log::ERROR, "Failed to remove file: " << e.what());
-		createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
-		return;
-	}
-}
-
-void	HTTPMethodHandler::createErrorResponse(Response& response, int statusCode)
-{
-	//	TODO:	reexamen this will we need it like that or can we reduce
-	//			the statusCode for exameple etc…
-	response.setStatusCode(statusCode);
-	response.addHeader("Content-Type", HTTP::getMimeType(".html"));
-	response.setBodyString(HTTP::getErrorPageTemplate(statusCode));
-}
-
-std::string	HTTPMethodHandler::getIndexAppendedResource(const Request& request)
+std::string	GetHandler::getIndexAppendedResource(const Request& request)
 {
 	std::string indexedResource = request.resolvedPath;
 	if (indexedResource.back() == '/') {
@@ -221,7 +94,8 @@ std::string	HTTPMethodHandler::getIndexAppendedResource(const Request& request)
 	return indexedResource;
 }
 
-void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& response)
+
+void	GetHandler::handleAutoIndex(const Request& request, Response& response)
 {
 	LOGT(Log::INFO, LIGHTMAGENTA << "handle Auto Index");
 
@@ -301,7 +175,7 @@ void	HTTPMethodHandler::handleAutoIndex(const Request& request, Response& respon
 	response.setBodyString(os.str());
 }
 
-const std::string	HTTPMethodHandler::getDirListingPadding(size_t entrySize)
+const std::string	GetHandler::getDirListingPadding(size_t entrySize)
 {
 	size_t padSize = 51;
 	size_t count = 0;
@@ -315,3 +189,4 @@ const std::string	HTTPMethodHandler::getDirListingPadding(size_t entrySize)
 	
 	return std::string(count, ' ');
 }
+
