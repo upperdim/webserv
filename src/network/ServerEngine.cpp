@@ -6,7 +6,7 @@
 #include "ClientConnection.hpp"
 #include "ServerSocket.hpp"
 #include "HTTP.hpp"
-#include "HTTPMethodHandler.hpp"
+#include "RequestHandler.hpp"
 #include "Log.hpp"
 
 volatile std::sig_atomic_t ServerEngine::isRunning = false;
@@ -242,7 +242,7 @@ void ServerEngine::readClientIncomingData(int clientFd)
 	client.receiveRequest();
 
 	if (client.getRequest().doneReceiving) {
-		HTTPMethodHandler::handle(client.getRequest(), client.getResponse());
+		RequestHandler::handle(client.getRequest(), client.getResponse());
 		setPollFdEvents(clientFd, POLLOUT | POLLERR | POLLHUP);
 		LOG("Now listening to POLLOUT event for ClientConnection fd = " << clientFd << " socket");
 	}
