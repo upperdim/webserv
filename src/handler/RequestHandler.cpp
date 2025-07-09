@@ -40,7 +40,7 @@ void	RequestHandler::handle(Request& request, Response& response)
 bool	RequestHandler::handleIfRedirect(const Request& request, Response& response)
 {
 	if (!request.resolvedLocationBlock->returnRoute.empty()) {
-		response.setStatusCode(WSSC_PERMANENT_REDIRECT);
+		response.setStatusCode(WSSC_FOUND);
 		response.addHeader("Location", request.resolvedLocationBlock->returnRoute);
 		response.addHeader("content-length", "0");
 		return true;

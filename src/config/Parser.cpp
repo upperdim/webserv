@@ -267,6 +267,9 @@ void	Parser::parseServerDirectives(ServerBlock& server, t_parsedDirectives& pars
 		case KeywordType::INDEX:
 			parseIndexDirective(directive, params, server.index);
 			break;
+		case KeywordType::RETURN:
+			parseReturnDirective(directive, params, server.returnRoute);
+			break;
 		default:
 			Throw::UnknownOrUnsupportedDirective(directive);
 	}
@@ -678,6 +681,8 @@ void	Parser::checksServerBlocksAndSetsdefaults(Config& config)
 				locationBlock.index = serverBlock.index;
 			if (locationBlock.root.empty())
 				locationBlock.root = serverBlock.root;
+			if (locationBlock.returnRoute.empty())
+				locationBlock.returnRoute = serverBlock.returnRoute;
 			
 			Utils::removeDotSegments(locationBlock.route);
 			Utils::collapseDuplicateSlashes(locationBlock.route);
