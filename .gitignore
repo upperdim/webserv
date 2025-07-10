@@ -11,6 +11,7 @@ webserv
 .idea
 *.bat
 *.ps1
+*.sh
 
 # Demo folders
 local/
