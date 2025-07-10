@@ -13,7 +13,8 @@ public:
 	static bool			isDirectory(const std::string& path);
 	static bool			fileExists(const std::string& path);
 	static bool			hasPermission(const std::string& path, int mode);
-	static bool			startsWith(const std::string& str, const std::string& prefix);
+	static bool			strStartsWith(const std::string& str, const std::string& prefix);
+	static bool			strEndsWith(std::string str, std::string suffix);
 	static bool			startsWithHttp(const std::string& str);
 	static void			trimWhitespaces(std::string& str);
 	static std::string	charToHex(char c);

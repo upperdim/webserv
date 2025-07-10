@@ -36,11 +36,18 @@ bool	Utils::hasPermission(const std::string& path, int mode)
 	return (access(path.c_str(), mode) == 0);
 }
 
-bool	Utils::startsWith(const std::string& str, const std::string& prefix)
+bool	Utils::strStartsWith(const std::string& str, const std::string& prefix)
 {
 	if (str.size() < prefix.size())
-		return (false);
-	return ( std::equal(prefix.begin(), prefix.end(), str.begin()) );
+		return false;
+	return std::equal(prefix.begin(), prefix.end(), str.begin());
+}
+
+bool	Utils::strEndsWith(std::string str, std::string suffix)
+{
+	if (str.size() < suffix.size())
+		return false;
+	return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
 }
 
 bool	Utils::startsWithHttp(const std::string& str)
@@ -146,19 +153,19 @@ bool	Utils::removeDotSegments(std::string& uri)
 	oBuf.reserve(uri.size());
 
 	while (!iBuf.empty()) {
-		if (Utils::startsWith(iBuf, "../")) {
+		if (Utils::strStartsWith(iBuf, "../")) {
 			iBuf.erase(0, 3);
-		} else if (Utils::startsWith(iBuf, "./")) {
+		} else if (Utils::strStartsWith(iBuf, "./")) {
 			iBuf.erase(0, 2);
-		} else if (Utils::startsWith(iBuf, "/./")) {
+		} else if (Utils::strStartsWith(iBuf, "/./")) {
 			iBuf.replace(0, 3, "/");
-		} else if (Utils::startsWith(iBuf, "/.") &&
+		} else if (Utils::strStartsWith(iBuf, "/.") &&
 		           (iBuf.size() == 2 || iBuf[2] == '/')) {
 			iBuf.replace(0, 2, "/");
-		} else if (Utils::startsWith(iBuf,"/../")) {
+		} else if (Utils::strStartsWith(iBuf,"/../")) {
 			iBuf.replace(0, 4, "/");
 			popLastSegment(oBuf);
-		} else if (Utils::startsWith(iBuf,"/..") &&
+		} else if (Utils::strStartsWith(iBuf,"/..") &&
 		           (iBuf.size() == 3 || iBuf[3] == '/')) {
 			iBuf.replace(0, 3, "/");
 			popLastSegment(oBuf);
