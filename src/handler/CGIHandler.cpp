@@ -130,7 +130,13 @@ void CGIHandler::runCgiScript(const std::string& scriptPath,
 		
 		close(outputPipe[0]);  // Finished reading
 		waitpid(pid, NULL, 0); // Wait for child process
+
 		// LOGT(Log::DEBUG, "CGI Output = " << cgiOutput.str());
+
+		// RFC 3875 CGI 1.1
+		// Response type: 1 or more header files, blank line, message body (may be null)
+
+		// response.addHeader WIP
 		response.setBodyString(cgiOutput.str());
 	}
 }
