@@ -185,6 +185,14 @@ bool	RequestParser::validateRequestTarget(Request& request)
 		return false;
 	}
 
+	// TODO: Validations of query string?
+	size_t queryStartIdx = request.requestTarget.find("?");
+	if (queryStartIdx == std::string::npos && request.requestTarget.size() >= queryStartIdx + 1) {
+		request.queryString = "";
+	} else {
+		request.queryString = request.requestTarget.substr(queryStartIdx + 1);
+	}
+
 	if (!validRawCharacters(request.requestTarget) ||
 		!percentDecoding(request.requestTarget, request.URI) ||
 		!validDecodedCharacters(request.URI) ||
@@ -295,7 +303,7 @@ int	RequestParser::hexToInt(const char c)
 
 bool	RequestParser::isRelativeForm_EnsureLeadingSlash(std::string& uri)
 {
-	if (Utils::startsWith(uri, "http://") || Utils::startsWith(uri, "https://"))
+	if (Utils::strStartsWith(uri, "http://") || Utils::strStartsWith(uri, "https://"))
 		return false;
 
 	// make URI absolute per RFC 7230: Section 5.3.1
@@ -493,7 +501,7 @@ bool	RequestParser::resolveLocationBlock(Request& request)
 	// TODO: use the resolved serverBlock
 	const LocationBlock* bestMatch = nullptr;
 	for (const LocationBlock& loc : request.resolvedServerBlock->locationBlocks) {
-		if (Utils::startsWith(request.URI, loc.route)) {
+		if (Utils::strStartsWith(request.URI, loc.route)) {
 			if (bestMatch == nullptr || bestMatch->route.length() < loc.route.length())
 				bestMatch = &loc;
 		}

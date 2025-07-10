@@ -39,6 +39,7 @@ public:
 	LocationBlock*									resolvedLocationBlock;
 	std::optional<size_t>							contentLength;
 	std::string										resolvedPath;
+	std::string										queryString; // URL query string after '?'
 
 private:
 };
