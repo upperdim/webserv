@@ -1,7 +1,10 @@
 #include "RequestHandler.hpp"
-#include "GetHandler.hpp"
-#include "PostHandler.hpp"
 #include "DeleteHandler.hpp"
+#include "PostHandler.hpp"
+#include "GetHandler.hpp"
+#include "CGIHandler.hpp"
+#include "Utils.hpp"
+#include "Log.hpp"
 
 void	RequestHandler::handle(Request& request, Response& response)
 {
@@ -23,6 +26,10 @@ void	RequestHandler::handle(Request& request, Response& response)
 	if (handleIfRedirect(request, response)) {
 		return;
 	}
+
+	if (handleIfCGI(request, response)) {
+		return;
+	}
 	
 	switch (request.method) {
 		case HTTP::Method::GET:
@@ -34,6 +41,21 @@ void	RequestHandler::handle(Request& request, Response& response)
 		case HTTP::Method::DELETE:
 			DeleteHandler::handle(request, response);
 			break;
+	}
+}
+
+bool	RequestHandler::handleIfCGI(const Request& request, Response& response)
+{
+	(void) response;
+	
+	// If CGI is enabled in this location AND request target extension matches CGI extension
+	if (!request.resolvedLocationBlock->cgiExtension.empty()
+	    && Utils::strEndsWith(request.URI, request.resolvedLocationBlock->cgiExtension)) {
+		LOGT(Log::DEBUG, "Detected CGI request");
+		CGIHandler::handle(request, response);
+		return true;
+	} else {
+		return false;
 	}
 }
 
@@ -69,4 +91,3 @@ void	RequestHandler::createErrorResponse(Response& response, int statusCode)
 	response.addHeader("Content-Type", HTTP::getMimeType(".html"));
 	response.setBodyString(HTTP::getErrorPageTemplate(statusCode));
 }
-
