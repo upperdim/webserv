@@ -115,7 +115,7 @@ void CGIHandler::runCgiScript(const std::string& scriptPath,
 		char buffer[CGI_OUTPUT_BUFFER_SIZE];
 		ssize_t bytesRead;
 		do {
-			bytesRead = read(outputPipe[0], buffer, sizeof(buffer));
+			bytesRead = read(outputPipe[0], buffer, CGI_OUTPUT_BUFFER_SIZE - 1);
 			if (bytesRead < 0) {
 				LOGT(Log::ERROR, "Error reading from CGI output");
 				close(outputPipe[0]); // Finished reading
@@ -123,12 +123,14 @@ void CGIHandler::runCgiScript(const std::string& scriptPath,
 				createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
 				return;
 			}
-
+			
+			// buffer[bytesRead] = '\0';
 			cgiOutput.write(buffer, bytesRead);
 		} while (bytesRead != 0);
 		
 		close(outputPipe[0]);  // Finished reading
 		waitpid(pid, NULL, 0); // Wait for child process
-		LOGT(Log::DEBUG, "CGI Output = " << cgiOutput.str());
+		// LOGT(Log::DEBUG, "CGI Output = " << cgiOutput.str());
+		response.setBodyString(cgiOutput.str());
 	}
 }
