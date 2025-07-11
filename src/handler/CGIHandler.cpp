@@ -11,7 +11,7 @@
 
 void CGIHandler::handle(const Request& request, Response& response)
 {
-	const std::string& scriptPath  = request.resolvedPath,
+	const std::string& scriptPath  = request.resolvedPath;
 
 	int inputPipe[2];  // Parent writes to [1], child  reads from [0]
 	int outputPipe[2]; // Child  writes to [1], parent reads from [0]
@@ -41,7 +41,7 @@ void CGIHandler::handle(const Request& request, Response& response)
 		close(outputPipe[0]); // We won't use reading end of this pipe
 
 		// Prepare argv
-		std::string pythonPath = "/usr/local/bin/python3";
+		std::string pythonPath = PYTHON3_PATH;
 
 		char *argv[] = {
 			const_cast<char*>(pythonPath.c_str()),
