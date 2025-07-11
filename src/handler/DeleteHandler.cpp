@@ -1,3 +1,5 @@
+#include <filesystem>
+#include <algorithm>
 #include <unistd.h>	// R_OK
 #include "DeleteHandler.hpp"
 #include "Utils.hpp"
