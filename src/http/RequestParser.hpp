@@ -20,13 +20,14 @@ private:
 	static bool					validateRequestTarget(Request& request);
 	static bool					validateProtokoll(Request& request);
 
-	static bool					validRawCharacters(const std::string& requestTarget);
-	static bool					validDecodedCharacters(const std::string& uri);
+	static bool					validRawRequestTargetChars(const std::string& requestTarget);
+	static bool					validDecodedRequestTargetChars(const std::string& uri);
 	static const std::string	truncateQueryAndFragments(const std::string& requestTarget);
 	static bool					percentDecoding(const std::string& requestTarget, std::string& destURI);
 	static int					hexToInt(const char c);
-
 	static bool					isRelativeForm_EnsureLeadingSlash(std::string& uri);
+
+	static bool					readHeaders(Request& request, const size_t headerEnd, std::unordered_map<std::string, std::string>& headers);
 
 	static bool					validateOptionalHeaderFields(Request& request);
 	static bool					validateHost(Request& request, std::string& dest);

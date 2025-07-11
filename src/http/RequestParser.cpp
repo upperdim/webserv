@@ -23,6 +23,9 @@ void	RequestParser::parseNext(Request& request)
 		parseBody(request);
 	}
 	if (request.parsingState == Request::ParsingState::FORM_DATA) {
+		//	TODO:	we might get rid of this, I think we store the temp files
+		// 			in parseBody, and once we succed we go to the ahndler an move them.
+		// 			we have to check how nginx handles it…
 		LOGT(Log::INFO, "---> Request: recieiving form-data until next boundary");
 		parseFormDataPart(request);
 	}
@@ -97,29 +100,9 @@ void	RequestParser::parseHeader(Request& request)
 		return;
 	}
 
-	size_t	start = 0;
-	while (start < headerEnd) {
-		size_t	pos = request.rawRequest.find_first_of('\n', start);
-
-		if (pos == std::string::npos) {
-			request.errorStatusCode = WSSC_BAD_REQUEST;
-			request.parsingState = Request::ParsingState::INVALID;
-			return;
-		}
-
-		std::string line = request.rawRequest.substr(start, pos - start);
-
-		std::pair<std::string, std::string> headerField;
-		if (!Utils::splitHeaderLine(line, headerField)) {
-			request.errorStatusCode = WSSC_BAD_REQUEST;
-			request.parsingState = Request::ParsingState::INVALID;
-			return;
-		}
-
-		request.headers[headerField.first] = headerField.second;
-
-		start = pos + 1;
-	}
+	if (!readHeaders(request, headerEnd, request.headers))
+		return;
+	// delete the read header Bytes from rawRequest
 	request.rawRequest.erase(0, headerEnd + 4);
 
 	// first we resolve the serverBlock according to the value of HOST
@@ -272,9 +255,9 @@ bool	RequestParser::validateRequestTarget(Request& request)
 		return false;
 	}
 
-	if (!validRawCharacters(request.requestTarget) ||
+	if (!validRawRequestTargetChars(request.requestTarget) ||
 		!percentDecoding(request.requestTarget, request.URI) ||
-		!validDecodedCharacters(request.URI) ||
+		!validDecodedRequestTargetChars(request.URI) ||
 	    !isRelativeForm_EnsureLeadingSlash(request.URI) ||
 	    !Utils::removeDotSegments(request.URI) ||
 		!Utils::collapseDuplicateSlashes(request.URI)) {
@@ -312,7 +295,7 @@ bool	RequestParser::validateProtokoll(Request& request)
 	return false;
 }
 
-bool	RequestParser::validRawCharacters(const std::string& requestTarget)
+bool	RequestParser::validRawRequestTargetChars(const std::string& requestTarget)
 {
 	for (auto it = requestTarget.cbegin(); it < requestTarget.cend(); ++it) {
 		if (*it <= 0x1F || *it == 0x7F || *it == ' ') {
@@ -323,7 +306,7 @@ bool	RequestParser::validRawCharacters(const std::string& requestTarget)
 	return true;
 }
 
-bool	RequestParser::validDecodedCharacters(const std::string& uri)
+bool	RequestParser::validDecodedRequestTargetChars(const std::string& uri)
 {
 	for (auto it = uri.cbegin(); it < uri.cend(); ++it) {
 		if (*it <= 0x1F || *it == 0x7F || *it == '\\') {
@@ -388,6 +371,37 @@ bool	RequestParser::isRelativeForm_EnsureLeadingSlash(std::string& uri)
 	// make URI absolute per RFC 7230: Section 5.3.1
 	if (!uri.empty() && uri[0] != '/')
 		uri.insert(0, "/");
+
+	return true;
+}
+
+bool	RequestParser::readHeaders(Request& request, const size_t headerEnd, std::unordered_map<std::string, std::string>& headers)
+{
+	size_t	start = 0;
+	while (start < headerEnd) {
+		size_t	pos = request.rawRequest.find_first_of('\n', start);
+
+		if (pos == std::string::npos) {
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
+			return false;
+		}
+
+		std::string line = request.rawRequest.substr(start, pos - start);
+
+		std::pair<std::string, std::string> headerField;
+		if (!Utils::splitHeaderLine(line, headerField)) {
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
+			return false;
+		}
+
+		//	TODO:	we pass headers here a seperate arguemnet because we might want
+		//			to provide different header -> multipart/form-data (parseBody Header)
+		headers[headerField.first] = headerField.second;
+
+		start = pos + 1;
+	}
 
 	return true;
 }
