@@ -2,8 +2,9 @@
 #include "Parser.hpp"
 #include <filesystem>
 #include <algorithm>
+#include <fstream>
+#include <sstream>
 #include <limits>
-#include "webserv.hpp"
 #include "Lexer.hpp"
 #include "Utils.hpp"
 #include "Log.hpp"
@@ -695,4 +696,14 @@ void	Parser::checksServerBlocksAndSetsdefaults(Config& config)
 				  });
 
 	}
+}
+
+std::string	Parser::readFile(const std::string& filename)
+{
+	std::ifstream file(filename);
+	if (!file)
+		throw ( std::runtime_error("Failed to open " + filename) );
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+	return (buffer.str());
 }
