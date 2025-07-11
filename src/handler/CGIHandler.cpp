@@ -79,7 +79,7 @@ void CGIHandler::handle(const Request& request, Response& response)
 		// If we are here, execve() failed
 		LOGT(Log::ERROR, "CGI Process execve() failed, PID = " << pid);
 		createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
-		return;
+		exit(EXIT_FAILURE);
 	}
 		
 	// Parent process
