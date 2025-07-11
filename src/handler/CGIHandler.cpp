@@ -11,6 +11,8 @@
 
 void CGIHandler::handle(const Request& request, Response& response)
 {
+	LOGC("REQUEST_HANDLER", "-> handle CGI Request", LIGHTMAGENTA, LIGHTCYAN);
+
 	const std::string& scriptPath  = request.resolvedPath;
 
 	int inputPipe[2];  // Parent writes to [1], child  reads from [0]
