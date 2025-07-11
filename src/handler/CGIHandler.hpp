@@ -9,15 +9,6 @@ class CGIHandler : RequestHandler
 {
 public:
 	static void	handle(const Request& request, Response& response);
-
-private:
-	static void	runCgiScript(const std::string& scriptPath,
-	                         const HTTP::Method& method,
-	                         const std::string& queryString,
-	                         //  const std::string& requestBody,
-	                         //  const std::string& contentType,
-	                         const Request& request,
-	                         Response& response);
 };
 
 #endif

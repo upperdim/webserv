@@ -11,24 +11,7 @@
 
 void CGIHandler::handle(const Request& request, Response& response)
 {
-	runCgiScript(request.resolvedPath,
-	              request.method,
-				  request.queryString,
-				  // body,
-				  // contentType,
-				  request,
-				  response);
-}
-
-void CGIHandler::runCgiScript(const std::string& scriptPath,
-						 const HTTP::Method& method,
-						 const std::string& queryString,
-						//  const std::string& requestBody,
-						//  const std::string& contentType,
-						 const Request& request,
-						 Response& response)
-{
-	(void) request;
+	const std::string& scriptPath  = request.resolvedPath,
 
 	int inputPipe[2];  // Parent writes to [1], child  reads from [0]
 	int outputPipe[2]; // Child  writes to [1], parent reads from [0]
@@ -71,11 +54,11 @@ void CGIHandler::runCgiScript(const std::string& scriptPath,
 		std::vector<std::string> envStrings;
 		envStrings.push_back("GATEWAY_INTERFACE=CGI/1.1");
 		envStrings.push_back("SERVER_PROTOCOL=HTTP/1.1");
-		envStrings.push_back("REQUEST_METHOD=" + HTTP::methodToString(method));
-		envStrings.push_back("QUERY_STRING=" + queryString);
+		envStrings.push_back("REQUEST_METHOD=" + HTTP::methodToString(request.method));
+		envStrings.push_back("QUERY_STRING=" + request.queryString);
 		envStrings.push_back("SCRIPT_NAME=" + scriptPath);
 
-		if (method == HTTP::Method::POST) {
+		if (request.method == HTTP::Method::POST) {
 			// To be added
 			// envStrings.push_back("CONTENT_LENGTH=" ;
 			// envStrings.push_back("CONTENT_TYPE=" ;
@@ -102,7 +85,7 @@ void CGIHandler::runCgiScript(const std::string& scriptPath,
 		close(outputPipe[1]); // We won't use writing end of this pipe
 
 		// If POST, write request body to child STDIN
-		// if (method == HTTP::Method::POST && !requestBody.empty()) {
+		// if (request.method == HTTP::Method::POST && !requestBody.empty()) {
 		// 	ssize_t written = write(inputPipe[1], requestBody.c_str(), requestBody.length());
 		// 	if (written < 0) {
 		// 		// Error: write failed
