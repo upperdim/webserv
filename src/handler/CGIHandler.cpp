@@ -28,9 +28,8 @@ void CGIHandler::handle(const Request& request, Response& response)
 		return;
 	}
 
+	// Child process
 	if (pid == 0) {
-		// Child process
-
 		// Redirect stdin
 		dup2(inputPipe[0], STDIN_FILENO); // We will write here, to STDIN of CGI
 		close(inputPipe[0]); // Duplicated copy lives in STDIN of CGI process, we can close this
@@ -78,48 +77,48 @@ void CGIHandler::handle(const Request& request, Response& response)
 		// If we are here, execve() failed
 		LOGT(Log::ERROR, "CGI Process execve() failed, PID = " << pid);
 		createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
-	} else {
-		// Parent process
-
-		close(inputPipe[0]);  // We won't use reading end of this pipe
-		close(outputPipe[1]); // We won't use writing end of this pipe
-
-		// If POST, write request body to child STDIN
-		// if (request.method == HTTP::Method::POST && !requestBody.empty()) {
-		// 	ssize_t written = write(inputPipe[1], requestBody.c_str(), requestBody.length());
-		// 	if (written < 0) {
-		// 		// Error: write failed
-		// 	}
-		// }
-		close(inputPipe[1]); // Finished writing
-
-		// Read CGI output
-		std::ostringstream cgiOutput;
-		char buffer[CGI_OUTPUT_BUFFER_SIZE];
-		ssize_t bytesRead;
-		do {
-			bytesRead = read(outputPipe[0], buffer, CGI_OUTPUT_BUFFER_SIZE - 1);
-			if (bytesRead < 0) {
-				LOGT(Log::ERROR, "Error reading from CGI output");
-				close(outputPipe[0]); // Finished reading
-				waitpid(pid, NULL, 0);
-				createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
-				return;
-			}
-			
-			// buffer[bytesRead] = '\0';
-			cgiOutput.write(buffer, bytesRead);
-		} while (bytesRead != 0);
-		
-		close(outputPipe[0]);  // Finished reading
-		waitpid(pid, NULL, 0); // Wait for child process
-
-		// LOGT(Log::DEBUG, "CGI Output = " << cgiOutput.str());
-
-		// RFC 3875 CGI 1.1
-		// Response type: 1 or more header files, blank line, message body (may be null)
-
-		// response.addHeader WIP
-		response.setBodyString(cgiOutput.str());
+		return;
 	}
+		
+	// Parent process
+	close(inputPipe[0]);  // We won't use reading end of this pipe
+	close(outputPipe[1]); // We won't use writing end of this pipe
+
+	// If POST, write request body to child STDIN
+	// if (request.method == HTTP::Method::POST && !requestBody.empty()) {
+	// 	ssize_t written = write(inputPipe[1], requestBody.c_str(), requestBody.length());
+	// 	if (written < 0) {
+	// 		// Error: write failed
+	// 	}
+	// }
+	close(inputPipe[1]); // Finished writing
+
+	// Read CGI output
+	std::ostringstream cgiOutput;
+	char buffer[CGI_OUTPUT_BUFFER_SIZE];
+	ssize_t bytesRead;
+	do {
+		bytesRead = read(outputPipe[0], buffer, CGI_OUTPUT_BUFFER_SIZE - 1);
+		if (bytesRead < 0) {
+			LOGT(Log::ERROR, "Error reading from CGI output");
+			close(outputPipe[0]); // Finished reading
+			waitpid(pid, NULL, 0);
+			createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
+			return;
+		}
+		
+		// buffer[bytesRead] = '\0';
+		cgiOutput.write(buffer, bytesRead);
+	} while (bytesRead != 0);
+	
+	close(outputPipe[0]);  // Finished reading
+	waitpid(pid, NULL, 0); // Wait for child process
+
+	// LOGT(Log::DEBUG, "CGI Output = " << cgiOutput.str());
+
+	// RFC 3875 CGI 1.1
+	// Response type: 1 or more header files, blank line, message body (may be null)
+
+	// response.addHeader WIP
+	response.setBodyString(cgiOutput.str());
 }
