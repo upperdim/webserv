@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "RequestHandler.hpp"
 #include "DeleteHandler.hpp"
 #include "PostHandler.hpp"
@@ -23,11 +24,15 @@ void	RequestHandler::handle(Request& request, Response& response)
 		return;
 	}
 	
-	if (handleIfRedirect(request, response)) {
+	if (isRedirectRequest(request)) {
+		response.setStatusCode(WSSC_FOUND);
+		response.addHeader("Location", request.resolvedLocationBlock->returnRoute);
+		response.addHeader("content-length", "0");
 		return;
 	}
 
-	if (handleIfCGI(request, response)) {
+	if (isCGIRequest(request)) {
+		CGIHandler::handle(request, response);
 		return;
 	}
 	
@@ -42,32 +47,6 @@ void	RequestHandler::handle(Request& request, Response& response)
 			DeleteHandler::handle(request, response);
 			break;
 	}
-}
-
-bool	RequestHandler::handleIfCGI(const Request& request, Response& response)
-{
-	(void) response;
-	
-	// If CGI is enabled in this location AND request target extension matches CGI extension
-	if (!request.resolvedLocationBlock->cgiExtension.empty()
-	    && Utils::strEndsWith(request.URI, request.resolvedLocationBlock->cgiExtension)) {
-		LOGT(Log::DEBUG, "Detected CGI request");
-		CGIHandler::handle(request, response);
-		return true;
-	} else {
-		return false;
-	}
-}
-
-bool	RequestHandler::handleIfRedirect(const Request& request, Response& response)
-{
-	if (!request.resolvedLocationBlock->returnRoute.empty()) {
-		response.setStatusCode(WSSC_FOUND);
-		response.addHeader("Location", request.resolvedLocationBlock->returnRoute);
-		response.addHeader("content-length", "0");
-		return true;
-	}
-	return false;
 }
 
 bool	RequestHandler::isAllowedMethod(const Request& request)
@@ -90,4 +69,15 @@ void	RequestHandler::createErrorResponse(Response& response, int statusCode)
 	response.setStatusCode(statusCode);
 	response.addHeader("Content-Type", HTTP::getMimeType(".html"));
 	response.setBodyString(HTTP::getErrorPageTemplate(statusCode));
+}
+
+bool	RequestHandler::isCGIRequest(const Request& request)
+{
+	return !request.resolvedLocationBlock->cgiExtension.empty() 
+	       && Utils::strEndsWith(request.URI, request.resolvedLocationBlock->cgiExtension);
+}
+
+bool	RequestHandler::isRedirectRequest(const Request& request)
+{
+	return !request.resolvedLocationBlock->returnRoute.empty();
 }
