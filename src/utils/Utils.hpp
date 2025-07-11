@@ -2,10 +2,6 @@
 #define UTILS_HPP
 
 #include <string>
-#include <vector>
-#include "HTTP.hpp"
-#include "Request.hpp"
-#include "Config.hpp"
 
 class Utils
 {
