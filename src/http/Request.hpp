@@ -26,20 +26,21 @@ public:
 
 	std::string										rawRequest;
 	ParsingState									parsingState;
-	bool											storeBodyInFile;
 	bool											doneReceiving;
 	
-	// raw request attributes
+	// Raw request attributes
 	HTTP::Method									method;
 	std::optional<int>								errorStatusCode;
 	std::string										requestTarget;
 	std::string										protokoll;
 	std::unordered_map<std::string, std::string>	headers;
+	bool											storeBodyInFile;
+	std::string										body; // Used only if storeBodyInFile is false
 
 	std::vector<ServerBlock>& 						serverBlocks;
 
-	// matched and resolved attributes
-	std::string										URI;	//	decoded and sanatized requesttarget
+	// Matched and resolved attributes
+	std::string										URI; // Decoded and sanatized requesttarget
 	ServerBlock*									resolvedServerBlock;
 	LocationBlock*									resolvedLocationBlock;
 	std::optional<size_t>							contentLength;

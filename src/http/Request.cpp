@@ -4,10 +4,10 @@
 
 Request::Request(std::vector<ServerBlock>& _serverBlocks)
 	:	parsingState(ParsingState::REQUEST_LINE),
-		storeBodyInFile(false),
 		doneReceiving(false),
 		method(HTTP::Method::GET),
 		errorStatusCode(std::nullopt),
+		storeBodyInFile(false),
 		serverBlocks(_serverBlocks),
 		resolvedServerBlock(nullptr),
 		resolvedLocationBlock(nullptr),
