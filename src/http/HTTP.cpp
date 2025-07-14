@@ -181,6 +181,8 @@ HTTP::ContentTypeInfo_t	HTTP::getContentTypeInfo(const std::string& fieldValue)
 		ctInfo.type = HTTP::ContentType::MULTIPART_FORM_DATA;
 		if ((pos = fieldValue.find("boundary=")) != std::string::npos)
 			ctInfo.boundary = fieldValue.substr(pos + 9);
+	} else if ((pos = fieldValue.find("application/x-www-form-urlencoded")) != std::string::npos) {
+		ctInfo.type = HTTP::ContentType::APPLICATION_FORM_URLENCODED;
 	} else if ((pos = fieldValue.find("application/octet-stream")) != std::string::npos) {
 		ctInfo.type = HTTP::ContentType::APPLICATION_OCTET_STREAM;
 	} else if ((pos = fieldValue.find("application/json")) != std::string::npos) {
