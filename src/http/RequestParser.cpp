@@ -109,14 +109,14 @@ void	RequestParser::parseHeader(Request& request)
 		return;
 
 	if ((request.contentLength.has_value() && request.contentLength.value() > REQUEST_BODY_SIZE_FILE_STORAGE_TRESHOLD)
-		|| request.isChunkedTransfer) {
+		|| request.isChunkedBodyTransfer) {
 		request.storeBodyInFile = true;
 	}
 }
 
 void	RequestParser::parseBody(Request& request)
 {
-	if (request.isChunkedTransfer) {
+	if (request.isChunkedBodyTransfer) {
 		parseChunkedTransferBody(request);
 	} else {
 		parseContentLengthBody(request);
@@ -496,7 +496,7 @@ bool	RequestParser::validateOptionalHeaderFields(Request& request)
 			request.parsingState = Request::ParsingState::INVALID;
 			return false;
 		}
-		request.isChunkedTransfer = true;
+		request.isChunkedBodyTransfer = true;
 	}
 
 	return true;

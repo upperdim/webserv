@@ -45,7 +45,7 @@ public:
 	std::optional<size_t>							contentLength;
 	std::optional<HTTP::ContentTypeInfo_t>			contentType;
 	std::string										resolvedPath;
-	bool											isChunkedTransfer;
+	bool											isChunkedBodyTransfer;
 	std::string										currentUploadFileName;
 
 private:

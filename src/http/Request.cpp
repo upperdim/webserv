@@ -11,6 +11,6 @@ Request::Request(std::vector<ServerBlock>& _serverBlocks)
 		serverBlocks(_serverBlocks),
 		resolvedServerBlock(nullptr),
 		resolvedLocationBlock(nullptr),
-		isChunkedTransfer(false)
+		isChunkedBodyTransfer(false)
 {
 }
