@@ -123,9 +123,37 @@ void	RequestParser::parseBody(Request& request)
 	}
 }
 
+// from upd/webserv
 void	RequestParser::parseContentLengthBody(Request& request)
 {
-	// TODO: Implement
+	// size_t endOfHeaders = request.rawRequest.find("\r\n\r\n");
+	// if (endOfHeaders == std::string::npos) {
+	// 	LOGT(Log::ERROR, "parseContentLengthBody(): Previously read Request headers data is inaccessible now.");
+	// 	return;
+	// }
+
+	// auto it = headers.find("Content-Length");
+	// if (it == headers.end()) {
+	// 	parsingState = COMPLETED;
+	// 	return; // No Content-Length header, no body expected
+	// }
+
+	// size_t contentLength = 0;
+	// try {
+	// 	std::string contentLengthStr = it->second;
+	// 	contentLength = std::stoul(contentLengthStr);
+	// } catch (...) {
+	// 	logl(ERROR, "Invalid Content-Length header value");
+	// 	parsingState = INVALID; // Content-Length value is invalid
+	// 	return;
+	// }
+
+	// size_t bodyStart = endOfHeaders + 4;
+	// if (recvBuffer.size() < bodyStart + contentLength)
+	// 	return; // Body is not fully received yet
+
+	// body = recvBuffer.substr(bodyStart, contentLength);
+	// parsingState = COMPLETED;
 }
 
 void	RequestParser::parseChunkedTransferBody(Request& request)
