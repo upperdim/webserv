@@ -7,6 +7,9 @@
 #include "HTTP.hpp"
 #include "Config.hpp"
 
+// Store request body in a temp file if it is bigger than this many bytes
+#define REQUEST_BODY_SIZE_FILE_STORAGE_TRESHOLD	(10 * 1024)
+
 class Request
 {
 public:
@@ -23,6 +26,7 @@ public:
 
 	std::string										rawRequest;
 	ParsingState									parsingState;
+	bool											storeBodyInFile;
 	bool											doneReceiving;
 	
 	// raw request attributes
@@ -41,6 +45,7 @@ public:
 	std::optional<size_t>							contentLength;
 	std::optional<HTTP::ContentTypeInfo_t>			contentType;
 	std::string										resolvedPath;
+	bool											isChunkedTransfer;
 	std::string										currentUploadFileName;
 
 private:

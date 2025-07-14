@@ -22,13 +22,6 @@ void	RequestParser::parseNext(Request& request)
 		LOGT(Log::INFO, "---> Request: parser body");
 		parseBody(request);
 	}
-	if (request.parsingState == Request::ParsingState::FORM_DATA) {
-		//	TODO:	we might get rid of this, I think we store the temp files
-		// 			in parseBody, and once we succed we go to the ahndler an move them.
-		// 			we have to check how nginx handles it…
-		LOGT(Log::INFO, "---> Request: recieiving form-data until next boundary");
-		parseFormDataPart(request);
-	}
 	if (request.parsingState == Request::ParsingState::COMPLETE || request.parsingState == Request::ParsingState::INVALID) {
 		LOGT(Log::INFO, "---> Request: " << (request.parsingState == Request::ParsingState::COMPLETE ? "COMPLETE" : "INVALID"));
 		request.doneReceiving = true;
@@ -115,113 +108,116 @@ void	RequestParser::parseHeader(Request& request)
 	if (!resolveRequestContext(request))
 		return;
 
-	request.parsingState = Request::ParsingState::BODY;
+	if ((request.contentLength.has_value() && request.contentLength.value() > REQUEST_BODY_SIZE_FILE_STORAGE_TRESHOLD)
+		|| request.isChunkedTransfer) {
+		request.storeBodyInFile = true;
+	}
 }
 
 void	RequestParser::parseBody(Request& request)
 {
-	//	///////////////////////
-	//	TODO: DOING
-	//	///////////////////////
-	if (request.contentType.has_value() && request.contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA) {
-		size_t headerEnd  = request.rawRequest.find("\r\n\r\n");
-
-		if (headerEnd == std::string::npos)
-			return; // we have not recieved enough data to read multipart header
-		
-		size_t start = 0;
-		while (start < headerEnd) {
-			size_t	pos = request.rawRequest.find_first_of('\n', start);
-
-			if (pos == std::string::npos) {
-				request.errorStatusCode = WSSC_BAD_REQUEST;
-				request.parsingState = Request::ParsingState::INVALID;
-				return;
-			}
-
-			std::string line = request.rawRequest.substr(start, pos - start);
-	
-			// clean trailing '\r' character
-			if (!line.empty() && line.back() == '\r') 
-				line.pop_back();
-
-			// first HeaderField of Body should be the boundary
-			if (start == 0) {
-				std::string expectedBoundary = "--" + request.contentType.value().boundary.value();
-				if (Utils::startsWith(line, expectedBoundary)) {
-					start = pos + 1;
-					continue;
-				}
-				// reject request inavlid request
-				request.errorStatusCode = WSSC_BAD_REQUEST;
-				request.parsingState = Request::ParsingState::INVALID;
-				return;
-			}
-
-			std::pair<std::string, std::string> headerField;
-			if (!Utils::splitHeaderLine(line, headerField)) {
-				request.errorStatusCode = WSSC_BAD_REQUEST;
-				request.parsingState = Request::ParsingState::INVALID;
-				return;
-			}
-
-			if (headerField.first == "content-disposition") {
-				LOGT(Log::SUCCESS, "found: " <<  BOLD << headerField.first << REGULAR << " in the multipart/form-data header, parsing parameters(filename)");
-				
-				size_t posFilname;
-				if (headerField.second.find("form-data;") == std::string::npos || (posFilname = headerField.second.find("filename=")) == std::string::npos) {
-					// invalid content-disposition
-					request.errorStatusCode = WSSC_BAD_REQUEST;
-					request.parsingState = Request::ParsingState::INVALID;
-					return;
-				}
-				std::string filename = headerField.second.substr(posFilname + 9);
-				Utils::unquote(filename, '"');
-				request.currentUploadFileName = filename;
-				//	TODO:	do we want to set a state for recv and writing this file
-				//			what would a nice structure be?
-				request.parsingState = Request::ParsingState::FORM_DATA;
-
-				LOGT(Log::SUCCESS, "filename: " << LIGHTGREEN << BOLD << filename);
-			}
-			start = pos + 1;
-		}
-		request.rawRequest.erase(0, headerEnd + 4);
-
-		//	TODO:	After we parsed the body header we might want to set a State
-		//			same as just above when we find the filename.
-		//			we might want to discuss the approach on how to buffer recv
-		//			files and multi files
-		if (request.parsingState != Request::ParsingState::FORM_DATA) {
-			// here we return INVALID because we expect to find a filename
-			request.parsingState = Request::ParsingState::INVALID;
-		}
-		return;
+	if (request.isChunkedTransfer) {
+		parseChunkedTransferBody(request);
+	} else {
+		parseContentLengthBody(request);
 	}
-
-	//	TODO:	this state change is from before parsing Body - we need to
-	//			keep track and update it accordingly
-	request.parsingState = Request::ParsingState::COMPLETE;
 }
 
-void	RequestParser::parseFormDataPart(Request& request)
+void	RequestParser::parseContentLengthBody(Request& request)
 {
-	//	///////////////////////
-	//	TODO: 
-	//	///////////////////////
-
-	if (!request.contentType.has_value() || request.contentType.value().boundary.has_value()) {
-		// something went very wrong
-		//	TODO:	do we have to close any FD from writeing our file
-		request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
-		request.parsingState = Request::ParsingState::INVALID;
-		return;
-	}
-
-	if (Utils::endsWith(request.rawRequest, request.contentType.value().boundary.value())) {
-		// after we read the last chunk we should check for the next multiPART
-	}
+	// TODO: Implement
 }
+
+void	RequestParser::parseChunkedTransferBody(Request& request)
+{
+	// TODO: Implement
+}
+
+// void	RequestParser::oldParseBody(Request& request)
+// {
+// 	//	///////////////////////
+// 	//	TODO: DOING
+// 	//	///////////////////////
+// 	if (request.contentType.has_value() && request.contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA) {
+// 		size_t headerEnd  = request.rawRequest.find("\r\n\r\n");
+
+// 		if (headerEnd == std::string::npos)
+// 			return; // we have not recieved enough data to read multipart header
+		
+// 		size_t start = 0;
+// 		while (start < headerEnd) {
+// 			size_t	pos = request.rawRequest.find_first_of('\n', start);
+
+// 			if (pos == std::string::npos) {
+// 				request.errorStatusCode = WSSC_BAD_REQUEST;
+// 				request.parsingState = Request::ParsingState::INVALID;
+// 				return;
+// 			}
+
+// 			std::string line = request.rawRequest.substr(start, pos - start);
+	
+// 			// clean trailing '\r' character
+// 			if (!line.empty() && line.back() == '\r') 
+// 				line.pop_back();
+
+// 			// first HeaderField of Body should be the boundary
+// 			if (start == 0) {
+// 				std::string expectedBoundary = "--" + request.contentType.value().boundary.value();
+// 				if (Utils::startsWith(line, expectedBoundary)) {
+// 					start = pos + 1;
+// 					continue;
+// 				}
+// 				// reject request inavlid request
+// 				request.errorStatusCode = WSSC_BAD_REQUEST;
+// 				request.parsingState = Request::ParsingState::INVALID;
+// 				return;
+// 			}
+
+// 			std::pair<std::string, std::string> headerField;
+// 			if (!Utils::splitHeaderLine(line, headerField)) {
+// 				request.errorStatusCode = WSSC_BAD_REQUEST;
+// 				request.parsingState = Request::ParsingState::INVALID;
+// 				return;
+// 			}
+
+// 			if (headerField.first == "content-disposition") {
+// 				LOGT(Log::SUCCESS, "found: " <<  BOLD << headerField.first << REGULAR << " in the multipart/form-data header, parsing parameters(filename)");
+				
+// 				size_t posFilname;
+// 				if (headerField.second.find("form-data;") == std::string::npos || (posFilname = headerField.second.find("filename=")) == std::string::npos) {
+// 					// invalid content-disposition
+// 					request.errorStatusCode = WSSC_BAD_REQUEST;
+// 					request.parsingState = Request::ParsingState::INVALID;
+// 					return;
+// 				}
+// 				std::string filename = headerField.second.substr(posFilname + 9);
+// 				Utils::unquote(filename, '"');
+// 				request.currentUploadFileName = filename;
+// 				//	TODO:	do we want to set a state for recv and writing this file
+// 				//			what would a nice structure be?
+// 				request.parsingState = Request::ParsingState::FORM_DATA;
+
+// 				LOGT(Log::SUCCESS, "filename: " << LIGHTGREEN << BOLD << filename);
+// 			}
+// 			start = pos + 1;
+// 		}
+// 		request.rawRequest.erase(0, headerEnd + 4);
+
+// 		//	TODO:	After we parsed the body header we might want to set a State
+// 		//			same as just above when we find the filename.
+// 		//			we might want to discuss the approach on how to buffer recv
+// 		//			files and multi files
+// 		if (request.parsingState != Request::ParsingState::FORM_DATA) {
+// 			// here we return INVALID because we expect to find a filename
+// 			request.parsingState = Request::ParsingState::INVALID;
+// 		}
+// 		return;
+// 	}
+
+// 	//	TODO:	this state change is from before parsing Body - we need to
+// 	//			keep track and update it accordingly
+// 	request.parsingState = Request::ParsingState::COMPLETE;
+// }
 
 bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
 {
@@ -472,6 +468,7 @@ bool	RequestParser::validateOptionalHeaderFields(Request& request)
 			request.parsingState = Request::ParsingState::INVALID;
 			return false;
 		}
+		request.isChunkedTransfer = true;
 	}
 
 	return true;
