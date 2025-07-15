@@ -7,7 +7,6 @@ Request::Request(std::vector<ServerBlock>& _serverBlocks)
 		doneReceiving(false),
 		method(HTTP::Method::GET),
 		errorStatusCode(std::nullopt),
-		storeBodyInFile(false),
 		serverBlocks(_serverBlocks),
 		resolvedServerBlock(nullptr),
 		resolvedLocationBlock(nullptr),

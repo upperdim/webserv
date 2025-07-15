@@ -20,11 +20,7 @@ void ClientConnection::receiveRequest()
 	LOG(bytesRead << " bytes read");
 
 	if (bytesRead > 0) {
-		if (request.storeBodyInFile) {
-			// append to temp file
-		} else {
-			request.rawRequest.append(buffer, bytesRead);
-		}
+		request.rawRequest.append(buffer, bytesRead);
 		RequestParser::parseNext(request);
 		
 		buffer[bytesRead] = '\0';

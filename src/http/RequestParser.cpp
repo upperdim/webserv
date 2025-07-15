@@ -108,11 +108,6 @@ void	RequestParser::parseHeader(Request& request)
 	if (!resolveRequestContext(request))
 		return;
 
-	if ((request.contentLength.has_value() && request.contentLength.value() > REQUEST_BODY_SIZE_FILE_STORAGE_TRESHOLD)
-		|| request.isChunkedBodyTransfer) {
-		request.storeBodyInFile = true;
-	}
-
 	request.parsingState = Request::ParsingState::BODY;
 }
 
@@ -127,20 +122,14 @@ void	RequestParser::parseBody(Request& request)
 
 void	RequestParser::parseContentLengthBody(Request& request)
 {
-	if (request.storeBodyInFile) {
-		// If body is stored in a temporary file
-		
-
-	} else {
-		// If body is stored in memory in a string
-
-		if (request.rawRequest.size() < request.contentLength.value()) {
-			return; // Body is not fully received yet
-		}
-
-		request.body = request.rawRequest.substr(0, request.contentLength.value());
-		request.parsingState = Request::ParsingState::COMPLETE;
-	}
+	(void) request;
+	
+	// If body is stored in memory in a string
+	// if (request.rawRequest.size() < request.contentLength.value()) {
+	// 	return; // Body is not fully received yet
+	// }
+	// request.body = request.rawRequest.substr(0, request.contentLength.value());
+	// request.parsingState = Request::ParsingState::COMPLETE;
 }
 
 void	RequestParser::parseChunkedTransferBody(Request& request)

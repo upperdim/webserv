@@ -34,8 +34,6 @@ public:
 	std::string										requestTarget;
 	std::string										protokoll;
 	std::unordered_map<std::string, std::string>	headers;
-	bool											storeBodyInFile;
-	std::string										body; // Used only if storeBodyInFile is false
 
 	std::vector<ServerBlock>& 						serverBlocks;
 
