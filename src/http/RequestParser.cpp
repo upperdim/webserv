@@ -113,10 +113,11 @@ void	RequestParser::parseHeader(Request& request)
 
 void	RequestParser::parseBody(Request& request)
 {
-	// If target URI is not a CGI script and it's not a file upload
-	if (!RequestHandler::isCGIRequest(request) 
-	&& (!request.contentType.has_value() 
-	|| request.contentType.value().type != HTTP::ContentType::MULTIPART_FORM_DATA)) {
+	// For POST requests, if target URI is not a CGI script and it's not a file upload
+	if (request.method == HTTP::Method::POST
+	    &&!RequestHandler::isCGIRequest(request) 
+	    && (!request.contentType.has_value() 
+	    || request.contentType.value().type != HTTP::ContentType::MULTIPART_FORM_DATA)) {
 		// Invalid request (we only support file uploads to any location, or any content type at CGI targets)
 		request.errorStatusCode = WSSC_BAD_REQUEST;
 		request.parsingState = Request::ParsingState::INVALID;
