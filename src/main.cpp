@@ -1,9 +1,18 @@
 #include <csignal>
-#include "webserv.hpp"
 #include "Config.hpp"
 #include "Parser.hpp"
 #include "ServerEngine.hpp"
 #include "Log.hpp"
+
+void handleAbortSignal(int signum)
+{
+	(void) signum;
+
+	ServerEngine::isRunning = false;
+
+	std::cout << std::endl;
+	std::cout.flush();
+}
 
 Config parseConfig(std::string configFilePath, char *programName)
 {
@@ -42,8 +51,8 @@ int	main(int argc, char **argv)
 	std::string configFilePath = handleArgs(argc, argv);
 	Config config = parseConfig(configFilePath, argv[0]);
 
-	std::signal(SIGINT,  handleAbort);
-	std::signal(SIGQUIT, handleAbort);
+	std::signal(SIGINT,  handleAbortSignal);
+	std::signal(SIGQUIT, handleAbortSignal);
 
 	try {
 		ServerEngine serverEngine(config);

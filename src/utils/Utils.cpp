@@ -1,10 +1,7 @@
-#include "Utils.hpp"
-#include <iomanip>
-#include <sstream>
 #include <filesystem>
-#include <algorithm>
+#include <unistd.h>
+#include "Utils.hpp"
 #include "Log.hpp"
-#include "unistd.h"
 
 bool	Utils::isDirectory(const std::string& path)
 {
