@@ -113,6 +113,9 @@ void	RequestParser::parseHeader(Request& request)
 
 void	RequestParser::parseBody(Request& request)
 {
+	// If its not CGI and it's not a file upload
+	// Invalid request (we support file uploads anywhere or CGI targets with anything)
+
 	if (request.isChunkedBodyTransfer) {
 		parseChunkedTransferBody(request);
 	} else {
@@ -123,7 +126,7 @@ void	RequestParser::parseBody(Request& request)
 void	RequestParser::parseContentLengthBody(Request& request)
 {
 	(void) request;
-	
+
 	// If body is stored in memory in a string
 	// if (request.rawRequest.size() < request.contentLength.value()) {
 	// 	return; // Body is not fully received yet
