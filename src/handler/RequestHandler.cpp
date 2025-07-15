@@ -3,6 +3,7 @@
 #include "GetHandler.hpp"
 #include "PostHandler.hpp"
 #include "DeleteHandler.hpp"
+#include "Utils.hpp"
 
 void	RequestHandler::handle(Request& request, Response& response)
 {
@@ -91,3 +92,8 @@ void	RequestHandler::createErrorResponse(Response& response, int statusCode)
 	response.setBodyString(HTTP::getErrorPageTemplate(statusCode));
 }
 
+bool	RequestHandler::isCGIRequest(const Request& request)
+{
+	return !request.resolvedLocationBlock->cgiExtension.empty() 
+	       && Utils::endsWith(request.URI, request.resolvedLocationBlock->cgiExtension);
+}

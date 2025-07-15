@@ -2,6 +2,7 @@
 #include <sstream>
 #include <algorithm>
 #include "HTTP.hpp"
+#include "RequestHandler.hpp"
 #include "Validator.hpp"
 #include "Log.hpp"
 #include "Utils.hpp"
@@ -112,8 +113,15 @@ void	RequestParser::parseHeader(Request& request)
 
 void	RequestParser::parseBody(Request& request)
 {
-	// If its not CGI and it's not a file upload
-	// Invalid request (we support file uploads anywhere or CGI targets with anything)
+	// If target URI is not a CGI script and it's not a file upload
+	if (!RequestHandler::isCGIRequest(request) 
+	&& (!request.contentType.has_value() 
+	|| request.contentType.value().type != HTTP::ContentType::MULTIPART_FORM_DATA)) {
+		// Invalid request (we only support file uploads to any location, or any content type at CGI targets)
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
+		return;
+	}
 
 	if (request.isChunkedBodyTransfer) {
 		parseChunkedTransferBody(request);
