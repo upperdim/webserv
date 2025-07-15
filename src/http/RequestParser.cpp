@@ -132,17 +132,18 @@ void	RequestParser::parseContentLengthBody(Request& request)
 	} else {
 		// If body is stored in memory in a string
 
-		if (recvBuffer.size() < request.contentLength.value()) {
+		if (request.rawRequest.size() < request.contentLength.value()) {
 			return; // Body is not fully received yet
 		}
 
-		request.body = recvBuffer.substr(0, contentLength);
-		request.parsingState = Request::ParsingState::COMPLETED;
+		request.body = request.rawRequest.substr(0, request.contentLength.value());
+		request.parsingState = Request::ParsingState::COMPLETE;
 	}
 }
 
 void	RequestParser::parseChunkedTransferBody(Request& request)
 {
+	(void) request;
 	// request.storeBodyInFile is expected to be true if it's a chunked body
 	// TODO: Implement
 }
