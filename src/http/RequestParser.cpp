@@ -112,6 +112,8 @@ void	RequestParser::parseHeader(Request& request)
 		|| request.isChunkedBodyTransfer) {
 		request.storeBodyInFile = true;
 	}
+
+	request.parsingState = Request::ParsingState::BODY;
 }
 
 void	RequestParser::parseBody(Request& request)
