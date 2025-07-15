@@ -113,25 +113,31 @@ void	RequestParser::parseHeader(Request& request)
 
 void	RequestParser::parseBody(Request& request)
 {
-	// For POST requests, if target URI is not a CGI script and it's not a file upload
-	if (request.method == HTTP::Method::POST
-	    &&!RequestHandler::isCGIRequest(request) 
-	    && (!request.contentType.has_value() 
-	    || request.contentType.value().type != HTTP::ContentType::MULTIPART_FORM_DATA)) {
-		// Invalid request (we only support file uploads to any location, or any content type at CGI targets)
-		request.errorStatusCode = WSSC_BAD_REQUEST;
-		request.parsingState = Request::ParsingState::INVALID;
+	// We support any kind of (content type) request body on CGI script target URIs
+	if (RequestHandler::isCGIRequest(request)) {
+		// We still need to unchunk them before passing it to the script
+		if (request.isChunkedBodyTransfer) {
+			storeChunkedTransferBody(request);
+		} else {
+			storeContentLengthBody(request);
+		}
+
 		return;
 	}
-
-	if (request.isChunkedBodyTransfer) {
-		parseChunkedTransferBody(request);
-	} else {
-		parseContentLengthBody(request);
+	
+	// We support file upload request bodies on everywhere
+	if (isFileUploadRequest(request)) {
+		// TODO: TBD
+		return;
 	}
+	
+	// We don't support any other type of request body
+	request.errorStatusCode = WSSC_BAD_REQUEST;
+	request.parsingState = Request::ParsingState::INVALID;
+	return;
 }
 
-void	RequestParser::parseContentLengthBody(Request& request)
+void	RequestParser::storeContentLengthBody(Request& request)
 {
 	(void) request;
 
@@ -143,7 +149,7 @@ void	RequestParser::parseContentLengthBody(Request& request)
 	// request.parsingState = Request::ParsingState::COMPLETE;
 }
 
-void	RequestParser::parseChunkedTransferBody(Request& request)
+void	RequestParser::storeChunkedTransferBody(Request& request)
 {
 	(void) request;
 	// request.storeBodyInFile is expected to be true if it's a chunked body
@@ -235,6 +241,12 @@ void	RequestParser::parseChunkedTransferBody(Request& request)
 // 	//			keep track and update it accordingly
 // 	request.parsingState = Request::ParsingState::COMPLETE;
 // }
+
+bool	RequestParser::isFileUploadRequest(const Request& request)
+{
+	return request.contentType.has_value()
+	&& request.contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA;
+}
 
 bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
 {

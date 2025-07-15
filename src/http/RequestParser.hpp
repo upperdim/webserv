@@ -16,9 +16,9 @@ private:
 	static void					parseRequestLine(Request& request);
 	static void					parseHeader(Request& request);
 	static void					parseBody(Request& request);
-	static void					parseContentLengthBody(Request& request);
-	static void					parseChunkedTransferBody(Request& request);
-	static void					parseFormDataPart(Request& request);
+	static bool					isFileUploadRequest(const Request& request);
+	static void					storeContentLengthBody(Request& request);
+	static void					storeChunkedTransferBody(Request& request);
 
 	static bool					validateHttpMethod(std::string& methodStr, Request& request);
 	static bool					validateRequestTarget(Request& request);
