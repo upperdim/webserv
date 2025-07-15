@@ -14,8 +14,7 @@ ClientConnection::ClientConnection(int fd, ServerSocket& _connectedServerSocket)
 void ClientConnection::receiveRequest()
 {
 	LOG("Reading from ClientConnection fd = " << fd);
-
-	char buffer[RECV_BUFFER_SIZE];
+	char buffer[RECV_BUFFER_SIZE] = {0};
 	ssize_t bytesRead = recv(fd, &buffer, RECV_BUFFER_SIZE - 1, 0);
 	LOG(bytesRead << " bytes read");
 

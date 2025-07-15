@@ -66,16 +66,15 @@ void ServerEngine::run()
 	isRunning = true;
 
 	while (isRunning) {
-		if (pollFds.empty()) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(EMPTY_POLLFDS_SLEEP_TIME_MS));
-		}
+		if (!pollFds.empty()) {
+			int eventCount = poll(pollFds.data(), pollFds.size(), POLL_TIMEOUT_MS);
+			if (eventCount == -1 && isRunning) {
+				throw std::runtime_error("poll() error");
+			}
 
-		int eventCount = poll(pollFds.data(), pollFds.size(), POLL_TIMEOUT_MS);
-		if (eventCount == -1 && isRunning) {
-			throw std::runtime_error("poll() error");
+			iteratePollFds(eventCount);
 		}
 		
-		iteratePollFds(eventCount);
 		updatePollFds();
 	}
 

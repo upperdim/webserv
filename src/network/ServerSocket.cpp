@@ -61,7 +61,7 @@ void ServerSocket::setupSocket(ServerBlock defaultServerBlock)
 		throw std::runtime_error("listen() to " + hostAndPort + "failed.");
 	}
 
-	LOGT(Log::INFO, "Server created with fd = " << fd << ". Listening at " << hostAndPort);
+	LOGT(Log::INFO, "ServerSocket created with fd = " << fd << ". Listening at " << hostAndPort);
 }
 
 int          ServerSocket::getFd()             { return fd; }

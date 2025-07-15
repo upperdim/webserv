@@ -4,10 +4,14 @@
 #include <string>
 #include <fstream>
 #include <utility>
-#include "webserv.hpp"
 #include "Request.hpp"
 #include "FileBufferReader.hpp"
 #include "HTTP.hpp"
+
+// A good default RESPONSE_BUFFER_SIZE seams to be 64kb - 128kb
+#define RESPONSE_BUFFER_SIZE (64 * 1024)
+
+typedef std::unordered_map<std::string, std::string> HeaderMap;
 
 class Response
 {

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "RequestHandler.hpp"
 #include "GetHandler.hpp"
 #include "PostHandler.hpp"

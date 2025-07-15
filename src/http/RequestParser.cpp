@@ -5,7 +5,6 @@
 #include "Validator.hpp"
 #include "Log.hpp"
 #include "Utils.hpp"
-#include "webserv.hpp"
 
 void	RequestParser::parseNext(Request& request)
 {
@@ -279,7 +278,7 @@ bool	RequestParser::validateRequestTarget(Request& request)
 		return false;
 	}
 
-	if (request.URI.size() > MAX_URI_LENGTH) {
+	if (request.URI.size() > REQUEST_MAX_URI_LENGTH) {
 		request.errorStatusCode = WSSC_URI_TOO_LONG;
 		request.parsingState = Request::ParsingState::INVALID;
 		return false;
