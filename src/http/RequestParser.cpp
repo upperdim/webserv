@@ -465,7 +465,14 @@ bool	RequestParser::validateOptionalHeaderFields(Request& request)
 	// check content-type
 	it = request.headers.find("content-type");
 	if (it != request.headers.end()) {
-		request.contentType = HTTP::getContentTypeInfo(it->second);
+		bool error = false;
+		request.contentType = HTTP::getContentTypeInfo(it->second, error);
+		if (error) {
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
+			return false;
+		}
+
 		if (request.contentType.has_value()) {
 			const HTTP::ContentTypeInfo_t& contentType = request.contentType.value();
 			std::string boundary = contentType.boundary.value_or("");

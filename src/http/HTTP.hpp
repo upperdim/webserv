@@ -83,16 +83,7 @@ public:
 	enum class ContentType
 	{
 		MULTIPART_FORM_DATA,
-		APPLICATION_FORM_URLENCODED,
-		APPLICATION_OCTET_STREAM,
-		APPLICATION_JSON,
-		// FORM_URLENCODED,
-		TEXT_PLAIN,
-		TEXT_HTML,
-		TEXT_JAVASCRIPT,
-		TEXT_CSS,
-		// TEXT_MARKDOWN,
-		UNKNOWN
+		APPLICATION_FORM_URLENCODED
 	};
 
 	typedef struct s_ContentTypeInfo
@@ -106,7 +97,7 @@ public:
 
 	static std::string			getStatusMessage(int _status_code);
 	static std::string			getMimeType(const std::string& path);
-	static ContentTypeInfo_t	getContentTypeInfo(const std::string& fieldValue);
+	static ContentTypeInfo_t	getContentTypeInfo(const std::string& fieldValue, bool& error);
 	static std::string			getErrorPageTemplate(const int& status_code);
 	static bool					isValidStatusCode(int& statusCode);
 	static std::string			methodToString(const HTTP::Method& method);
