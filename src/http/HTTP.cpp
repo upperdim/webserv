@@ -172,33 +172,25 @@ std::string	HTTP::getMimeType(const std::string& path)
 	return ( it != m_mime_types.end() ? it->second : std::string("application/octet-stream") );
 }
 
-HTTP::ContentTypeInfo_t	HTTP::getContentTypeInfo(const std::string& fieldValue)
+HTTP::ContentTypeInfo_t	HTTP::getContentTypeInfo(const std::string& fieldValue, bool& error)
 {
 	HTTP::ContentTypeInfo_t ctInfo;
 	size_t pos;
 
+	ctInfo.raw = fieldValue;
 	if ((pos = fieldValue.find("multipart/form-data")) != std::string::npos) {
 		ctInfo.type = HTTP::ContentType::MULTIPART_FORM_DATA;
-		if ((pos = fieldValue.find("boundary=")) != std::string::npos)
+		if ((pos = fieldValue.find("boundary=")) != std::string::npos) {
 			ctInfo.boundary = fieldValue.substr(pos + 9);
+		} else {
+			error = true;
+		}
 	} else if ((pos = fieldValue.find("application/x-www-form-urlencoded")) != std::string::npos) {
 		ctInfo.type = HTTP::ContentType::APPLICATION_FORM_URLENCODED;
-	} else if ((pos = fieldValue.find("application/octet-stream")) != std::string::npos) {
-		ctInfo.type = HTTP::ContentType::APPLICATION_OCTET_STREAM;
-	} else if ((pos = fieldValue.find("application/json")) != std::string::npos) {
-		ctInfo.type = HTTP::ContentType::APPLICATION_JSON;
-	} else if ((pos = fieldValue.find("text/plain")) != std::string::npos) {
-		ctInfo.type = HTTP::ContentType::TEXT_PLAIN;
-	} else if ((pos = fieldValue.find("text/html")) != std::string::npos) {
-		ctInfo.type = HTTP::ContentType::TEXT_HTML;
-	} else if ((pos = fieldValue.find("text/javascript")) != std::string::npos) {
-		ctInfo.type = HTTP::ContentType::TEXT_JAVASCRIPT;
-	} else if ((pos = fieldValue.find("text/css")) != std::string::npos) {
-		ctInfo.type = HTTP::ContentType::TEXT_CSS;
 	} else {
-		ctInfo.type = HTTP::ContentType::UNKNOWN;
+		error = true;
 	}
-	ctInfo.raw = fieldValue;
+
 	return ctInfo;
 }
 
