@@ -108,14 +108,37 @@ void	RequestParser::parseHeader(Request& request)
 	if (!resolveRequestContext(request))
 		return;
 
+	if (hasBody(request)) {
+		// TODO: Confirm the assumption that rawRequest will be empty when we are here
+		// We will keep streaming received bytes in rawRequest into the tmp file 
+		
+		// Open temp file to store the body
+		char tmpName[] = "/tmp/webserv_body_XXXXXX";
+		int fd = mkstemp(tmpName);
+		if (fd == -1) {
+			// TODO: Handle error
+		}
+		request.bodyTempFilename = tmpName;
+
+		request.bodyFile.open(tmpName, std::ios::binary);
+		if (!request.bodyFile.is_open()) {
+			// TODO: Handle error
+		}
+	}
+
 	request.parsingState = Request::ParsingState::BODY;
 }
 
 void	RequestParser::parseBody(Request& request)
 {
-	// We support any kind of (content type) request body on CGI script target URIs
+	if (!hasBody) {
+		request.parsingState = Request::ParsingState::COMPLETE;
+		return;
+	}
+
+	// We support any kind of (content type) request body for requests which target CGI script URIs
 	if (RequestHandler::isCGIRequest(request)) {
-		// We still need to unchunk them before passing it to the script
+		// We still need to unchunk the body before passing it to the script
 		if (request.isChunkedBodyTransfer) {
 			storeChunkedTransferBody(request);
 		} else {
@@ -128,32 +151,89 @@ void	RequestParser::parseBody(Request& request)
 	// We support file upload request bodies on everywhere
 	if (isFileUploadRequest(request)) {
 		// TODO: TBD
+		// Can still be content-length or chunked
 		return;
 	}
 	
 	// We don't support any other type of request body
 	request.errorStatusCode = WSSC_BAD_REQUEST;
 	request.parsingState = Request::ParsingState::INVALID;
-	return;
 }
 
 void	RequestParser::storeContentLengthBody(Request& request)
 {
-	(void) request;
+	size_t remaining = request.contentLength.value() - request.bodyBytesReceived;
+	size_t toWrite = std::min(remaining, request.rawRequest.size());
 
-	// If body is stored in memory in a string
-	// if (request.rawRequest.size() < request.contentLength.value()) {
-	// 	return; // Body is not fully received yet
-	// }
-	// request.body = request.rawRequest.substr(0, request.contentLength.value());
-	// request.parsingState = Request::ParsingState::COMPLETE;
+	// Write to file
+	request.bodyFile.write(request.rawRequest.data(), toWrite);
+	request.bodyBytesReceived += toWrite;
+
+	// Remove written bytes from buffer
+	request.rawRequest.erase(0, toWrite);
+
+	if (request.bodyBytesReceived >= request.contentLength) {
+		request.bodyFile.close();
+		request.parsingState = Request::ParsingState::COMPLETE;
+	}
 }
 
 void	RequestParser::storeChunkedTransferBody(Request& request)
 {
-	(void) request;
-	// request.storeBodyInFile is expected to be true if it's a chunked body
-	// TODO: Implement
+	while (!request.rawRequest.empty()) {
+		if (request.awaitingChunkSize) {
+			// Look for chunk size line ending in \r\n
+			size_t pos = request.rawRequest.find("\r\n");
+			if (pos == std::string::npos) {
+				// Wait for more data
+				return;
+			}
+
+			std::string chunkSizeStr = request.rawRequest.substr(0, pos);
+			std::stringstream ss;
+			ss << std::hex << chunkSizeStr;
+			ss >> request.currentChunkSize;
+
+			request.rawRequest.erase(0, pos + 2);  // Remove chunk size line + \r\n
+
+			if (request.currentChunkSize == 0) {
+				// Last chunk
+				size_t trailerEnd = request.rawRequest.find("\r\n");
+				if (trailerEnd != std::string::npos) {
+					request.parsingState = Request::ParsingState::COMPLETE;
+					request.bodyFile.close();
+				}
+				return;
+			}
+
+			request.awaitingChunkSize = false;
+			request.currentChunkBytesReceived = 0;
+		}
+
+		// Calculate how many bytes we can write now
+		size_t remainingChunkBytes = request.currentChunkSize - request.currentChunkBytesReceived;
+		size_t bytesAvailable = request.rawRequest.size();
+
+		// If enough bytes available for full chunk
+		if (bytesAvailable >= remainingChunkBytes + 2) {
+			// Write chunk data
+			request.bodyFile.write(request.rawRequest.data(), remainingChunkBytes);
+			request.currentChunkBytesReceived += remainingChunkBytes;
+
+			// Skip chunk data + trailing \r\n
+			request.rawRequest.erase(0, remainingChunkBytes + 2);
+
+			// Ready to read next chunk size
+			request.awaitingChunkSize = true;
+		} else {
+			// Not enough data yet
+			size_t toWrite = std::min(remainingChunkBytes, bytesAvailable);
+			request.bodyFile.write(request.rawRequest.data(), toWrite);
+			request.currentChunkBytesReceived += toWrite;
+			request.rawRequest.erase(0, toWrite);
+			return;  // Wait for more data
+		}
+	}
 }
 
 // void	RequestParser::oldParseBody(Request& request)
@@ -241,6 +321,11 @@ void	RequestParser::storeChunkedTransferBody(Request& request)
 // 	//			keep track and update it accordingly
 // 	request.parsingState = Request::ParsingState::COMPLETE;
 // }
+
+bool	RequestParser::hasBody(const Request& request)
+{
+	return request.contentLength.has_value() || request.isChunkedBodyTransfer;
+}
 
 bool	RequestParser::isFileUploadRequest(const Request& request)
 {
