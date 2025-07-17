@@ -353,9 +353,9 @@ bool	RequestParser::isValidFieldValueChar(const char c)
 bool	RequestParser::validateRequiredHeaderFields(Request& request)
 {
 	// check content-length if available on valid field-value
-	auto it = request.headers.find("content-length");
-	if (it != request.headers.end()) {
-		const std::string contentLengthStr = it->second;
+	auto itCL = request.headers.find("content-length");
+	if (itCL != request.headers.end()) {
+		const std::string contentLengthStr = itCL->second;
 		for (auto& c : contentLengthStr) {
 			if (!std::isdigit(c)) {
 				request.errorStatusCode = WSSC_BAD_REQUEST;
@@ -382,15 +382,22 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 	}
 
 	// check transfer-encoding
-	it = request.headers.find("transfer-encoding");
-	if (it != request.headers.end()) {
+	auto itTE = request.headers.find("transfer-encoding");
+	if (itTE != request.headers.end()) {
 		//	INFO:	here we only allow "transfer-encoding:chunked"
 		//			we could accept "transfer-encoding:gzip, chunked, deflate"
-		if (it->second != "chunked") {
+		if (itTE->second != "chunked") {
 			request.errorStatusCode = WSSC_NOT_IMPLEMENTED;
 			request.parsingState = Request::ParsingState::INVALID;
 			return false;
 		}
+	}
+
+	// check that we only allow one: content_length || transfer-encoding
+	if (itCL != request.headers.end() && itTE != request.headers.end()) {
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
+		return false;
 	}
 
 	return true;
