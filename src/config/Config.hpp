@@ -28,6 +28,7 @@ public:
 	size_t 						clientMaxBodySize = std::numeric_limits<size_t>::max();	//	::	client_max_body_size
 	std::string					index;				//	::	index
 	std::string					root;				//	::	root
+	std::map<int, std::string>	errorPagePaths;		//	::	error_page
 };
 
 class ServerBlock

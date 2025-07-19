@@ -66,8 +66,8 @@ bool	RequestHandler::isAllowedMethod(const Request& request)
 
 void	RequestHandler::createErrorResponse(const Request& request, Response& response, int statusCode)
 {
-	auto itEP = request.resolvedServerBlock->errorPagePaths.find(statusCode);
-	if (itEP != request.resolvedServerBlock->errorPagePaths.end()) {
+	auto itEP = request.resolvedLocationBlock->errorPagePaths.find(statusCode);
+	if (itEP != request.resolvedLocationBlock->errorPagePaths.end()) {
 
 		if (!Utils::isDirectory(itEP->second)) {
 			if (Utils::fileExists(itEP->second)) {
