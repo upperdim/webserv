@@ -548,7 +548,7 @@ bool	RequestParser::validateOptionalHeaderFields(Request& request)
 	}
 
 	// check content-type
-	it = request.headers.find("content-type");
+	auto it = request.headers.find("content-type");
 	if (it != request.headers.end()) {
 		bool error = false;
 		request.contentType = HTTP::getContentTypeInfo(it->second, error);

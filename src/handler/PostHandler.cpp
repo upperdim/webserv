@@ -7,7 +7,7 @@ void	PostHandler::handle(const Request& request, Response& response)
 	LOGC("HTTP_METHOD_HANDLER", "-> handle POST Request", LIGHTMAGENTA, LIGHTCYAN);
 
 	if (!Utils::isDirectory(request.resolvedPath)) {
-		createErrorResponse(response, WSSC_METHOD_NOT_ALLOWED);
+		createErrorResponse(request, response, WSSC_METHOD_NOT_ALLOWED);
 		return;
 	}
 
@@ -15,7 +15,7 @@ void	PostHandler::handle(const Request& request, Response& response)
 		return;
 
 	if (!Utils::hasPermission(request.resolvedPath, W_OK)) {
-		createErrorResponse(response, WSSC_FORBIDDEN);
+		createErrorResponse(request, response, WSSC_FORBIDDEN);
 		return;
 	}
 
