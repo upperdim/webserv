@@ -131,7 +131,7 @@ void	RequestParser::parseHeader(Request& request)
 
 void	RequestParser::parseBody(Request& request)
 {
-	if (!hasBody) {
+	if (!hasBody(request)) {
 		request.parsingState = Request::ParsingState::COMPLETE;
 		return;
 	}

@@ -1,9 +1,10 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-#include <string>
 #include <unordered_map>
 #include <optional>
+#include <fstream>
+#include <string>
 #include "HTTP.hpp"
 #include "Config.hpp"
 
@@ -41,9 +42,9 @@ public:
 	size_t											bodyBytesReceived;
 	// Chunked transfer
 	bool											isChunkedBodyTransfer;
-	size_t											currentChunkSize = 0;
-	size_t											currentChunkBytesReceived = 0;
-	bool											awaitingChunkSize = true;
+	size_t											currentChunkSize;
+	size_t											currentChunkBytesReceived;
+	bool											awaitingChunkSize;
 
 	std::vector<ServerBlock>& 						serverBlocks;
 

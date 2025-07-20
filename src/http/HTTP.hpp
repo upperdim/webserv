@@ -67,6 +67,7 @@
 #define	WSSC_NOT_EXTENDED						510
 #define	WSSC_NETWORK_AUTHENTICATION_REQUIRED	511
 
+#include <optional>
 #include <string>
 #include <map>
 

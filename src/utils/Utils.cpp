@@ -1,5 +1,6 @@
 #include <unordered_set>
 #include <filesystem>
+#include <algorithm>
 #include <unistd.h>
 #include "Utils.hpp"
 #include "Log.hpp"
