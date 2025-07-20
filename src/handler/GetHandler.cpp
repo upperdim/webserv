@@ -13,7 +13,7 @@ void	GetHandler::handle(const Request& request, Response& response)
 			return;
 
 		if (!Utils::hasPermission(request.resolvedPath, R_OK)) {
-			createErrorResponse(response, WSSC_FORBIDDEN);
+			createErrorResponse(request, response, WSSC_FORBIDDEN);
 			return;
 		}
 
@@ -22,7 +22,7 @@ void	GetHandler::handle(const Request& request, Response& response)
 		if (Utils::fileExists(indexedResource)) {
 			// check permission to serve the index
 			if (!Utils::hasPermission(indexedResource, R_OK)) {
-				createErrorResponse(response, WSSC_FORBIDDEN);
+				createErrorResponse(request, response, WSSC_FORBIDDEN);
 				return;
 			}
 
@@ -41,7 +41,7 @@ void	GetHandler::handle(const Request& request, Response& response)
 		}
 
 		// we dont have indexedResource and no autoIndex -> Forbidden
-		createErrorResponse(response, WSSC_FORBIDDEN);
+		createErrorResponse(request, response, WSSC_FORBIDDEN);
 		return;
 	}
 
@@ -52,23 +52,23 @@ void	GetHandler::handle(const Request& request, Response& response)
 
 	// does the directory of the file exist and do we have permissions for the directory
 	if (!Utils::isDirectory(resourceDir)) {
-		createErrorResponse(response, WSSC_NOT_FOUND);
+		createErrorResponse(request, response, WSSC_NOT_FOUND);
 		return;
 	}
 
 	if (!Utils::hasPermission(resourceDir, R_OK)) {
-		createErrorResponse(response, WSSC_FORBIDDEN);
+		createErrorResponse(request, response, WSSC_FORBIDDEN);
 		return;
 	}
 
 	// does the resource exist and do we have permissons
 	if (!Utils::fileExists(request.resolvedPath)) {
-		createErrorResponse(response, WSSC_NOT_FOUND);
+		createErrorResponse(request, response, WSSC_NOT_FOUND);
 		return;
 	}
 
 	if (!Utils::hasPermission(request.resolvedPath, R_OK)) {
-		createErrorResponse(response, WSSC_FORBIDDEN);
+		createErrorResponse(request, response, WSSC_FORBIDDEN);
 		return;
 	}
 	// fetch content

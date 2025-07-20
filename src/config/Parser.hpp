@@ -57,7 +57,7 @@ private:
 
 	void			parseListenDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
 	void			parseServerNameDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
-	void			parseErrorPageDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server);
+	void			parseErrorPageDirective(const Token& directive, std::vector<const Token*>& params, std::map<int, std::string>& errorPagePaths);
 	void			parseAllowMethodsDirective(const Token& directive, std::vector<const Token*>& params, LocationBlock& location);
 	void			parseReturnDirective(const Token& directive, std::vector<const Token*>& params, std::string& target);
 	void			parseClientMaxBodySizeDirective(const Token& directive, std::vector<const Token*>& params, size_t& value);
@@ -68,7 +68,7 @@ private:
 
 	// rules and checks
 	void			setFallbacks(Config& config);
-	void			checksServerBlocksAndSetsdefaults(Config& config);
+	void			checksServerBlocksAndSetsDefaults(Config& config);
 
 	// utils
 	std::string		readFile(const std::string& filename);

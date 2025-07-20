@@ -14,7 +14,7 @@ protected:
 	static bool	handleIfRedirect(const Request& request, Response& response);
 	static bool	redirectOnMissingTrailingSlasch(const Request& request, Response& response);
 	static bool	isAllowedMethod(const Request& request);
-	static void	createErrorResponse(Response& response, int statusCode);
+	static void	createErrorResponse(const Request& request, Response& response, int statusCode);
 };
 
 #endif
