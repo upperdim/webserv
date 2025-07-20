@@ -8,9 +8,6 @@
 #include "HTTP.hpp"
 #include "Config.hpp"
 
-// Store request body in a temp file if it is bigger than this many bytes
-#define REQUEST_BODY_SIZE_FILE_STORAGE_TRESHOLD	(10 * 1024)
-
 class Request
 {
 public:
