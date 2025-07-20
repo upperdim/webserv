@@ -79,72 +79,44 @@ const std::map<std::string, std::string>	HTTP::m_mime_types = {
 	{".json", "application/json"}
 };
 
-// const std::string	HTTP::m_error_page_template = {
-// "<!DOCTYPE html>"
-// "<html lang=\"en\">"
-// "<head>"
-// "	<meta charset=\"UTF-8\">"
-// "	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-// "	<title>{{STATUS_CODE}} - {{REASON_PHRASE}}</title>"
-// "</head>"
-// "<body style=\"background-color: oklch(0.145 0 0); font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; line-height: 100%;\">"
-// "	<div style=\"display: flex; justify-content: center; align-items: center; width: 100%; height: 100vh;\">"
-// "		<div>"
-// "			<h2 style=\"display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0; padding: 0 1em; color: oklch(0.841 0.238 128.85); font-weight: 300; text-align: center;\">webserv</h2>"
-// "			<div style=\"display: flex; flex-direction: column; justify-content: center; align-items: center;\">"
-// "				<div style=\"display: block; margin: 1em 0; width:100%; height: 1px; border-top-style: solid; border-top-width: 1px; border-color: oklch(0.205 0 0);\"></div>"
-// "				<div style=\"display: flex; flex-direction: row;\">"
-// "					<div style=\"display: inline-block; padding: 0 0.35em; color: oklch(0.656 0.241 354.308); font-weight: 700;\">{{STATUS_CODE}}</div>"
-// "					<div style=\"display: inline-block; padding: 0 0.35em; color: oklch(0.823 0.12 346.018); font-weight: 300;\">{{REASON_PHRASE}}</div>"
-// "				</div>"
-// "				{{TEAPOT}}"
-// "			</div>"
-// "		</div>"
-// "	</div>"
-// "</body>"
-// "</html>"
-// };
+const std::string	HTTP::m_error_page_template = {R"(
+<html>
+<head><title>{{STATUS_CODE}} - {{REASON_PHRASE}}</title></head>
+<body style="display: flex; flex-direction: column; align-items: center; margin-top: 2em; background-color: oklch(0.145 0 0); font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; line-height: 100%; text-align: center;">
+	<h2 style="display: flex; flex-direction: row; margin: 0;">
+		<div style="display: block; margin: 0 0.25em; color: oklch(0.656 0.241 354.308); font-weight: 700;">{{STATUS_CODE}}</div>
+		<div style="display: block; margin: 0 0.25em; color: oklch(0.823 0.12 346.018); font-weight: 300; ">{{REASON_PHRASE}}</div>
+	</h2>
+	<div style="display: block; margin: 1em 0; width:50%; height: 1px; border-top-style: solid; border-top-width: 1px; border-color: oklch(0.205 0 0);"></div>
+	<div style="color: oklch(0.841 0.238 128.85); font-weight: 300;">
+		webserv
+	</div>
+	{{TEAPOT}}
+</body>
+</html>)"};
 
-const std::string	HTTP::m_error_page_template = {
-"<html>"
-"<head><title>{{STATUS_CODE}} - {{REASON_PHRASE}}</title></head>"
-"<body style=\"display: flex; flex-direction: column; align-items: center; margin-top: 2em; background-color: oklch(0.145 0 0); font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; line-height: 100%; text-align: center;\">"
-"	<h2 style=\"display: flex; flex-direction: row; margin: 0;\">"
-"		<div style=\"display: block; margin: 0 0.25em; color: oklch(0.656 0.241 354.308); font-weight: 700;\">{{STATUS_CODE}}</div>"
-"		<div style=\"display: block; margin: 0 0.25em; color: oklch(0.823 0.12 346.018); font-weight: 300; \">{{REASON_PHRASE}}</div>"
-"	</h2>"
-"	<div style=\"display: block; margin: 1em 0; width:50%; height: 1px; border-top-style: solid; border-top-width: 1px; border-color: oklch(0.205 0 0);\"></div>"
-"	<div style=\"color: oklch(0.841 0.238 128.85); font-weight: 300;\">"
-"		webserv"
-"	</div>"
-"	{{TEAPOT}}"
-"</body>"
-"</html>"
-};
-
-const std::string	HTTP::m_teapot = {
-"<pre style=\"margin-top: 2rem; font-family: font-family: 'Courier New', Courier, monospace; font-size: .5em; color: oklch(0.269 0 0); user-select: none; text-align: left;\">"
-"                                                /<br>"
-"                                               /<br>"
-"                               xxX###xx       /<br>"
-"                                ::XXX        /<br>"
-"                         xxXX::::::###XXXXXx/#####<br>"
-"                    :::XXXXX::::::XXXXXXXXX/    ####<br>"
-"         xXXX//::::::://///////:::::::::::/#####    #         ##########<br>"
-"      XXXXXX//:::::://///xXXXXXXXXXXXXXXX/#    #######      ###   ###<br>"
-"     XXXX        :://///XXXXXXXXX######X/#######      #   ###    #<br>"
-"     XXXX        ::////XXXXXXXXX#######/ #     #      ####   #  #<br>"
-"      XXXX/:     ::////XXXXXXXXXX#####/  #     #########      ##<br>"
-"       \"\"XX//::::::////XXXXXXXXXXXXXX/###########     #       #<br>"
-"           \"::::::::////XXXXXXXXXXXX/    #     #     #      ##<br>"
-"                 ::::////XXXXXXXXXX/##################   ###<br>"
-"                     ::::://XXXXXX/#    #     #   #######<br>"
-"                         ::::::::/################<br>"
-"                                /<br>"
-"                               /<br>"
-"                              /"
-"</pre>"
-};
+const std::string	HTTP::m_teapot = {R"(
+<pre style="margin-top: 2rem; font-family: font-family: 'Courier New', Courier, monospace; font-size: .5em; color: oklch(0.269 0 0); user-select: none; text-align: left;">
+                                                /<br>
+                                               /<br>
+                               xxX###xx       /<br>
+                                ::XXX        /<br>
+                         xxXX::::::###XXXXXx/#####<br>
+                    :::XXXXX::::::XXXXXXXXX/    ####<br>
+         xXXX//::::::://///////:::::::::::/#####    #         ##########<br>
+      XXXXXX//:::::://///xXXXXXXXXXXXXXXX/#    #######      ###   ###<br>
+     XXXX        :://///XXXXXXXXX######X/#######      #   ###    #<br>
+     XXXX        ::////XXXXXXXXX#######/ #     #      ####   #  #<br>
+      XXXX/:     ::////XXXXXXXXXX#####/  #     #########      ##<br>
+       ""XX//::::::////XXXXXXXXXXXXXX/###########     #       #<br>
+           "::::::::////XXXXXXXXXXXX/    #     #     #      ##<br>
+                 ::::////XXXXXXXXXX/##################   ###<br>
+                     ::::://XXXXXX/#    #     #   #######<br>
+                         ::::::::/################<br>
+                                /<br>
+                               /<br>
+                              /
+</pre>)"};
 
 HTTP::~HTTP()
 {

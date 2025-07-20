@@ -1,23 +1,25 @@
+#include <unistd.h>	// R_OK
 #include <algorithm>
 #include "RequestHandler.hpp"
 #include "GetHandler.hpp"
 #include "PostHandler.hpp"
 #include "DeleteHandler.hpp"
+#include "Utils.hpp"
 
 void	RequestHandler::handle(Request& request, Response& response)
 {
 	if (request.errorStatusCode.has_value()) {
-		createErrorResponse(response, request.errorStatusCode.value());
+		createErrorResponse(request, response, request.errorStatusCode.value());
 		return;
 	}
 	
 	if (request.URI.empty()) {
-		createErrorResponse(response, WSSC_NOT_FOUND);
+		createErrorResponse(request, response, WSSC_NOT_FOUND);
 		return;
 	}
 	
 	if (!isAllowedMethod(request)) {
-		createErrorResponse(response, WSSC_FORBIDDEN);
+		createErrorResponse(request, response, WSSC_FORBIDDEN);
 		return;
 	}
 	
@@ -62,10 +64,32 @@ bool	RequestHandler::isAllowedMethod(const Request& request)
 		) != request.resolvedLocationBlock->allowMethods.end();
 }
 
-void	RequestHandler::createErrorResponse(Response& response, int statusCode)
+void	RequestHandler::createErrorResponse(const Request& request, Response& response, int statusCode)
 {
-	//	TODO:	reexamen this will we need it like that or can we reduce
-	//			the statusCode for exameple etc…
+	auto itEP = request.resolvedLocationBlock->errorPagePaths.find(statusCode);
+	if (itEP != request.resolvedLocationBlock->errorPagePaths.end()) {
+
+		if (!Utils::isDirectory(itEP->second)) {
+			if (Utils::fileExists(itEP->second)) {
+				if (Utils::hasPermission(itEP->second, R_OK)) {
+					response.setStatusCode(statusCode);
+
+					// get extension
+					std::string ext;
+					size_t pos = itEP->second.find_last_of(".");
+					if (pos != std::string::npos) {
+						ext = itEP->second.substr(pos);
+					}
+
+					response.addHeader("Content-Type", HTTP::getMimeType(ext));
+					response.setBodyFileBufferReader(itEP->second);
+					return;
+				}
+			}
+		}
+
+	}
+
 	response.setStatusCode(statusCode);
 	response.addHeader("Content-Type", HTTP::getMimeType(".html"));
 	response.setBodyString(HTTP::getErrorPageTemplate(statusCode));
