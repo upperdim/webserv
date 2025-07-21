@@ -7,6 +7,7 @@ Request::Request(std::vector<ServerBlock>& _serverBlocks)
 		doneReceiving(false),
 		method(HTTP::Method::GET),
 		errorStatusCode(std::nullopt),
+		bodyBytesStored(0),
 		isChunkedBodyTransfer(false),
 		currentChunkSize(0),
 		currentChunkBytesReceived(0),
