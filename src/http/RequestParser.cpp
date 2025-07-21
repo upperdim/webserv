@@ -1,8 +1,8 @@
 #include "RequestParser.hpp"
 #include <algorithm>
 #include <sstream>
-#include <fcntl.h>
-#include <unistd.h>
+#include <fcntl.h>  // open()
+#include <unistd.h> // close()
 #include "HTTP.hpp"
 #include "RequestHandler.hpp"
 #include "Validator.hpp"
@@ -112,28 +112,7 @@ void	RequestParser::parseHeader(Request& request)
 
 	if (hasBody(request)) {
 		// TODO: Confirm the assumption that rawRequest will be empty when we are here
-		// We will keep streaming received bytes in rawRequest into the tmp file
-		static int counter = 0;
-
-		std::time_t now = std::time(nullptr);
-	
-		std::ostringstream oss;
-		oss << "/Users/tunsal/Desktop/tunsal/42projects/webserv/tmp/webserv_body_" << now << "_" << counter++;
-		request.bodyTempFilename = oss.str();
-	
-		// 0600 = owner -> read write, group -> ---, others -> ---
-		int tmpFileFd = open(request.bodyTempFilename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
-		if (tmpFileFd == -1) {
-			LOGT(Log::ERROR, "open() failed");
-			request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
-			request.parsingState = Request::ParsingState::INVALID;
-			return;
-		}
-		close(tmpFileFd); // We will open it with ofstream
-	
-		request.bodyFile.open(request.bodyTempFilename, std::ios::binary);
-		if (!request.bodyFile.is_open()) {
-			LOGT(Log::ERROR, "open() failed");
+		if (!createTempBodyFile(request.bodyFile, request.bodyTempFilename)) {
 			request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
 			request.parsingState = Request::ParsingState::INVALID;
 			return;
@@ -517,6 +496,33 @@ bool	RequestParser::validateOptionalHeaderFields(Request& request)
 	if (itCL != request.headers.end() && itTE != request.headers.end()) {
 		request.errorStatusCode = WSSC_BAD_REQUEST;
 		request.parsingState = Request::ParsingState::INVALID;
+		return false;
+	}
+
+	return true;
+}
+
+bool	RequestParser::createTempBodyFile(std::ofstream& reqTempBodyFile, std::string& reqTempBodyFileName)
+{
+	static int counter = 0;
+
+	std::time_t now = std::time(nullptr);
+
+	std::ostringstream oss;
+	oss << "/Users/tunsal/Desktop/tunsal/42projects/webserv/tmp/webserv_body_" << now << "_" << counter++;
+	reqTempBodyFileName = oss.str();
+
+	// 0600 = owner -> read write, group -> ---, others -> ---
+	int tmpFileFd = open(reqTempBodyFileName.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
+	if (tmpFileFd == -1) {
+		LOGT(Log::ERROR, "open() failed");
+		return false;
+	}
+	close(tmpFileFd); // We will open it with ofstream
+
+	reqTempBodyFile.open(reqTempBodyFileName, std::ios::binary);
+	if (!reqTempBodyFile.is_open()) {
+		LOGT(Log::ERROR, "open() failed on ofstream");
 		return false;
 	}
 
