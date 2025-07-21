@@ -84,7 +84,8 @@ public:
 	enum class ContentType
 	{
 		MULTIPART_FORM_DATA,
-		APPLICATION_FORM_URLENCODED
+		APPLICATION_FORM_URLENCODED,
+		ANY
 	};
 
 	typedef struct s_ContentTypeInfo

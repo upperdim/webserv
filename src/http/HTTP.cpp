@@ -160,7 +160,7 @@ HTTP::ContentTypeInfo_t	HTTP::getContentTypeInfo(const std::string& fieldValue, 
 	} else if ((pos = fieldValue.find("application/x-www-form-urlencoded")) != std::string::npos) {
 		ctInfo.type = HTTP::ContentType::APPLICATION_FORM_URLENCODED;
 	} else {
-		error = true;
+		ctInfo.type = HTTP::ContentType::ANY;
 	}
 
 	return ctInfo;
