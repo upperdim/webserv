@@ -64,7 +64,6 @@ bool	RequestHandler::redirectOnMissingTrailingSlasch(const Request& request, Res
 	return false;
 }
 
-
 bool	RequestHandler::isAllowedMethod(const Request& request)
 {
 	if (request.resolvedLocationBlock == nullptr) {
