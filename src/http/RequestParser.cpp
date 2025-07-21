@@ -148,12 +148,21 @@ void	RequestParser::parseBody(Request& request)
 
 void	RequestParser::storeContentLengthBody(Request& request)
 {
+	try {
+		LOGT(Log::DEBUG, "Storing Content-Length: " << request.headers.at("content-length") << " request body");
+	} catch(std::exception) {
+		LOGT(Log::DEBUG, "ERROR: Could not access request header \"content-length\" in storeContentLengthBody()");
+	}
+
 	request.bodyFile.write(request.rawRequest.data(), request.rawRequest.size());
 	request.bodyBytesStored += request.rawRequest.size();
 
+	LOGT(Log::DEBUG, "written " << request.rawRequest.size() << " bytes (total written: " << request.bodyBytesStored << " bytes)");
+	
 	request.rawRequest.erase(0, request.rawRequest.size());
-
+	
 	if (request.bodyBytesStored >= request.contentLength) {
+		LOGT(Log::DEBUG, "Storing body: COMPLETE (total written: " << request.bodyBytesStored << " bytes)");
 		request.bodyFile.close();
 		request.parsingState = Request::ParsingState::COMPLETE;
 	}
@@ -521,6 +530,7 @@ bool	RequestParser::createTempBodyFile(std::ofstream& reqTempBodyFile, std::stri
 		return false;
 	}
 
+	LOGT(Log::DEBUG, "Created temp file " << reqTempBodyFileName);
 	return true;
 }
 
