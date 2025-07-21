@@ -170,6 +170,8 @@ void	RequestParser::storeContentLengthBody(Request& request)
 
 void	RequestParser::storeChunkedTransferBody(Request& request)
 {
+	LOGT(Log::DEBUG, "Storing Transfer-Encoding: chunked request body");
+
 	while (!request.rawRequest.empty()) {
 		if (request.awaitingChunkSize) {
 			// Look for chunk size line ending in \r\n
