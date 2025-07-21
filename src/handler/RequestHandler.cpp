@@ -80,23 +80,22 @@ bool	RequestHandler::isAllowedMethod(const Request& request)
 void	RequestHandler::createErrorResponse(const Request& request, Response& response, int statusCode)
 {
 	auto itEP = request.resolvedLocationBlock->errorPagePaths.find(statusCode);
-	if (itEP != request.resolvedLocationBlock->errorPagePaths.end()) {
-		if (!Utils::isDirectory(itEP->second)
-		    && Utils::fileExists(itEP->second)
-			&& Utils::hasPermission(itEP->second, R_OK)) {
-			response.setStatusCode(statusCode);
+	if (itEP != request.resolvedLocationBlock->errorPagePaths.end()
+	    && !Utils::isDirectory(itEP->second)
+		&& Utils::fileExists(itEP->second)
+		&& Utils::hasPermission(itEP->second, R_OK)) {
+		response.setStatusCode(statusCode);
 
-			// get extension
-			std::string ext;
-			size_t pos = itEP->second.find_last_of(".");
-			if (pos != std::string::npos) {
-				ext = itEP->second.substr(pos);
-			}
-
-			response.addHeader("Content-Type", HTTP::getMimeType(ext));
-			response.setBodyFileBufferReader(itEP->second);
-			return;
+		// get extension
+		std::string ext;
+		size_t pos = itEP->second.find_last_of(".");
+		if (pos != std::string::npos) {
+			ext = itEP->second.substr(pos);
 		}
+
+		response.addHeader("Content-Type", HTTP::getMimeType(ext));
+		response.setBodyFileBufferReader(itEP->second);
+		return;
 	}
 
 	response.setStatusCode(statusCode);
