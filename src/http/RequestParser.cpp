@@ -1,6 +1,8 @@
 #include "RequestParser.hpp"
-#include <sstream>
 #include <algorithm>
+#include <sstream>
+#include <fcntl.h>
+#include <unistd.h>
 #include "HTTP.hpp"
 #include "RequestHandler.hpp"
 #include "Validator.hpp"
@@ -110,19 +112,31 @@ void	RequestParser::parseHeader(Request& request)
 
 	if (hasBody(request)) {
 		// TODO: Confirm the assumption that rawRequest will be empty when we are here
-		// We will keep streaming received bytes in rawRequest into the tmp file 
-		
-		// Open temp file to store the body
-		char tmpName[] = "/tmp/webserv_body_XXXXXX";
-		int fd = mkstemp(tmpName);
-		if (fd == -1) {
-			// TODO: Handle error
-		}
-		request.bodyTempFilename = tmpName;
+		// We will keep streaming received bytes in rawRequest into the tmp file
+		static int counter = 0;
 
-		request.bodyFile.open(tmpName, std::ios::binary);
+		std::time_t now = std::time(nullptr);
+	
+		std::ostringstream oss;
+		oss << "/Users/tunsal/Desktop/tunsal/42projects/webserv/tmp/webserv_body_" << now << "_" << counter++;
+		request.bodyTempFilename = oss.str();
+	
+		// 0600 = owner -> read write, group -> ---, others -> ---
+		int tmpFileFd = open(request.bodyTempFilename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
+		if (tmpFileFd == -1) {
+			LOGT(Log::ERROR, "open() failed");
+			request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+			request.parsingState = Request::ParsingState::INVALID;
+			return;
+		}
+		close(tmpFileFd); // We will open it with ofstream
+	
+		request.bodyFile.open(request.bodyTempFilename, std::ios::binary);
 		if (!request.bodyFile.is_open()) {
-			// TODO: Handle error
+			LOGT(Log::ERROR, "open() failed");
+			request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+			request.parsingState = Request::ParsingState::INVALID;
+			return;
 		}
 	}
 
@@ -145,13 +159,6 @@ void	RequestParser::parseBody(Request& request)
 			storeContentLengthBody(request);
 		}
 
-		return;
-	}
-	
-	// We support file upload request bodies on everywhere
-	if (isFileUploadRequest(request)) {
-		// TODO: TBD
-		// Can still be content-length or chunked
 		return;
 	}
 	
@@ -236,92 +243,6 @@ void	RequestParser::storeChunkedTransferBody(Request& request)
 	}
 }
 
-// void	RequestParser::oldParseBody(Request& request)
-// {
-// 	//	///////////////////////
-// 	//	TODO: DOING
-// 	//	///////////////////////
-// 	if (request.contentType.has_value() && request.contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA) {
-// 		size_t headerEnd  = request.rawRequest.find("\r\n\r\n");
-
-// 		if (headerEnd == std::string::npos)
-// 			return; // we have not recieved enough data to read multipart header
-		
-// 		size_t start = 0;
-// 		while (start < headerEnd) {
-// 			size_t	pos = request.rawRequest.find_first_of('\n', start);
-
-// 			if (pos == std::string::npos) {
-// 				request.errorStatusCode = WSSC_BAD_REQUEST;
-// 				request.parsingState = Request::ParsingState::INVALID;
-// 				return;
-// 			}
-
-// 			std::string line = request.rawRequest.substr(start, pos - start);
-	
-// 			// clean trailing '\r' character
-// 			if (!line.empty() && line.back() == '\r') 
-// 				line.pop_back();
-
-// 			// first HeaderField of Body should be the boundary
-// 			if (start == 0) {
-// 				std::string expectedBoundary = "--" + request.contentType.value().boundary.value();
-// 				if (Utils::startsWith(line, expectedBoundary)) {
-// 					start = pos + 1;
-// 					continue;
-// 				}
-// 				// reject request inavlid request
-// 				request.errorStatusCode = WSSC_BAD_REQUEST;
-// 				request.parsingState = Request::ParsingState::INVALID;
-// 				return;
-// 			}
-
-// 			std::pair<std::string, std::string> headerField;
-// 			if (!Utils::splitHeaderLine(line, headerField)) {
-// 				request.errorStatusCode = WSSC_BAD_REQUEST;
-// 				request.parsingState = Request::ParsingState::INVALID;
-// 				return;
-// 			}
-
-// 			if (headerField.first == "content-disposition") {
-// 				LOGT(Log::SUCCESS, "found: " <<  BOLD << headerField.first << REGULAR << " in the multipart/form-data header, parsing parameters(filename)");
-				
-// 				size_t posFilname;
-// 				if (headerField.second.find("form-data;") == std::string::npos || (posFilname = headerField.second.find("filename=")) == std::string::npos) {
-// 					// invalid content-disposition
-// 					request.errorStatusCode = WSSC_BAD_REQUEST;
-// 					request.parsingState = Request::ParsingState::INVALID;
-// 					return;
-// 				}
-// 				std::string filename = headerField.second.substr(posFilname + 9);
-// 				Utils::unquote(filename, '"');
-// 				request.currentUploadFileName = filename;
-// 				//	TODO:	do we want to set a state for recv and writing this file
-// 				//			what would a nice structure be?
-// 				request.parsingState = Request::ParsingState::FORM_DATA;
-
-// 				LOGT(Log::SUCCESS, "filename: " << LIGHTGREEN << BOLD << filename);
-// 			}
-// 			start = pos + 1;
-// 		}
-// 		request.rawRequest.erase(0, headerEnd + 4);
-
-// 		//	TODO:	After we parsed the body header we might want to set a State
-// 		//			same as just above when we find the filename.
-// 		//			we might want to discuss the approach on how to buffer recv
-// 		//			files and multi files
-// 		if (request.parsingState != Request::ParsingState::FORM_DATA) {
-// 			// here we return INVALID because we expect to find a filename
-// 			request.parsingState = Request::ParsingState::INVALID;
-// 		}
-// 		return;
-// 	}
-
-// 	//	TODO:	this state change is from before parsing Body - we need to
-// 	//			keep track and update it accordingly
-// 	request.parsingState = Request::ParsingState::COMPLETE;
-// }
-
 bool	RequestParser::hasBody(const Request& request)
 {
 	return request.contentLength.has_value() || request.isChunkedBodyTransfer;
@@ -330,7 +251,7 @@ bool	RequestParser::hasBody(const Request& request)
 bool	RequestParser::isFileUploadRequest(const Request& request)
 {
 	return request.contentType.has_value()
-	&& request.contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA;
+	       && request.contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA;
 }
 
 bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
