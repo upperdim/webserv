@@ -40,12 +40,6 @@ void	RequestHandler::handle(Request& request, Response& response)
 	}
 }
 
-//	TODO:	we could create a method redirect(statusCode, redirectPathURI, resposne)
-//			and put the if staments of  
-//				-	handleIfRedirect()
-//				-	redirectOnMissingTrailingSlasch()
-//			into the handlers and just call the redirect() method then
-
 bool	RequestHandler::handleIfRedirect(const Request& request, Response& response)
 {
 	if (!request.resolvedLocationBlock->returnRoute.empty()) {
