@@ -35,7 +35,7 @@ public:
 	// Body
 	std::ofstream									bodyFile;
 	std::string										bodyTempFilename;
-	size_t											bodyBytesReceived;
+	size_t											bodyBytesStored;
 	// Chunked transfer
 	bool											isChunkedBodyTransfer;
 	size_t											currentChunkSize;

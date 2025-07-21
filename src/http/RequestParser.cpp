@@ -148,17 +148,12 @@ void	RequestParser::parseBody(Request& request)
 
 void	RequestParser::storeContentLengthBody(Request& request)
 {
-	size_t remaining = request.contentLength.value() - request.bodyBytesReceived;
-	size_t toWrite = std::min(remaining, request.rawRequest.size());
+	request.bodyFile.write(request.rawRequest.data(), request.rawRequest.size());
+	request.bodyBytesStored += request.rawRequest.size();
 
-	// Write to file
-	request.bodyFile.write(request.rawRequest.data(), toWrite);
-	request.bodyBytesReceived += toWrite;
+	request.rawRequest.erase(0, request.rawRequest.size());
 
-	// Remove written bytes from buffer
-	request.rawRequest.erase(0, toWrite);
-
-	if (request.bodyBytesReceived >= request.contentLength) {
+	if (request.bodyBytesStored >= request.contentLength) {
 		request.bodyFile.close();
 		request.parsingState = Request::ParsingState::COMPLETE;
 	}
