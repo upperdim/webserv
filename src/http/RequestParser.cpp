@@ -515,7 +515,7 @@ bool	RequestParser::createTempBodyFile(std::ofstream& reqTempBodyFile, std::stri
 	std::time_t now = std::time(nullptr);
 
 	std::ostringstream oss;
-	oss << "/Users/tunsal/Desktop/tunsal/42projects/webserv/tmp/webserv_body_" << now << "_" << counter++;
+	oss << "./tmp/webserv_body_" << now << "_" << counter++;
 	reqTempBodyFileName = oss.str();
 
 	// 0600 = owner -> read write, group -> ---, others -> ---
