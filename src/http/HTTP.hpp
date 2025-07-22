@@ -67,6 +67,7 @@
 #define	WSSC_NOT_EXTENDED						510
 #define	WSSC_NETWORK_AUTHENTICATION_REQUIRED	511
 
+#include <optional>
 #include <string>
 #include <map>
 
@@ -80,14 +81,29 @@ public:
 		DELETE
 	};
 
+	enum class ContentType
+	{
+		MULTIPART_FORM_DATA,
+		APPLICATION_FORM_URLENCODED,
+		ANY
+	};
+
+	typedef struct s_ContentTypeInfo
+	{
+		HTTP::ContentType			type;
+		std::optional<std::string>	boundary;
+		std::string					raw;
+	} ContentTypeInfo_t;
+
 	~HTTP();
 
-	static std::string	getStatusMessage(int _status_code);
-	static std::string	getMimeType(const std::string& path);
-	static std::string	getErrorPageTemplate(const int& status_code);
-	static bool			isValidStatusCode(int& statusCode);
-	static std::string	methodToString(const HTTP::Method& method);
-	static HTTP::Method	strToMethod(const std::string& str);
+	static std::string			getStatusMessage(int _status_code);
+	static std::string			getMimeType(const std::string& path);
+	static ContentTypeInfo_t	getContentTypeInfo(const std::string& fieldValue, bool& error);
+	static std::string			getErrorPageTemplate(const int& status_code);
+	static bool					isValidStatusCode(int& statusCode);
+	static std::string			methodToString(const HTTP::Method& method);
+	static HTTP::Method			strToMethod(const std::string& str);
 
 private:
 	static const std::map<int, std::string>			m_status_messages;

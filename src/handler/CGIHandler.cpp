@@ -19,14 +19,14 @@ void CGIHandler::handle(const Request& request, Response& response)
 	int outputPipe[2]; // Child  writes to [1], parent reads from [0]
 	if (pipe(inputPipe) < 0 || pipe(outputPipe) < 0) {
 		LOGT(Log::ERROR, "Could not pipe for CGI process");
-		createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
+		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
 
 	pid_t pid = fork();
 	if (pid < 0) {
 		LOGT(Log::ERROR, "Could not fork a CGI process");
-		createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
+		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
 
@@ -78,7 +78,7 @@ void CGIHandler::handle(const Request& request, Response& response)
 
 		// If we are here, execve() failed
 		LOGT(Log::ERROR, "CGI Process execve() failed, PID = " << pid);
-		createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
+		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		exit(EXIT_FAILURE);
 	}
 		
@@ -105,7 +105,7 @@ void CGIHandler::handle(const Request& request, Response& response)
 			LOGT(Log::ERROR, "Error reading from CGI output");
 			close(outputPipe[0]); // Finished reading
 			waitpid(pid, NULL, 0);
-			createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
+			createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 			return;
 		}
 		

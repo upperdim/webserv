@@ -16,21 +16,19 @@ SRCS_NO_MAIN=	Config.cpp \
 				Validator.cpp \
 				Throw.cpp \
 				Parser.cpp \
-				ClientConnection.cpp \
 				ServerEngine.cpp \
 				ServerSocket.cpp \
-				RequestParser.cpp \
+				ClientConnection.cpp \
 				Request.cpp \
-				FileBufferReader.cpp \
+				RequestParser.cpp \
 				Response.cpp \
+				FileBufferReader.cpp \
 				RequestHandler.cpp \
 				GetHandler.cpp \
 				PostHandler.cpp \
 				DeleteHandler.cpp \
-				signal.cpp \
 				HTTP.cpp \
 				Log.cpp \
-				readFile.cpp \
 				Utils.cpp \
 				CGIHandler.cpp \
 

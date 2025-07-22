@@ -1,6 +1,6 @@
 #include <filesystem>
 #include <algorithm>
-#include <unistd.h>	// R_OK
+#include <unistd.h>	  // R_OK
 #include "GetHandler.hpp"
 #include "Utils.hpp"
 
@@ -9,18 +9,11 @@ void	GetHandler::handle(const Request& request, Response& response)
 	LOGC("REQUEST_HANDLER", "-> handle GET Request", LIGHTMAGENTA, LIGHTCYAN);
 
 	if (Utils::isDirectory(request.resolvedPath)) {
-		// Check trailng slash or redirect
-		if (request.resolvedPath.back() != '/') {
-			// If requested resource is a directory but looks like a file,
-			// we redirect to another URI
-			response.setStatusCode(WSSC_MOVED_PERMANENTLY);
-			response.addHeader("Location", std::string(request.URI) + '/');
-			response.addHeader("content-length", "0");
+		if (redirectOnMissingTrailingSlasch(request, response))
 			return;
-		}
 
 		if (!Utils::hasPermission(request.resolvedPath, R_OK)) {
-			createErrorResponse(response, WSSC_FORBIDDEN);
+			createErrorResponse(request, response, WSSC_FORBIDDEN);
 			return;
 		}
 
@@ -29,7 +22,7 @@ void	GetHandler::handle(const Request& request, Response& response)
 		if (Utils::fileExists(indexedResource)) {
 			// check permission to serve the index
 			if (!Utils::hasPermission(indexedResource, R_OK)) {
-				createErrorResponse(response, WSSC_FORBIDDEN);
+				createErrorResponse(request, response, WSSC_FORBIDDEN);
 				return;
 			}
 
@@ -48,7 +41,7 @@ void	GetHandler::handle(const Request& request, Response& response)
 		}
 
 		// we dont have indexedResource and no autoIndex -> Forbidden
-		createErrorResponse(response, WSSC_FORBIDDEN);
+		createErrorResponse(request, response, WSSC_FORBIDDEN);
 		return;
 	}
 
@@ -59,23 +52,23 @@ void	GetHandler::handle(const Request& request, Response& response)
 
 	// does the directory of the file exist and do we have permissions for the directory
 	if (!Utils::isDirectory(resourceDir)) {
-		createErrorResponse(response, WSSC_NOT_FOUND);
+		createErrorResponse(request, response, WSSC_NOT_FOUND);
 		return;
 	}
 
 	if (!Utils::hasPermission(resourceDir, R_OK)) {
-		createErrorResponse(response, WSSC_FORBIDDEN);
+		createErrorResponse(request, response, WSSC_FORBIDDEN);
 		return;
 	}
 
 	// does the resource exist and do we have permissons
 	if (!Utils::fileExists(request.resolvedPath)) {
-		createErrorResponse(response, WSSC_NOT_FOUND);
+		createErrorResponse(request, response, WSSC_NOT_FOUND);
 		return;
 	}
 
 	if (!Utils::hasPermission(request.resolvedPath, R_OK)) {
-		createErrorResponse(response, WSSC_FORBIDDEN);
+		createErrorResponse(request, response, WSSC_FORBIDDEN);
 		return;
 	}
 	// fetch content
@@ -191,4 +184,3 @@ const std::string	GetHandler::getDirListingPadding(size_t entrySize)
 	
 	return std::string(count, ' ');
 }
-

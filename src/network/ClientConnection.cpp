@@ -14,15 +14,17 @@ ClientConnection::ClientConnection(int fd, ServerSocket& _connectedServerSocket)
 void ClientConnection::receiveRequest()
 {
 	LOG("Reading from ClientConnection fd = " << fd);
-	char buffer[RECV_BUFFER_SIZE];
+	char buffer[RECV_BUFFER_SIZE] = {0};
 	ssize_t bytesRead = recv(fd, &buffer, RECV_BUFFER_SIZE - 1, 0);
 	LOG(bytesRead << " bytes read");
 
 	if (bytesRead > 0) {
-		request.rawRequest.append(buffer, bytesRead);
-		LOG("rawRequest.length() = " << request.rawRequest.length());
 		buffer[bytesRead] = '\0';
 		LOG("buffer = " << LIGHTMAGENTA <<  "<<<\n" << LIGHTCYAN << buffer << LIGHTMAGENTA << ">>>" << DEFAULT);
+		
+		request.rawRequest.append(buffer, bytesRead);
+		LOG("rawRequest.length() = " << request.rawRequest.length());
+
 		RequestParser::parseNext(request);
 	} else if (bytesRead < 0) {
 		connectionError = true;

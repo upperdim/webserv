@@ -1,10 +1,9 @@
-#include "Utils.hpp"
-#include <iomanip>
-#include <sstream>
+#include <unordered_set>
 #include <filesystem>
 #include <algorithm>
+#include <unistd.h>
+#include "Utils.hpp"
 #include "Log.hpp"
-#include "unistd.h"
 
 bool	Utils::isDirectory(const std::string& path)
 {
@@ -64,21 +63,6 @@ bool	Utils::startsWithHttp(const std::string& str)
 
 	return false;
 }
-
-void	Utils::trimWhitespaces(std::string& str)
-{
-	size_t	start	= 0;
-	size_t	end		= str.length();
-	start = str.find_first_not_of("\t\n\v\f\r ");
-	if (start == std::string::npos)
-	{
-		str.clear();
-		return ;
-	}
-	end = str.find_last_not_of("\t\n\v\f\r ");
-	str = str.substr(start, end - start + 1);
-}
-
 
 std::string	Utils::charToHex(char c)
 {
@@ -214,9 +198,29 @@ bool	Utils::collapseDuplicateSlashes(std::string& oBuf)
 	return true;
 }
 
+bool	Utils::splitHeaderLine(std::string& line, std::pair<std::string, std::string>& headerField)
+{
+	if (line.empty()) 
+		return false;
+
+	// clean trailing '\r' character
+	if (!line.empty() && line.back() == '\r') 
+		line.pop_back();
+
+	if (!splitHeaderField(line, headerField)) {
+		LOGT(Log::WARNING, "failed to split Header-Field: " << line);
+		return false;
+	}
+
+	std::transform(headerField.first.begin(), headerField.first.end(),
+					headerField.first.begin(),
+					[](unsigned char c){ return std::tolower(c); });
+	return true;
+}
+
 
 //=============================================================================
-// Private Methods
+// Private methods
 //=============================================================================
 
 void	Utils::popLastSegment(std::string& oBuf)
@@ -228,4 +232,63 @@ void	Utils::popLastSegment(std::string& oBuf)
 		else
 			oBuf.erase(pos);
 	}
+}
+
+bool	Utils::splitHeaderField(std::string& line, std::pair<std::string, std::string>& headerField)
+{
+	// no whitespace allowed before the field-name
+	if (line.size() > 0 && std::isspace(line[0]))
+		return false;
+
+	// has valid ':'
+	size_t pos = line.find_first_of(":");
+	if (pos == std::string::npos)
+		return false;
+	
+	// check if field-name has valid chars of tchar: RFC 7230: 3.2.6.
+	for (size_t i = 0; i < pos; ++i) {
+		if (!isValidFieldNameChar(line[i]))
+			return false;		              
+	}
+	
+	headerField.first = line.substr(0, pos);
+	headerField.second = line.substr(pos + 1);
+
+	// trim whitespaces from front and back ONLY for field-value
+	Utils::trimWhitespaces(headerField.second);
+	// validate field-value after trimming
+	for (auto it = headerField.second.cbegin(); it < headerField.second.cend(); ++it) {
+		if (!isValidFieldValueChar(*it))
+			return false;		              
+	}
+
+	return true;
+}
+
+void	Utils::trimWhitespaces(std::string& str)
+{
+	size_t	start	= 0;
+	size_t	end		= str.length();
+	start = str.find_first_not_of("\t\n\v\f\r ");
+	if (start == std::string::npos) {
+		str.clear();
+		return ;
+	}
+	end = str.find_last_not_of("\t\n\v\f\r ");
+	str = str.substr(start, end - start + 1);
+}
+
+bool	Utils::isValidFieldNameChar(const char c)
+{
+	static const std::unordered_set<char> tChars = {
+		'!', '#' , '$', '%', '&', '\'', '*', '+',
+		'-', '.' , '^', '_', '`', '|',  '~'
+	};
+	return std::isalnum(static_cast<unsigned char>(c)) || tChars.count(c);
+}
+
+bool	Utils::isValidFieldValueChar(const char c)
+{
+	const unsigned char uc = static_cast<unsigned char>(c);
+	return (uc >= ' ' && uc <= '~') || uc == '\t';
 }

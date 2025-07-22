@@ -1,6 +1,5 @@
 #include <filesystem>
-#include <algorithm>
-#include <unistd.h>	// R_OK
+#include <unistd.h>	  // R_OK
 #include "DeleteHandler.hpp"
 #include "Utils.hpp"
 
@@ -14,23 +13,23 @@ void	DeleteHandler::handle(const Request& request, Response& response)
 	std::filesystem::path parentPath = resourcePath.parent_path();
 	if (!parentPath.empty() && Utils::isDirectory(parentPath)) {
 		if (!Utils::hasPermission(parentPath, W_OK)) {
-			createErrorResponse(response, WSSC_FORBIDDEN);
+			createErrorResponse(request, response, WSSC_FORBIDDEN);
 			return;
 		}
 	}
 
 	if (Utils::isDirectory(resourcePath)) {
-		createErrorResponse(response, WSSC_FORBIDDEN);
+		createErrorResponse(request, response, WSSC_FORBIDDEN);
 		return;
 	}
 
 	if (!Utils::fileExists(request.resolvedPath)) {
-		createErrorResponse(response, WSSC_NOT_FOUND);
+		createErrorResponse(request, response, WSSC_NOT_FOUND);
 		return;
 	}
 
 	if (!Utils::hasPermission(request.resolvedPath, W_OK)) {
-		createErrorResponse(response, WSSC_FORBIDDEN);
+		createErrorResponse(request, response, WSSC_FORBIDDEN);
 		return;
 	}
 
@@ -38,7 +37,7 @@ void	DeleteHandler::handle(const Request& request, Response& response)
 		LOG_WARNING_LM("DELETING", resourcePath.c_str());
 		if (!std::filesystem::remove(resourcePath)) {
 			// failed to remove
-			createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
+			createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 			return;
 		}
 		LOG_SUCCESS(std::string("deleted: ") + resourcePath.c_str());
@@ -47,7 +46,7 @@ void	DeleteHandler::handle(const Request& request, Response& response)
 		return;
 	} catch(const std::exception& e) {
 		LOGT(Log::ERROR, "Failed to remove file: " << e.what());
-		createErrorResponse(response, WSSC_INTERNAL_SERVER_ERROR);
+		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
 }

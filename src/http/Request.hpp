@@ -1,9 +1,10 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-#include <string>
 #include <unordered_map>
 #include <optional>
+#include <fstream>
+#include <string>
 #include "HTTP.hpp"
 #include "Config.hpp"
 
@@ -24,20 +25,30 @@ public:
 	ParsingState									parsingState;
 	bool											doneReceiving;
 	
-	// raw request attributes
+	// Raw request attributes
 	HTTP::Method									method;
 	std::optional<int>								errorStatusCode;
 	std::string										requestTarget;
 	std::string										protokoll;
 	std::unordered_map<std::string, std::string>	headers;
+	// Body
+	std::ofstream									bodyFile;
+	std::string										bodyTempFilename;
+	size_t											bodyBytesStored;
+	// Chunked transfer
+	bool											isChunkedBodyTransfer;
+	size_t											currentChunkSize;
+	size_t											currentChunkBytesReceived;
+	bool											awaitingChunkSize;
 
 	std::vector<ServerBlock>& 						serverBlocks;
 
-	// matched and resolved attributes
-	std::string										URI;	//	decoded and sanatized requesttarget
+	// Matched and resolved attributes
+	std::string										URI; // Decoded and sanatized requesttarget
 	ServerBlock*									resolvedServerBlock;
 	LocationBlock*									resolvedLocationBlock;
 	std::optional<size_t>							contentLength;
+	std::optional<HTTP::ContentTypeInfo_t>			contentType;
 	std::string										resolvedPath;
 	std::string										queryString; // URL query string after '?'
 

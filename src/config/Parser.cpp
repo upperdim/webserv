@@ -2,8 +2,9 @@
 #include "Parser.hpp"
 #include <filesystem>
 #include <algorithm>
+#include <fstream>
+#include <sstream>
 #include <limits>
-#include "webserv.hpp"
 #include "Lexer.hpp"
 #include "Utils.hpp"
 #include "Log.hpp"
@@ -63,7 +64,7 @@ Config	Parser::parse(void)
 		}
 	}
 
-	checksServerBlocksAndSetsdefaults(config);
+	checksServerBlocksAndSetsDefaults(config);
 
 	return config;
 }
@@ -250,7 +251,7 @@ void	Parser::parseServerDirectives(ServerBlock& server, t_parsedDirectives& pars
 			parseServerNameDirective(directive, params, server);
 			break;
 		case KeywordType::ERROR_PAGE:
-			parseErrorPageDirective(directive, params, server);
+			parseErrorPageDirective(directive, params, server.errorPagePaths);
 			break;
 		case KeywordType::CLIENT_MAX_BODY_SIZE:
 			if (parsedServerDirectives.clientMaxBodySize)
@@ -325,6 +326,9 @@ void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives
 			break;
 		case KeywordType::INDEX:
 			parseIndexDirective(directive, params, location.index);
+			break;
+		case KeywordType::ERROR_PAGE:
+			parseErrorPageDirective(directive, params, location.errorPagePaths);
 			break;
 		case KeywordType::ALLOW_METHODS:
 			parseAllowMethodsDirective(directive, params, location);
@@ -454,7 +458,7 @@ void	Parser::parseServerNameDirective(const Token& directive, std::vector<const 
 	}
 }
 
-void	Parser::parseErrorPageDirective(const Token& directive, std::vector<const Token*>& params, ServerBlock& server)
+void	Parser::parseErrorPageDirective(const Token& directive, std::vector<const Token*>& params, std::map<int, std::string>& errorPagePaths)
 {
 	if (params.size() != 2)
 		Throw::InvalidNumberOfArguments(directive);
@@ -470,7 +474,7 @@ void	Parser::parseErrorPageDirective(const Token& directive, std::vector<const T
 	if (!Validator::isValidErrorPageNbr(params[0]->value, error_nbr))
 		Throw::InvalidErrorpageNbr(*params[0]);
 
-	server.errorPagePaths[error_nbr] = params[1]->value;
+	errorPagePaths[error_nbr] = params[1]->value;
 }
 
 void	Parser::parseAllowMethodsDirective(const Token& directive, std::vector<const Token*>& params, LocationBlock& location)
@@ -631,7 +635,7 @@ void	Parser::setFallbacks(Config& config)
 	config.fallback.allowUpload = false;	
 }
 
-void	Parser::checksServerBlocksAndSetsdefaults(Config& config)
+void	Parser::checksServerBlocksAndSetsDefaults(Config& config)
 {
 	for (auto& serverBlock : config.serverBlocks) {
 		// listenPort
@@ -684,6 +688,13 @@ void	Parser::checksServerBlocksAndSetsdefaults(Config& config)
 			if (locationBlock.returnRoute.empty())
 				locationBlock.returnRoute = serverBlock.returnRoute;
 			
+			// copy down custom error pages
+			if (serverBlock.errorPagePaths.size() > 0) {
+				for (auto it = serverBlock.errorPagePaths.begin(); it != serverBlock.errorPagePaths.end(); ++it) {
+					locationBlock.errorPagePaths[it->first] = it->second;
+				}
+			}
+			
 			Utils::removeDotSegments(locationBlock.route);
 			Utils::collapseDuplicateSlashes(locationBlock.route);
 		}
@@ -695,4 +706,14 @@ void	Parser::checksServerBlocksAndSetsdefaults(Config& config)
 				  });
 
 	}
+}
+
+std::string	Parser::readFile(const std::string& filename)
+{
+	std::ifstream file(filename);
+	if (!file)
+		throw ( std::runtime_error("Failed to open " + filename) );
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+	return (buffer.str());
 }
