@@ -2,6 +2,7 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <errno.h> // TODO: REMOVE THIS
 #include <cstring>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -44,6 +45,7 @@ void CGIHandler::handle(const Request& request, Response& response)
 
 		// Prepare argv
 		std::string pythonPath = PYTHON3_PATH;
+		LOGT(Log::DEBUG, "Using python3 from " << PYTHON3_PATH);
 
 		char *argv[] = {
 			const_cast<char*>(pythonPath.c_str()),
@@ -75,6 +77,9 @@ void CGIHandler::handle(const Request& request, Response& response)
 
 		// Execute script
 		execve(pythonPath.c_str(), argv, envp.data());
+
+		// TODO: REMOVE THIS
+		LOGT(Log::ERROR, "execve errno = " << errno);
 
 		// If we are here, execve() failed
 		LOGT(Log::ERROR, "CGI Process execve() failed, PID = " << pid);
