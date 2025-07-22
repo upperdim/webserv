@@ -40,12 +40,6 @@ void	RequestHandler::handle(Request& request, Response& response)
 	}
 }
 
-//	TODO:	we could create a method redirect(statusCode, redirectPathURI, resposne)
-//			and put the if staments of  
-//				-	handleIfRedirect()
-//				-	redirectOnMissingTrailingSlasch()
-//			into the handlers and just call the redirect() method then
-
 bool	RequestHandler::handleIfRedirect(const Request& request, Response& response)
 {
 	if (!request.resolvedLocationBlock->returnRoute.empty()) {
@@ -70,7 +64,6 @@ bool	RequestHandler::redirectOnMissingTrailingSlasch(const Request& request, Res
 	return false;
 }
 
-
 bool	RequestHandler::isAllowedMethod(const Request& request)
 {
 	if (request.resolvedLocationBlock == nullptr) {
@@ -87,27 +80,22 @@ bool	RequestHandler::isAllowedMethod(const Request& request)
 void	RequestHandler::createErrorResponse(const Request& request, Response& response, int statusCode)
 {
 	auto itEP = request.resolvedLocationBlock->errorPagePaths.find(statusCode);
-	if (itEP != request.resolvedLocationBlock->errorPagePaths.end()) {
+	if (itEP != request.resolvedLocationBlock->errorPagePaths.end()
+	    && !Utils::isDirectory(itEP->second)
+		&& Utils::fileExists(itEP->second)
+		&& Utils::hasPermission(itEP->second, R_OK)) {
+		response.setStatusCode(statusCode);
 
-		if (!Utils::isDirectory(itEP->second)) {
-			if (Utils::fileExists(itEP->second)) {
-				if (Utils::hasPermission(itEP->second, R_OK)) {
-					response.setStatusCode(statusCode);
-
-					// get extension
-					std::string ext;
-					size_t pos = itEP->second.find_last_of(".");
-					if (pos != std::string::npos) {
-						ext = itEP->second.substr(pos);
-					}
-
-					response.addHeader("Content-Type", HTTP::getMimeType(ext));
-					response.setBodyFileBufferReader(itEP->second);
-					return;
-				}
-			}
+		// get extension
+		std::string ext;
+		size_t pos = itEP->second.find_last_of(".");
+		if (pos != std::string::npos) {
+			ext = itEP->second.substr(pos);
 		}
 
+		response.addHeader("Content-Type", HTTP::getMimeType(ext));
+		response.setBodyFileBufferReader(itEP->second);
+		return;
 	}
 
 	response.setStatusCode(statusCode);

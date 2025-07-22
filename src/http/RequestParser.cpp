@@ -1,7 +1,9 @@
 #include "RequestParser.hpp"
-#include <sstream>
 #include <algorithm>
 #include <filesystem>
+#include <sstream>
+#include <fcntl.h>  // open()
+#include <unistd.h> // close()
 #include "HTTP.hpp"
 #include "RequestHandler.hpp"
 #include "Validator.hpp"
@@ -132,19 +134,10 @@ void	RequestParser::parseHeader(Request& request)
 
 	if (hasBody(request)) {
 		// TODO: Confirm the assumption that rawRequest will be empty when we are here
-		// We will keep streaming received bytes in rawRequest into the tmp file 
-		
-		// Open temp file to store the body
-		char tmpName[] = "/tmp/webserv_body_XXXXXX";
-		int fd = mkstemp(tmpName);
-		if (fd == -1) {
-			// TODO: Handle error
-		}
-		request.bodyTempFilename = tmpName;
-
-		request.bodyFile.open(tmpName, std::ios::binary);
-		if (!request.bodyFile.is_open()) {
-			// TODO: Handle error
+		if (!createTempBodyFile(request.bodyFile, request.bodyTempFilename)) {
+			request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+			request.parsingState = Request::ParsingState::INVALID;
+			return;
 		}
 	}
 
@@ -231,11 +224,10 @@ void	RequestParser::parseMultiformBody(Request& request)
 			multipartHeaders.clear();
 			storeFile = true;
 			while (std::getline(ifs, line)) {
-				if (!line.empty() && line.back() == "\r")
+				if (!line.empty() && line.back() == '\r')
 					line.pop_back();
 
 				if (line.empty()) {
-					headerEndFound = true;
 					break;
 				}
 
@@ -305,24 +297,37 @@ void	RequestParser::parseMultiformBody(Request& request)
 
 void	RequestParser::storeContentLengthBody(Request& request)
 {
-	size_t remaining = request.contentLength.value() - request.bodyBytesReceived;
-	size_t toWrite = std::min(remaining, request.rawRequest.size());
+	try {
+		LOGT(Log::DEBUG, "Storing Content-Length: " << request.headers.at("content-length") << " request body");
+	} catch(std::exception) {
+		LOGT(Log::DEBUG, "ERROR: Could not access request header \"content-length\" in storeContentLengthBody()");
+	}
 
-	// Write to file
-	request.bodyFile.write(request.rawRequest.data(), toWrite);
-	request.bodyBytesReceived += toWrite;
+	request.bodyFile.write(request.rawRequest.data(), request.rawRequest.size());
+	request.bodyBytesStored += request.rawRequest.size();
 
-	// Remove written bytes from buffer
-	request.rawRequest.erase(0, toWrite);
-
-	if (request.bodyBytesReceived >= request.contentLength) {
+	LOGT(Log::DEBUG, "written " << request.rawRequest.size() << " bytes (total written: " << request.bodyBytesStored << " bytes)");
+	
+	request.rawRequest.erase(0, request.rawRequest.size());
+	
+	if (request.bodyBytesStored >= request.contentLength) {
+		LOGT(Log::DEBUG, "Storing body: COMPLETE (total written: " << request.bodyBytesStored << " bytes)");
 		request.bodyFile.close();
 		request.parsingState = Request::ParsingState::COMPLETE;
 	}
 }
 
+// Chunked request:
+// <Request line>\r\n
+// <Headers>\r\n
+// \r\n
+// <chunk size in hex>\r\n<chunk data>\r\n
+// ...
+// Final chunk: 0\r\n\r\n
 void	RequestParser::storeChunkedTransferBody(Request& request)
 {
+	LOGT(Log::DEBUG, "Storing Transfer-Encoding: chunked request body");
+
 	while (!request.rawRequest.empty()) {
 		if (request.awaitingChunkSize) {
 			// Look for chunk size line ending in \r\n
@@ -351,30 +356,32 @@ void	RequestParser::storeChunkedTransferBody(Request& request)
 
 			request.awaitingChunkSize = false;
 			request.currentChunkBytesReceived = 0;
-		}
-
-		// Calculate how many bytes we can write now
-		size_t remainingChunkBytes = request.currentChunkSize - request.currentChunkBytesReceived;
-		size_t bytesAvailable = request.rawRequest.size();
-
-		// If enough bytes available for full chunk
-		if (bytesAvailable >= remainingChunkBytes + 2) {
-			// Write chunk data
-			request.bodyFile.write(request.rawRequest.data(), remainingChunkBytes);
-			request.currentChunkBytesReceived += remainingChunkBytes;
-
-			// Skip chunk data + trailing \r\n
-			request.rawRequest.erase(0, remainingChunkBytes + 2);
-
-			// Ready to read next chunk size
-			request.awaitingChunkSize = true;
 		} else {
-			// Not enough data yet
-			size_t toWrite = std::min(remainingChunkBytes, bytesAvailable);
-			request.bodyFile.write(request.rawRequest.data(), toWrite);
-			request.currentChunkBytesReceived += toWrite;
-			request.rawRequest.erase(0, toWrite);
-			return;  // Wait for more data
+			// Processing chunk data
+
+			// Calculate how many bytes we can write now
+			size_t remainingChunkBytes = request.currentChunkSize - request.currentChunkBytesReceived;
+			size_t bytesAvailable = request.rawRequest.size();
+
+			// If enough bytes available for full chunk
+			if (bytesAvailable >= remainingChunkBytes + 2) {
+				// Write chunk data
+				request.bodyFile.write(request.rawRequest.data(), remainingChunkBytes);
+				request.currentChunkBytesReceived += remainingChunkBytes;
+
+				// Skip chunk data + trailing \r\n
+				request.rawRequest.erase(0, remainingChunkBytes + 2);
+
+				// Ready to read next chunk size
+				request.awaitingChunkSize = true;
+			} else {
+				// Not enough data yet
+				size_t toWrite = std::min(remainingChunkBytes, bytesAvailable);
+				request.bodyFile.write(request.rawRequest.data(), toWrite);
+				request.currentChunkBytesReceived += toWrite;
+				request.rawRequest.erase(0, toWrite);
+				return;  // Wait for more data
+			}
 		}
 	}
 }
@@ -387,7 +394,7 @@ bool	RequestParser::hasBody(const Request& request)
 bool	RequestParser::isFileUploadRequest(const Request& request)
 {
 	return request.contentType.has_value()
-	&& request.contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA;
+	       && request.contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA;
 }
 
 bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
@@ -625,6 +632,34 @@ bool	RequestParser::validateOptionalHeaderFields(Request& request)
 		return false;
 	}
 
+	return true;
+}
+
+bool	RequestParser::createTempBodyFile(std::ofstream& reqTempBodyFile, std::string& reqTempBodyFileName)
+{
+	static int counter = 0;
+
+	std::time_t now = std::time(nullptr);
+
+	std::ostringstream oss;
+	oss << "./tmp/webserv_body_" << now << "_" << counter++;
+	reqTempBodyFileName = oss.str();
+
+	// 0600 = owner -> read write, group -> ---, others -> ---
+	int tmpFileFd = open(reqTempBodyFileName.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
+	if (tmpFileFd == -1) {
+		LOGT(Log::ERROR, "open() failed");
+		return false;
+	}
+	close(tmpFileFd); // We will open it with ofstream
+
+	reqTempBodyFile.open(reqTempBodyFileName, std::ios::binary);
+	if (!reqTempBodyFile.is_open()) {
+		LOGT(Log::ERROR, "open() failed on ofstream");
+		return false;
+	}
+
+	LOGT(Log::DEBUG, "Created temp file " << reqTempBodyFileName);
 	return true;
 }
 

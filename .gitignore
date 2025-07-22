@@ -6,6 +6,9 @@ obj/
 *.o
 webserv
 
+# Temporary files
+tmp/webserv_body_*
+
 # Dev tools
 .vscode
 .idea
