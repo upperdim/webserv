@@ -148,9 +148,9 @@ void	RequestParser::parseBody(Request& request)
 
 void	RequestParser::storeContentLengthBody(Request& request)
 {
-	try {
+	if (request.headers.find("content-length") != request.headers.end()) {
 		LOGT(Log::DEBUG, "Storing Content-Length: " << request.headers.at("content-length") << " request body");
-	} catch(std::exception) {
+	} else {
 		LOGT(Log::DEBUG, "ERROR: Could not access request header \"content-length\" in storeContentLengthBody()");
 	}
 
