@@ -31,6 +31,8 @@ void CGIHandler::handle(const Request& request, Response& response)
 		return;
 	}
 
+	LOGT(Log::DEBUG, "Using python3 from " << PYTHON3_PATH); // TODO: remove me
+
 	// Child process
 	if (pid == 0) {
 		// Redirect stdin
@@ -45,7 +47,6 @@ void CGIHandler::handle(const Request& request, Response& response)
 
 		// Prepare argv
 		std::string pythonPath = PYTHON3_PATH;
-		LOGT(Log::DEBUG, "Using python3 from " << PYTHON3_PATH);
 
 		char *argv[] = {
 			const_cast<char*>(pythonPath.c_str()),
