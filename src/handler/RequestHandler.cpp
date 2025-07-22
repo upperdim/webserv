@@ -10,6 +10,8 @@
 
 void	RequestHandler::handle(Request& request, Response& response)
 {
+	LOGT(Log::DEBUG, "REQUEST_HANDLER");
+
 	if (request.errorStatusCode.has_value()) {
 		createErrorResponse(request, response, request.errorStatusCode.value());
 		return;
@@ -78,23 +80,26 @@ bool	RequestHandler::isAllowedMethod(const Request& request)
 
 void	RequestHandler::createErrorResponse(const Request& request, Response& response, int statusCode)
 {
-	auto itEP = request.resolvedLocationBlock->errorPagePaths.find(statusCode);
-	if (itEP != request.resolvedLocationBlock->errorPagePaths.end()
-	    && !Utils::isDirectory(itEP->second)
-		&& Utils::fileExists(itEP->second)
-		&& Utils::hasPermission(itEP->second, R_OK)) {
-		response.setStatusCode(statusCode);
+	if (request.resolvedLocationBlock != nullptr) {
+		auto itEP = request.resolvedLocationBlock->errorPagePaths.find(statusCode);
+		if (itEP != request.resolvedLocationBlock->errorPagePaths.end()
+			&& !Utils::isDirectory(itEP->second)
+			&& Utils::fileExists(itEP->second)
+			&& Utils::hasPermission(itEP->second, R_OK)) {
+			
+			response.setStatusCode(statusCode);
 
-		// get extension
-		std::string ext;
-		size_t pos = itEP->second.find_last_of(".");
-		if (pos != std::string::npos) {
-			ext = itEP->second.substr(pos);
+			// get extension
+			std::string ext;
+			size_t pos = itEP->second.find_last_of(".");
+			if (pos != std::string::npos) {
+				ext = itEP->second.substr(pos);
+			}
+
+			response.addHeader("Content-Type", HTTP::getMimeType(ext));
+			response.setBodyFileBufferReader(itEP->second);
+			return;
 		}
-
-		response.addHeader("Content-Type", HTTP::getMimeType(ext));
-		response.setBodyFileBufferReader(itEP->second);
-		return;
 	}
 
 	response.setStatusCode(statusCode);
