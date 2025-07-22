@@ -64,19 +64,6 @@ bool	Utils::startsWithHttp(const std::string& str)
 	return false;
 }
 
-void	Utils::trimWhitespaces(std::string& str)
-{
-	size_t	start	= 0;
-	size_t	end		= str.length();
-	start = str.find_first_not_of("\t\n\v\f\r ");
-	if (start == std::string::npos) {
-		str.clear();
-		return ;
-	}
-	end = str.find_last_not_of("\t\n\v\f\r ");
-	str = str.substr(start, end - start + 1);
-}
-
 std::string	Utils::charToHex(char c)
 {
 	std::ostringstream os;
@@ -276,6 +263,19 @@ bool	Utils::splitHeaderField(std::string& line, std::pair<std::string, std::stri
 	}
 
 	return true;
+}
+
+void	Utils::trimWhitespaces(std::string& str)
+{
+	size_t	start	= 0;
+	size_t	end		= str.length();
+	start = str.find_first_not_of("\t\n\v\f\r ");
+	if (start == std::string::npos) {
+		str.clear();
+		return ;
+	}
+	end = str.find_last_not_of("\t\n\v\f\r ");
+	str = str.substr(start, end - start + 1);
 }
 
 bool	Utils::isValidFieldNameChar(const char c)
