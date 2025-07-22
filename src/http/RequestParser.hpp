@@ -16,6 +16,7 @@ private:
 	static void					parseRequestLine(Request& request);
 	static void					parseHeader(Request& request);
 	static void					parseBody(Request& request);
+	static void					parseMultiformBody(Request& request);
 	static bool					hasBody(const Request& request);
 	static bool					isFileUploadRequest(const Request& request);
 	static void					storeContentLengthBody(Request& request);
@@ -32,7 +33,7 @@ private:
 	static int					hexToInt(const char c);
 	static bool					isRelativeForm_EnsureLeadingSlash(std::string& uri);
 
-	static bool					readHeaders(Request& request, const size_t headerEnd, std::unordered_map<std::string, std::string>& headers);
+	// static bool					readHeaders(Request& request, const size_t headerEnd, std::unordered_map<std::string, std::string>& headers);
 
 	static bool					validateOptionalHeaderFields(Request& request);
 	static bool					validateHost(Request& request, std::string& dest);

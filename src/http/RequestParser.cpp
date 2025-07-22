@@ -1,6 +1,7 @@
 #include "RequestParser.hpp"
 #include <sstream>
 #include <algorithm>
+#include <filesystem>
 #include "HTTP.hpp"
 #include "RequestHandler.hpp"
 #include "Validator.hpp"
@@ -93,8 +94,29 @@ void	RequestParser::parseHeader(Request& request)
 		return;
 	}
 
-	if (!readHeaders(request, headerEnd, request.headers))
-		return;
+	size_t	start = 0;
+	while (start < headerEnd) {
+		size_t	pos = request.rawRequest.find_first_of('\n', start);
+
+		if (pos == std::string::npos) {
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
+			return;
+		}
+
+		std::string line = request.rawRequest.substr(start, pos - start);
+
+		std::pair<std::string, std::string> headerField;
+		if (!Utils::splitHeaderLine(line, headerField)) {
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
+			return;
+		}
+
+		request.headers[headerField.first] = headerField.second;
+
+		start = pos + 1;
+	}
 	// delete the read header Bytes from rawRequest
 	request.rawRequest.erase(0, headerEnd + 4);
 
@@ -152,12 +174,133 @@ void	RequestParser::parseBody(Request& request)
 	if (isFileUploadRequest(request)) {
 		// TODO: TBD
 		// Can still be content-length or chunked
-		return;
+
+		if (request.isChunkedBodyTransfer) {
+			storeChunkedTransferBody(request);
+		} else {
+			storeContentLengthBody(request);
+		}
+
+		if (request.parsingState == Request::ParsingState::COMPLETE) {
+			if (!request.contentType.has_value() || !request.contentType.value().boundary.has_value()) {
+				request.errorStatusCode = WSSC_BAD_REQUEST;
+				request.parsingState = Request::ParsingState::INVALID;
+				return;
+			}
+			// we got the body, now we extract the files
+			parseMultiformBody(request);
+			return;
+		}
+
+		if (request.parsingState == Request::ParsingState::BODY)
+			return;
 	}
 	
 	// We don't support any other type of request body
 	request.errorStatusCode = WSSC_BAD_REQUEST;
 	request.parsingState = Request::ParsingState::INVALID;
+}
+
+void	RequestParser::parseMultiformBody(Request& request)
+{
+	std::ifstream ifs(request.bodyTempFilename, std::ios::in | std::ios::binary);
+	if (!ifs) {
+		request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+		request.parsingState = Request::ParsingState::INVALID;
+		return;
+	}
+
+	std::string boundaryMarker = "--" + request.contentType.value().boundary.value();
+	std::string finalBoundaryMarker = boundaryMarker + "--";
+	std::string line;
+	std::unordered_map<std::string, std::string> multipartHeaders;
+	std::ofstream currentFile;
+	bool storeFile = false;
+
+	while (std::getline(ifs, line)) {
+		if (!line.empty() && line.back() == '\r')
+			line.pop_back();
+		
+		if (line == boundaryMarker || line == finalBoundaryMarker) {
+			if (currentFile.is_open())
+				currentFile.close();
+			if (line == finalBoundaryMarker)
+				break;
+			
+			// read multipart headers
+			multipartHeaders.clear();
+			storeFile = true;
+			while (std::getline(ifs, line)) {
+				if (!line.empty() && line.back() == "\r")
+					line.pop_back();
+
+				if (line.empty()) {
+					headerEndFound = true;
+					break;
+				}
+
+				std::pair<std::string, std::string> headerField;
+				if (!Utils::splitHeaderLine(line, headerField)) {
+					request.errorStatusCode = WSSC_BAD_REQUEST;
+					request.parsingState = Request::ParsingState::INVALID;
+					return;
+				}
+
+				multipartHeaders[headerField.first] = headerField.second;
+			}
+
+			auto it = multipartHeaders.find("content-disposition");
+			if (it != multipartHeaders.end()) {
+				// found
+				LOGT(Log::SUCCESS, "found: " <<  BOLD << it->first << REGULAR << " in the multipart/form-data header, parsing parameters(filename)");
+
+				size_t posFilname;
+				const std::string& disposition = it->second;
+				
+				if (disposition.find("form-data;") == std::string::npos || (posFilname = disposition.find("filename=")) == std::string::npos) {
+					// invalid content-disposition
+					request.errorStatusCode = WSSC_BAD_REQUEST;
+					request.parsingState = Request::ParsingState::INVALID;
+					return;
+				}
+				std::string filename = disposition.substr(posFilname + 9);
+				Utils::unquote(filename, '"');
+
+				//	TODO:	is it ok to use the filenmae, or do we need to make it unique
+
+				if (!Utils::isDirectory("~/tmp/")) {
+					std::filesystem::create_directories("~/tmp/");
+				}
+
+				std::string tmpPath = "~/tmp/" + filename;
+				currentFile.open(tmpPath);
+				if (!currentFile.is_open()) {
+					request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+					request.parsingState = Request::ParsingState::INVALID;
+					return;
+				}
+
+				request.tmpUploadedFiles.emplace_back(tmpPath);
+
+				LOGT(Log::SUCCESS, "filename: " << LIGHTGREEN << BOLD << filename);
+
+
+			} else {
+				// we didn't find expected CONTENT_DISPOSITION, that's invalid
+				request.errorStatusCode = WSSC_BAD_REQUEST;
+				request.parsingState = Request::ParsingState::INVALID;
+				return;
+			}
+		} else if (storeFile) {
+			if (line.find(boundaryMarker) != std::string::npos) {
+				continue;
+			}
+			if (currentFile.is_open()) {
+				currentFile.write(line.c_str(), line.size());
+			}
+		}
+
+	}
 }
 
 void	RequestParser::storeContentLengthBody(Request& request)
@@ -485,36 +628,36 @@ bool	RequestParser::isRelativeForm_EnsureLeadingSlash(std::string& uri)
 	return true;
 }
 
-bool	RequestParser::readHeaders(Request& request, const size_t headerEnd, std::unordered_map<std::string, std::string>& headers)
-{
-	size_t	start = 0;
-	while (start < headerEnd) {
-		size_t	pos = request.rawRequest.find_first_of('\n', start);
+// bool	RequestParser::readHeaders(Request& request, const size_t headerEnd, std::unordered_map<std::string, std::string>& headers)
+// {
+// 	size_t	start = 0;
+// 	while (start < headerEnd) {
+// 		size_t	pos = request.rawRequest.find_first_of('\n', start);
 
-		if (pos == std::string::npos) {
-			request.errorStatusCode = WSSC_BAD_REQUEST;
-			request.parsingState = Request::ParsingState::INVALID;
-			return false;
-		}
+// 		if (pos == std::string::npos) {
+// 			request.errorStatusCode = WSSC_BAD_REQUEST;
+// 			request.parsingState = Request::ParsingState::INVALID;
+// 			return false;
+// 		}
 
-		std::string line = request.rawRequest.substr(start, pos - start);
+// 		std::string line = request.rawRequest.substr(start, pos - start);
 
-		std::pair<std::string, std::string> headerField;
-		if (!Utils::splitHeaderLine(line, headerField)) {
-			request.errorStatusCode = WSSC_BAD_REQUEST;
-			request.parsingState = Request::ParsingState::INVALID;
-			return false;
-		}
+// 		std::pair<std::string, std::string> headerField;
+// 		if (!Utils::splitHeaderLine(line, headerField)) {
+// 			request.errorStatusCode = WSSC_BAD_REQUEST;
+// 			request.parsingState = Request::ParsingState::INVALID;
+// 			return false;
+// 		}
 
-		//	TODO:	we pass headers here a seperate arguemnet because we might want
-		//			to provide different header -> multipart/form-data (parseBody Header)
-		headers[headerField.first] = headerField.second;
+// 		//	TODO:	we pass headers here a seperate arguemnet because we might want
+// 		//			to provide different header -> multipart/form-data (parseBody Header)
+// 		headers[headerField.first] = headerField.second;
 
-		start = pos + 1;
-	}
+// 		start = pos + 1;
+// 	}
 
-	return true;
-}
+// 	return true;
+// }
 
 bool	RequestParser::validateOptionalHeaderFields(Request& request)
 {
