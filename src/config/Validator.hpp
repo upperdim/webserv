@@ -18,6 +18,7 @@ public:
 	static bool	isValidMethod(const std::string& str, HTTP::Method& method);
 	static bool	isValidToggle(const std::string& str, bool& toggle);
 	static bool	isValidExtension(const std::string& ext);
+	static bool	isValidContentTypeBoundary(std::string& boundary);
 
 private:
 	Validator();

@@ -9,15 +9,8 @@ void	GetHandler::handle(const Request& request, Response& response)
 	LOGC("HTTP_METHOD_HANDLER", "-> handle GET Request", LIGHTMAGENTA, LIGHTCYAN);
 
 	if (Utils::isDirectory(request.resolvedPath)) {
-		// Check trailng slash or redirect
-		if (request.resolvedPath.back() != '/') {
-			// If requested resource is a directory but looks like a file,
-			// we redirect to another URI
-			response.setStatusCode(WSSC_MOVED_PERMANENTLY);
-			response.addHeader("Location", std::string(request.URI) + '/');
-			response.addHeader("content-length", "0");
+		if (redirectOnMissingTrailingSlasch(request, response))
 			return;
-		}
 
 		if (!Utils::hasPermission(request.resolvedPath, R_OK)) {
 			createErrorResponse(request, response, WSSC_FORBIDDEN);
@@ -191,4 +184,3 @@ const std::string	GetHandler::getDirListingPadding(size_t entrySize)
 	
 	return std::string(count, ' ');
 }
-

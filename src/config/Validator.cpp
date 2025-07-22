@@ -1,5 +1,6 @@
-
 #include "Validator.hpp"
+#include <unordered_set>
+#include "Utils.hpp"
 
 Validator::~Validator()
 {
@@ -177,5 +178,27 @@ bool	Validator::isValidExtension(const std::string& ext)
 		if (!std::isalnum(c) && c != '-' && c != '_')
 			return false;
 	}
+	return true;
+}
+
+// RFC 2046: https://datatracker.ietf.org/doc/html/rfc2046
+bool	Validator::isValidContentTypeBoundary(std::string& boundary)
+{
+	static const std::unordered_set<char> bCharsNoSpace = {
+		'!', '#' , '$', '%', '&', '\'', '*', '+',
+		'-', '.' , '^', '_', '`', '|',  '~'
+	};
+
+	// strip quotes
+	Utils::unquote(boundary, '"');
+
+	if (boundary.empty() || boundary.length() > 70)
+		return false;
+
+	for (unsigned char c : boundary) {
+		if (!(std::isalnum(c) || bCharsNoSpace.count(c)))
+			return false;
+	}
+
 	return true;
 }

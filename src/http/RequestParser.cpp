@@ -1,8 +1,10 @@
 #include "RequestParser.hpp"
-#include <sstream>
 #include <algorithm>
-#include <unordered_set>
+#include <sstream>
+#include <fcntl.h>  // open()
+#include <unistd.h> // close()
 #include "HTTP.hpp"
+#include "RequestHandler.hpp"
 #include "Validator.hpp"
 #include "Log.hpp"
 #include "Utils.hpp"
@@ -93,63 +95,157 @@ void	RequestParser::parseHeader(Request& request)
 		return;
 	}
 
-	size_t	start = 0;
-	while (start < headerEnd) {
-		size_t	pos = request.rawRequest.find_first_of('\n', start);
-
-		if (pos == std::string::npos) {
-			request.errorStatusCode = WSSC_BAD_REQUEST;
-			request.parsingState = Request::ParsingState::INVALID;
-			return;
-		}
-
-		std::string line = request.rawRequest.substr(start, pos - start);
-
-		// clean trailing '\r' character
-		if (!line.empty() && line.back() == '\r') 
-			line.pop_back();
-
-		if (line.empty()) {
-			request.errorStatusCode = WSSC_BAD_REQUEST;
-			request.parsingState = Request::ParsingState::INVALID;
-			return;
-		}
-
-		std::pair<std::string, std::string> headerField;
-		if (!splitHeaderField(line, headerField)) {
-			LOGT(Log::WARNING, "failed to split Header-Field: " << line);
-			request.errorStatusCode = WSSC_BAD_REQUEST;
-			request.parsingState = Request::ParsingState::INVALID;
-			return;
-		}
-
-		std::transform(headerField.first.begin(), headerField.first.end(),
-		               headerField.first.begin(),
-					   [](unsigned char c){ return std::tolower(c); });
-
-		request.headers[headerField.first] = headerField.second;
-
-		start = pos + 1;
-	}
+	if (!readHeaders(request, headerEnd, request.headers))
+		return;
+	// delete the read header Bytes from rawRequest
 	request.rawRequest.erase(0, headerEnd + 4);
 
 	// first we resolve the serverBlock according to the value of HOST
 	if (!resolveServerBlock(request))
 		return;
 
-	if (!validateRequiredHeaderFields(request))
+	if (!validateOptionalHeaderFields(request))
 		return;
 
 	if (!resolveRequestContext(request))
 		return;
+
+	if (hasBody(request)) {
+		// TODO: Confirm the assumption that rawRequest will be empty when we are here
+		if (!createTempBodyFile(request.bodyFile, request.bodyTempFilename)) {
+			request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+			request.parsingState = Request::ParsingState::INVALID;
+			return;
+		}
+	}
 
 	request.parsingState = Request::ParsingState::BODY;
 }
 
 void	RequestParser::parseBody(Request& request)
 {
-	// TODO: Implement
-	request.parsingState = Request::ParsingState::COMPLETE;
+	if (!hasBody(request)) {
+		request.parsingState = Request::ParsingState::COMPLETE;
+		return;
+	}
+
+	// We support any kind of (content type) request body for requests which target CGI script URIs
+	if (RequestHandler::isCGIRequest(request)) {
+		// We still need to unchunk the body before passing it to the script
+		if (request.isChunkedBodyTransfer) {
+			storeChunkedTransferBody(request);
+		} else {
+			storeContentLengthBody(request);
+		}
+
+		return;
+	}
+	
+	// We don't support any other type of request body
+	request.errorStatusCode = WSSC_BAD_REQUEST;
+	request.parsingState = Request::ParsingState::INVALID;
+}
+
+void	RequestParser::storeContentLengthBody(Request& request)
+{
+	try {
+		LOGT(Log::DEBUG, "Storing Content-Length: " << request.headers.at("content-length") << " request body");
+	} catch(std::exception) {
+		LOGT(Log::DEBUG, "ERROR: Could not access request header \"content-length\" in storeContentLengthBody()");
+	}
+
+	request.bodyFile.write(request.rawRequest.data(), request.rawRequest.size());
+	request.bodyBytesStored += request.rawRequest.size();
+
+	LOGT(Log::DEBUG, "written " << request.rawRequest.size() << " bytes (total written: " << request.bodyBytesStored << " bytes)");
+	
+	request.rawRequest.erase(0, request.rawRequest.size());
+	
+	if (request.bodyBytesStored >= request.contentLength) {
+		LOGT(Log::DEBUG, "Storing body: COMPLETE (total written: " << request.bodyBytesStored << " bytes)");
+		request.bodyFile.close();
+		request.parsingState = Request::ParsingState::COMPLETE;
+	}
+}
+
+// Chunked request:
+// <Request line>\r\n
+// <Headers>\r\n
+// \r\n
+// <chunk size in hex>\r\n<chunk data>\r\n
+// ...
+// Final chunk: 0\r\n\r\n
+void	RequestParser::storeChunkedTransferBody(Request& request)
+{
+	LOGT(Log::DEBUG, "Storing Transfer-Encoding: chunked request body");
+
+	while (!request.rawRequest.empty()) {
+		if (request.awaitingChunkSize) {
+			// Look for chunk size line ending in \r\n
+			size_t pos = request.rawRequest.find("\r\n");
+			if (pos == std::string::npos) {
+				// Wait for more data
+				return;
+			}
+
+			std::string chunkSizeStr = request.rawRequest.substr(0, pos);
+			std::stringstream ss;
+			ss << std::hex << chunkSizeStr;
+			ss >> request.currentChunkSize;
+
+			request.rawRequest.erase(0, pos + 2);  // Remove chunk size line + \r\n
+
+			if (request.currentChunkSize == 0) {
+				// Last chunk
+				size_t trailerEnd = request.rawRequest.find("\r\n");
+				if (trailerEnd != std::string::npos) {
+					request.parsingState = Request::ParsingState::COMPLETE;
+					request.bodyFile.close();
+				}
+				return;
+			}
+
+			request.awaitingChunkSize = false;
+			request.currentChunkBytesReceived = 0;
+		} else {
+			// Processing chunk data
+
+			// Calculate how many bytes we can write now
+			size_t remainingChunkBytes = request.currentChunkSize - request.currentChunkBytesReceived;
+			size_t bytesAvailable = request.rawRequest.size();
+
+			// If enough bytes available for full chunk
+			if (bytesAvailable >= remainingChunkBytes + 2) {
+				// Write chunk data
+				request.bodyFile.write(request.rawRequest.data(), remainingChunkBytes);
+				request.currentChunkBytesReceived += remainingChunkBytes;
+
+				// Skip chunk data + trailing \r\n
+				request.rawRequest.erase(0, remainingChunkBytes + 2);
+
+				// Ready to read next chunk size
+				request.awaitingChunkSize = true;
+			} else {
+				// Not enough data yet
+				size_t toWrite = std::min(remainingChunkBytes, bytesAvailable);
+				request.bodyFile.write(request.rawRequest.data(), toWrite);
+				request.currentChunkBytesReceived += toWrite;
+				request.rawRequest.erase(0, toWrite);
+				return;  // Wait for more data
+			}
+		}
+	}
+}
+
+bool	RequestParser::hasBody(const Request& request)
+{
+	return request.contentLength.has_value() || request.isChunkedBodyTransfer;
+}
+
+bool	RequestParser::isFileUploadRequest(const Request& request)
+{
+	return request.contentType.has_value()
+	       && request.contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA;
 }
 
 bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
@@ -184,9 +280,9 @@ bool	RequestParser::validateRequestTarget(Request& request)
 		return false;
 	}
 
-	if (!validRawCharacters(request.requestTarget) ||
+	if (!validRawRequestTargetChars(request.requestTarget) ||
 		!percentDecoding(request.requestTarget, request.URI) ||
-		!validDecodedCharacters(request.URI) ||
+		!validDecodedRequestTargetChars(request.URI) ||
 	    !isRelativeForm_EnsureLeadingSlash(request.URI) ||
 	    !Utils::removeDotSegments(request.URI) ||
 		!Utils::collapseDuplicateSlashes(request.URI)) {
@@ -224,7 +320,7 @@ bool	RequestParser::validateProtokoll(Request& request)
 	return false;
 }
 
-bool	RequestParser::validRawCharacters(const std::string& requestTarget)
+bool	RequestParser::validRawRequestTargetChars(const std::string& requestTarget)
 {
 	for (auto it = requestTarget.cbegin(); it < requestTarget.cend(); ++it) {
 		if (*it <= 0x1F || *it == 0x7F || *it == ' ') {
@@ -235,7 +331,7 @@ bool	RequestParser::validRawCharacters(const std::string& requestTarget)
 	return true;
 }
 
-bool	RequestParser::validDecodedCharacters(const std::string& uri)
+bool	RequestParser::validDecodedRequestTargetChars(const std::string& uri)
 {
 	for (auto it = uri.cbegin(); it < uri.cend(); ++it) {
 		if (*it <= 0x1F || *it == 0x7F || *it == '\\') {
@@ -304,53 +400,38 @@ bool	RequestParser::isRelativeForm_EnsureLeadingSlash(std::string& uri)
 	return true;
 }
 
-bool	RequestParser::splitHeaderField(std::string& line, std::pair<std::string, std::string>& headerField)
+bool	RequestParser::readHeaders(Request& request, const size_t headerEnd, std::unordered_map<std::string, std::string>& headers)
 {
-	// no whitespace allowed before the field-name
-	if (line.size() > 0 && std::isspace(line[0]))
-		return false;
+	size_t	start = 0;
+	while (start < headerEnd) {
+		size_t	pos = request.rawRequest.find_first_of('\n', start);
 
-	// has valid ':'
-	size_t pos = line.find_first_of(":");
-	if (pos == std::string::npos)
-		return false;
-	
-	// check if field-name has valid chars of tchar: RFC 7230: 3.2.6.
-	for (size_t i = 0; i < pos; ++i) {
-		if (!isValidFieldNameChar(line[i]))
-			return false;		              
-	}
-	
-	headerField.first = line.substr(0, pos);
-	headerField.second = line.substr(pos + 1);
+		if (pos == std::string::npos) {
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
+			return false;
+		}
 
-	// trim whitespaces from front and back ONLY for field-value
-	Utils::trimWhitespaces(headerField.second);
-	// validate field-value after trimming
-	for (auto it = headerField.second.cbegin(); it < headerField.second.cend(); ++it) {
-		if (!isValidFieldValueChar(*it))
-			return false;		              
+		std::string line = request.rawRequest.substr(start, pos - start);
+
+		std::pair<std::string, std::string> headerField;
+		if (!Utils::splitHeaderLine(line, headerField)) {
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
+			return false;
+		}
+
+		//	TODO:	we pass headers here a seperate arguemnet because we might want
+		//			to provide different header -> multipart/form-data (parseBody Header)
+		headers[headerField.first] = headerField.second;
+
+		start = pos + 1;
 	}
 
 	return true;
 }
 
-bool	RequestParser::isValidFieldNameChar(const char c)
-{
-	static const std::unordered_set<char> tChars = {
-		'!', '#' , '$', '%', '&', '\'', '*', '+',
-		'-', '.' , '^', '_', '`', '|',  '~'
-	};
-	return std::isalnum(static_cast<unsigned char>(c)) || tChars.count(c);
-}
-
-bool	RequestParser::isValidFieldValueChar(const char c)
-{
-	const unsigned char uc = static_cast<unsigned char>(c);
-	return (uc >= ' ' && uc <= '~') || uc == '\t';
-}
-
-bool	RequestParser::validateRequiredHeaderFields(Request& request)
+bool	RequestParser::validateOptionalHeaderFields(Request& request)
 {
 	// check content-length if available on valid field-value
 	auto itCL = request.headers.find("content-length");
@@ -381,6 +462,38 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 		}
 	}
 
+	// check content-type
+	auto it = request.headers.find("content-type");
+	if (it != request.headers.end()) {
+		bool error = false;
+		request.contentType = HTTP::getContentTypeInfo(it->second, error);
+		if (error) {
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
+			return false;
+		}
+
+		if (request.contentType.has_value()) {
+			const HTTP::ContentTypeInfo_t& contentType = request.contentType.value();
+			std::string boundary = contentType.boundary.value_or("");
+
+			LOGTL(Log::INFO, "content-type",
+				LIGHTYELLOW << "\nraw:" << contentType.raw
+				<< "\nType:" << static_cast<int>(contentType.type)
+				<< "\nboundary:" << boundary);
+
+			// validate boundary for multipart/form-data
+			if (contentType.type == HTTP::ContentType::MULTIPART_FORM_DATA &&
+				!Validator::isValidContentTypeBoundary(boundary)) {
+				request.errorStatusCode = WSSC_BAD_REQUEST;
+				request.parsingState = Request::ParsingState::INVALID;
+				return false;
+			}
+			// set the quote striped boundery back the original request attribute
+			request.contentType.value().boundary = boundary;
+		}
+	}
+
 	// check transfer-encoding
 	auto itTE = request.headers.find("transfer-encoding");
 	if (itTE != request.headers.end()) {
@@ -391,6 +504,7 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 			request.parsingState = Request::ParsingState::INVALID;
 			return false;
 		}
+		request.isChunkedBodyTransfer = true;
 	}
 
 	// check that we only allow one: content_length || transfer-encoding
@@ -400,6 +514,34 @@ bool	RequestParser::validateRequiredHeaderFields(Request& request)
 		return false;
 	}
 
+	return true;
+}
+
+bool	RequestParser::createTempBodyFile(std::ofstream& reqTempBodyFile, std::string& reqTempBodyFileName)
+{
+	static int counter = 0;
+
+	std::time_t now = std::time(nullptr);
+
+	std::ostringstream oss;
+	oss << "./tmp/webserv_body_" << now << "_" << counter++;
+	reqTempBodyFileName = oss.str();
+
+	// 0600 = owner -> read write, group -> ---, others -> ---
+	int tmpFileFd = open(reqTempBodyFileName.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
+	if (tmpFileFd == -1) {
+		LOGT(Log::ERROR, "open() failed");
+		return false;
+	}
+	close(tmpFileFd); // We will open it with ofstream
+
+	reqTempBodyFile.open(reqTempBodyFileName, std::ios::binary);
+	if (!reqTempBodyFile.is_open()) {
+		LOGT(Log::ERROR, "open() failed on ofstream");
+		return false;
+	}
+
+	LOGT(Log::DEBUG, "Created temp file " << reqTempBodyFileName);
 	return true;
 }
 
