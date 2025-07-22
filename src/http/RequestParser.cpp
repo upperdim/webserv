@@ -168,6 +168,13 @@ void	RequestParser::storeContentLengthBody(Request& request)
 	}
 }
 
+// Chunked request:
+// <Request line>\r\n
+// <Headers>\r\n
+// \r\n
+// <chunk size in hex>\r\n<chunk data>\r\n
+// ...
+// Final chunk: 0\r\n\r\n
 void	RequestParser::storeChunkedTransferBody(Request& request)
 {
 	LOGT(Log::DEBUG, "Storing Transfer-Encoding: chunked request body");
@@ -200,30 +207,32 @@ void	RequestParser::storeChunkedTransferBody(Request& request)
 
 			request.awaitingChunkSize = false;
 			request.currentChunkBytesReceived = 0;
-		}
-
-		// Calculate how many bytes we can write now
-		size_t remainingChunkBytes = request.currentChunkSize - request.currentChunkBytesReceived;
-		size_t bytesAvailable = request.rawRequest.size();
-
-		// If enough bytes available for full chunk
-		if (bytesAvailable >= remainingChunkBytes + 2) {
-			// Write chunk data
-			request.bodyFile.write(request.rawRequest.data(), remainingChunkBytes);
-			request.currentChunkBytesReceived += remainingChunkBytes;
-
-			// Skip chunk data + trailing \r\n
-			request.rawRequest.erase(0, remainingChunkBytes + 2);
-
-			// Ready to read next chunk size
-			request.awaitingChunkSize = true;
 		} else {
-			// Not enough data yet
-			size_t toWrite = std::min(remainingChunkBytes, bytesAvailable);
-			request.bodyFile.write(request.rawRequest.data(), toWrite);
-			request.currentChunkBytesReceived += toWrite;
-			request.rawRequest.erase(0, toWrite);
-			return;  // Wait for more data
+			// Processing chunk data
+
+			// Calculate how many bytes we can write now
+			size_t remainingChunkBytes = request.currentChunkSize - request.currentChunkBytesReceived;
+			size_t bytesAvailable = request.rawRequest.size();
+
+			// If enough bytes available for full chunk
+			if (bytesAvailable >= remainingChunkBytes + 2) {
+				// Write chunk data
+				request.bodyFile.write(request.rawRequest.data(), remainingChunkBytes);
+				request.currentChunkBytesReceived += remainingChunkBytes;
+
+				// Skip chunk data + trailing \r\n
+				request.rawRequest.erase(0, remainingChunkBytes + 2);
+
+				// Ready to read next chunk size
+				request.awaitingChunkSize = true;
+			} else {
+				// Not enough data yet
+				size_t toWrite = std::min(remainingChunkBytes, bytesAvailable);
+				request.bodyFile.write(request.rawRequest.data(), toWrite);
+				request.currentChunkBytesReceived += toWrite;
+				request.rawRequest.erase(0, toWrite);
+				return;  // Wait for more data
+			}
 		}
 	}
 }
