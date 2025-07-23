@@ -258,10 +258,12 @@ void ServerEngine::writeToClient(int clientFd)
 {
 	ClientConnection& client = getClientConnectionByFd(clientFd);
 
-	if (client.getRequest().hasBody) {
-		client.getRequest().deleteTempBodyFile();
+	if (!client.getRequest().bodyTempFilename.empty()) {
+		if (!client.getRequest().deleteTempBodyFile()) {
+			LOGT(Log::INFO, "Failed to delete file: " << client.getRequest().bodyTempFilename);
+		}
 	}
-	
+
 	client.sendResponse();
 
 	if (client.getResponse().error()) {

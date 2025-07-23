@@ -74,6 +74,18 @@ bool	Request::createTempBodyFile()
 
 bool	Request::deleteTempBodyFile()
 {
-	// TODO: Implement
+	if (bodyTempFilename.empty()) {
+		LOGT(Log::INFO, "Attempted to delete non-existent file " << bodyTempFilename);
+		return true; // Already non-existent
+	}
+
+	if (std::remove(bodyTempFilename.c_str()) != 0) {
+		LOGT(Log::ERROR, "Failed to delete temp file " << bodyTempFilename);
+		return false;
+	}
+	
+	LOGT(Log::DEBUG, "Deleted temp file " << bodyTempFilename);
+	bodyTempFilename.clear(); // Marking as deleted
+
 	return true;
 }
