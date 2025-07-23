@@ -144,97 +144,6 @@ void	RequestParser::parseBody(Request& request)
 	request.parsingState = Request::ParsingState::INVALID;
 }
 
-void	RequestParser::storeContentLengthBody(Request& request)
-{
-	if (request.headers.find("content-length") != request.headers.end()) {
-		LOGT(Log::DEBUG, "Storing Content-Length: " << request.headers.at("content-length") << " request body");
-	} else {
-		LOGT(Log::DEBUG, "ERROR: Could not access request header \"content-length\" in storeContentLengthBody()");
-	}
-
-	request.bodyFile.write(request.rawRequest.data(), request.rawRequest.size());
-	request.bodyBytesStored += request.rawRequest.size();
-
-	LOGT(Log::DEBUG, "written " << request.rawRequest.size() << " bytes (total written: " << request.bodyBytesStored << " bytes)");
-	
-	request.rawRequest.erase(0, request.rawRequest.size());
-	
-	if (request.bodyBytesStored >= request.contentLength) {
-		LOGT(Log::DEBUG, "Storing body: COMPLETE (total written: " << request.bodyBytesStored << " bytes)");
-		request.bodyFile.close();
-		request.parsingState = Request::ParsingState::COMPLETE;
-	}
-}
-
-// Chunked request:
-// <Request line>\r\n
-// <Headers>\r\n
-// \r\n
-// <chunk size in hex>\r\n<chunk data>\r\n
-// ...
-// Final chunk: 0\r\n\r\n
-void	RequestParser::storeChunkedTransferBody(Request& request)
-{
-	LOGT(Log::DEBUG, "Storing Transfer-Encoding: chunked request body");
-
-	while (!request.rawRequest.empty()) {
-		if (request.awaitingChunkSize) {
-			// Look for chunk size line ending in \r\n
-			size_t pos = request.rawRequest.find("\r\n");
-			if (pos == std::string::npos) {
-				// Wait for more data
-				return;
-			}
-
-			std::string chunkSizeStr = request.rawRequest.substr(0, pos);
-			std::stringstream ss;
-			ss << std::hex << chunkSizeStr;
-			ss >> request.currentChunkSize;
-
-			request.rawRequest.erase(0, pos + 2);  // Remove chunk size line + \r\n
-
-			if (request.currentChunkSize == 0) {
-				// Last chunk
-				size_t trailerEnd = request.rawRequest.find("\r\n");
-				if (trailerEnd != std::string::npos) {
-					request.parsingState = Request::ParsingState::COMPLETE;
-					request.bodyFile.close();
-				}
-				return;
-			}
-
-			request.awaitingChunkSize = false;
-			request.currentChunkBytesReceived = 0;
-		} else {
-			// Processing chunk data
-
-			// Calculate how many bytes we can write now
-			size_t remainingChunkBytes = request.currentChunkSize - request.currentChunkBytesReceived;
-			size_t bytesAvailable = request.rawRequest.size();
-
-			// If enough bytes available for full chunk
-			if (bytesAvailable >= remainingChunkBytes + 2) {
-				// Write chunk data
-				request.bodyFile.write(request.rawRequest.data(), remainingChunkBytes);
-				request.currentChunkBytesReceived += remainingChunkBytes;
-
-				// Skip chunk data + trailing \r\n
-				request.rawRequest.erase(0, remainingChunkBytes + 2);
-
-				// Ready to read next chunk size
-				request.awaitingChunkSize = true;
-			} else {
-				// Not enough data yet
-				size_t toWrite = std::min(remainingChunkBytes, bytesAvailable);
-				request.bodyFile.write(request.rawRequest.data(), toWrite);
-				request.currentChunkBytesReceived += toWrite;
-				request.rawRequest.erase(0, toWrite);
-				return;  // Wait for more data
-			}
-		}
-	}
-}
-
 bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
 {
 	if (Validator::isValidMethod(methodStr, request.method))
@@ -545,7 +454,6 @@ bool	RequestParser::validateHost(Request& request, std::string& dest)
 	return true;
 }
 
-
 //=============================================================================
 // Resolve Request Context
 //=============================================================================
@@ -652,4 +560,95 @@ bool	RequestParser::resolvePath(Request& request)
 	LOGT(Log::INFO, LIGHTMAGENTA << "resolvedPath: " << LIGHTGREEN << BOLD << resolvedPath);
 	request.resolvedPath = resolvedPath;
 	return true;
+}
+
+void	RequestParser::storeContentLengthBody(Request& request)
+{
+	if (request.headers.find("content-length") != request.headers.end()) {
+		LOGT(Log::DEBUG, "Storing Content-Length: " << request.headers.at("content-length") << " request body");
+	} else {
+		LOGT(Log::DEBUG, "ERROR: Could not access request header \"content-length\" in storeContentLengthBody()");
+	}
+
+	request.bodyFile.write(request.rawRequest.data(), request.rawRequest.size());
+	request.bodyBytesStored += request.rawRequest.size();
+
+	LOGT(Log::DEBUG, "written " << request.rawRequest.size() << " bytes (total written: " << request.bodyBytesStored << " bytes)");
+	
+	request.rawRequest.erase(0, request.rawRequest.size());
+	
+	if (request.bodyBytesStored >= request.contentLength) {
+		LOGT(Log::DEBUG, "Storing body: COMPLETE (total written: " << request.bodyBytesStored << " bytes)");
+		request.bodyFile.close();
+		request.parsingState = Request::ParsingState::COMPLETE;
+	}
+}
+
+// Chunked request:
+// <Request line>\r\n
+// <Headers>\r\n
+// \r\n
+// <chunk size in hex>\r\n<chunk data>\r\n
+// ...
+// Final chunk: 0\r\n\r\n
+void	RequestParser::storeChunkedTransferBody(Request& request)
+{
+	LOGT(Log::DEBUG, "Storing Transfer-Encoding: chunked request body");
+
+	while (!request.rawRequest.empty()) {
+		if (request.awaitingChunkSize) {
+			// Look for chunk size line ending in \r\n
+			size_t pos = request.rawRequest.find("\r\n");
+			if (pos == std::string::npos) {
+				// Wait for more data
+				return;
+			}
+
+			std::string chunkSizeStr = request.rawRequest.substr(0, pos);
+			std::stringstream ss;
+			ss << std::hex << chunkSizeStr;
+			ss >> request.currentChunkSize;
+
+			request.rawRequest.erase(0, pos + 2);  // Remove chunk size line + \r\n
+
+			if (request.currentChunkSize == 0) {
+				// Last chunk
+				size_t trailerEnd = request.rawRequest.find("\r\n");
+				if (trailerEnd != std::string::npos) {
+					request.parsingState = Request::ParsingState::COMPLETE;
+					request.bodyFile.close();
+				}
+				return;
+			}
+
+			request.awaitingChunkSize = false;
+			request.currentChunkBytesReceived = 0;
+		} else {
+			// Processing chunk data
+
+			// Calculate how many bytes we can write now
+			size_t remainingChunkBytes = request.currentChunkSize - request.currentChunkBytesReceived;
+			size_t bytesAvailable = request.rawRequest.size();
+
+			// If enough bytes available for full chunk
+			if (bytesAvailable >= remainingChunkBytes + 2) {
+				// Write chunk data
+				request.bodyFile.write(request.rawRequest.data(), remainingChunkBytes);
+				request.currentChunkBytesReceived += remainingChunkBytes;
+
+				// Skip chunk data + trailing \r\n
+				request.rawRequest.erase(0, remainingChunkBytes + 2);
+
+				// Ready to read next chunk size
+				request.awaitingChunkSize = true;
+			} else {
+				// Not enough data yet
+				size_t toWrite = std::min(remainingChunkBytes, bytesAvailable);
+				request.bodyFile.write(request.rawRequest.data(), toWrite);
+				request.currentChunkBytesReceived += toWrite;
+				request.rawRequest.erase(0, toWrite);
+				return;  // Wait for more data
+			}
+		}
+	}
 }
