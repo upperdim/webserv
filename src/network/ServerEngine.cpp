@@ -208,14 +208,6 @@ void ServerEngine::acceptNewClientConnection(ServerSocket& clientConnectedServer
 void ServerEngine::disconnectClient(int clientFd)
 {
 	LOG("Disconnecting ClientConnection fd = " << clientFd);
-
-	ClientConnection& client = getClientConnectionByFd(clientFd);
-	if (!client.getRequest().bodyTempFilename.empty()) {
-		if (!client.getRequest().deleteTempBodyFile()) {
-			LOGT(Log::INFO, "Failed to delete file: " << client.getRequest().bodyTempFilename);
-		}
-	}
-
 	clients.erase(clientFd);
 	pollFdsRemovalQueue.push_back(clientFd);
 	LOG("ClientConnection is removed from the map and queued for removal from pollFds, fd = " << clientFd);

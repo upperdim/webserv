@@ -12,6 +12,7 @@ class Request
 {
 public:
 	Request(std::vector<ServerBlock>& _serverBlocks);
+	~Request();
 
 	enum class ParsingState {
 		REQUEST_LINE,
