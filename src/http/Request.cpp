@@ -23,13 +23,15 @@ Request::Request(std::vector<ServerBlock>& _serverBlocks)
 
 bool	Request::isCGIRequest()
 {
-	return !resolvedLocationBlock->cgiExtension.empty() 
+	return resolvedLocationBlock != nullptr
+	       && !resolvedLocationBlock->cgiExtension.empty() 
 	       && Utils::strEndsWith(URI, resolvedLocationBlock->cgiExtension);
 }
 
 bool	Request::isRedirectRequest()
 {
-	return !resolvedLocationBlock->returnRoute.empty()
+	return resolvedLocationBlock != nullptr 
+	       && !resolvedLocationBlock->returnRoute.empty()
 	       && Utils::strEndsWith(URI, resolvedLocationBlock->cgiExtension);
 }
 
