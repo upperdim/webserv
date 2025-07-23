@@ -24,9 +24,7 @@ Request::Request(std::vector<ServerBlock>& _serverBlocks)
 Request::~Request()
 {
 	if (!bodyTempFilename.empty()) {
-		if (deleteTempBodyFile()) {
-			LOGT(Log::INFO, "Failed to delete file: " << bodyTempFilename);
-		}
+		deleteTempBodyFile();
 	}
 }
 
