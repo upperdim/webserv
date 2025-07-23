@@ -258,6 +258,10 @@ void ServerEngine::writeToClient(int clientFd)
 {
 	ClientConnection& client = getClientConnectionByFd(clientFd);
 
+	if (client.getRequest().hasBody) {
+		client.getRequest().deleteTempBodyFile();
+	}
+	
 	client.sendResponse();
 
 	if (client.getResponse().error()) {
