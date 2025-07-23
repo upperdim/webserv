@@ -77,7 +77,7 @@ bool	Request::createTempBodyFile()
 bool	Request::deleteTempBodyFile()
 {
 	if (bodyTempFilename.empty()) {
-		LOGT(Log::INFO, "Attempted to delete non-existent file " << bodyTempFilename);
+		LOGT(Log::INFO, "Attempted to delete non-existent temp body file ");
 		return true; // Already non-existent
 	}
 
