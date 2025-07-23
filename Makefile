@@ -30,6 +30,8 @@ SRCS_NO_MAIN=	Config.cpp \
 				HTTP.cpp \
 				Log.cpp \
 				Utils.cpp \
+				CGIHandler.cpp \
+
 
 
 SRCS		=	main.cpp $(SRCS_NO_MAIN)
