@@ -109,7 +109,6 @@ void	RequestParser::parseHeader(Request& request)
 		return;
 
 	if (request.hasBody()) {
-		// TODO: Confirm the assumption that rawRequest will be empty when we are here
 		if (!request.createTempBodyFile()) {
 			request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
 			request.parsingState = Request::ParsingState::INVALID;
