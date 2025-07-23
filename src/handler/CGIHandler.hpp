@@ -15,6 +15,9 @@ class CGIHandler : RequestHandler
 {
 public:
 	static void	handle(const Request& request, Response& response);
+
+private:
+	CGIHandler();
 };
 
 #endif

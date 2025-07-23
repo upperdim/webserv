@@ -13,6 +13,9 @@ protected:
 	static bool	isAllowedMethod(const Request& request);
 	static void	createErrorResponse(const Request& request, Response& response, int statusCode);
 	static bool	redirectOnMissingTrailingSlasch(const Request& request, Response& response);
+
+private:
+	RequestHandler();
 };
 
 #endif
