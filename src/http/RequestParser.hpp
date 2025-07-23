@@ -16,13 +16,13 @@ private:
 	static void					parseRequestLine(Request& request);
 	static void					parseHeader(Request& request);
 	static void					parseBody(Request& request);
-	static void					storeContentLengthBody(Request& request);
-	static void					storeChunkedTransferBody(Request& request);
 
+	// Request line
 	static bool					validateHttpMethod(std::string& methodStr, Request& request);
 	static bool					validateRequestTarget(Request& request);
 	static bool					validateProtokoll(Request& request);
 
+	// Request target
 	static bool					validRawRequestTargetChars(const std::string& requestTarget);
 	static bool					validDecodedRequestTargetChars(const std::string& uri);
 	static void					parseQueryString(const std::string& sourceURI, std::string& destQueryString);
@@ -31,6 +31,7 @@ private:
 	static int					hexToInt(const char c);
 	static bool					isRelativeForm_EnsureLeadingSlash(std::string& uri);
 
+	// Header
 	static bool					readHeaders(Request& request, const size_t headerEnd, std::unordered_map<std::string, std::string>& headers);
 
 	static bool					validateOptionalHeaderFields(Request& request);
@@ -41,6 +42,9 @@ private:
 	static bool					resolveLocationBlock(Request& request);
 	static bool					resolvePath(Request& request);
 
+	// Body
+	static void					storeContentLengthBody(Request& request);
+	static void					storeChunkedTransferBody(Request& request);
 };
 
 #endif
