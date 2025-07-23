@@ -4,9 +4,10 @@
 #include <chrono>   // std::chrono::seconds
 #include "ServerEngine.hpp"
 #include "ClientConnection.hpp"
-#include "ServerSocket.hpp"
-#include "HTTP.hpp"
 #include "RequestHandler.hpp"
+#include "ServerSocket.hpp"
+#include "Config.hpp"
+#include "HTTP.hpp"
 #include "Log.hpp"
 
 volatile std::sig_atomic_t ServerEngine::isRunning = false;
@@ -51,7 +52,7 @@ ServerEngine::~ServerEngine()
 		close(serverSockets[i].getFd());
 		LOG("closed server fd = " << serverSockets[i].getFd());
 	}
-	
+
 	for (auto it = clients.begin(); it != clients.end(); ++it) {
 		close(it->second.getFd());
 		LOG("closed ClientConnection fd = " << it->second.getFd());
@@ -74,7 +75,7 @@ void ServerEngine::run()
 
 			iteratePollFds(eventCount);
 		}
-		
+
 		updatePollFds();
 	}
 
@@ -240,15 +241,16 @@ void ServerEngine::readClientIncomingData(int clientFd)
 	
 	client.receiveRequest();
 
-	if (client.getRequest().doneReceiving) {
-		RequestHandler::handle(client.getRequest(), client.getResponse());
-		setPollFdEvents(clientFd, POLLOUT | POLLERR | POLLHUP);
-		LOG("Now listening to POLLOUT event for ClientConnection fd = " << clientFd << " socket");
-	}
-
 	if (client.getConnectionError()) {
 		LOGT(Log::ERROR, "Connection error on ClientConnection fd = " << clientFd);
 		disconnectClient(clientFd);
+	}
+
+	if (client.getRequest().doneReceiving) {
+		RequestHandler::handle(client.getRequest(), client.getResponse());
+		
+		setPollFdEvents(clientFd, POLLOUT | POLLERR | POLLHUP);
+		LOG("Now listening to POLLOUT event for ClientConnection fd = " << clientFd << " socket");
 	}
 }
 

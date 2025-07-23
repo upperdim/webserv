@@ -1,13 +1,17 @@
 #include <unistd.h>	// R_OK
 #include <algorithm>
 #include "RequestHandler.hpp"
-#include "GetHandler.hpp"
-#include "PostHandler.hpp"
 #include "DeleteHandler.hpp"
+#include "PostHandler.hpp"
+#include "GetHandler.hpp"
+#include "CGIHandler.hpp"
 #include "Utils.hpp"
+#include "Log.hpp"
 
 void	RequestHandler::handle(Request& request, Response& response)
 {
+	LOGT(Log::DEBUG, "REQUEST_HANDLER");
+
 	if (request.errorStatusCode.has_value()) {
 		createErrorResponse(request, response, request.errorStatusCode.value());
 		return;
@@ -23,7 +27,15 @@ void	RequestHandler::handle(Request& request, Response& response)
 		return;
 	}
 	
-	if (handleIfRedirect(request, response)) {
+	if (request.isRedirectRequest()) {
+		response.setStatusCode(WSSC_FOUND);
+		response.addHeader("Location", request.resolvedLocationBlock->returnRoute);
+		response.addHeader("content-length", "0");
+		return;
+	}
+
+	if (request.isCGIRequest()) {
+		CGIHandler::handle(request, response);
 		return;
 	}
 	
@@ -38,17 +50,6 @@ void	RequestHandler::handle(Request& request, Response& response)
 			DeleteHandler::handle(request, response);
 			break;
 	}
-}
-
-bool	RequestHandler::handleIfRedirect(const Request& request, Response& response)
-{
-	if (!request.resolvedLocationBlock->returnRoute.empty()) {
-		response.setStatusCode(WSSC_FOUND);
-		response.addHeader("Location", request.resolvedLocationBlock->returnRoute);
-		response.addHeader("content-length", "0");
-		return true;
-	}
-	return false;
 }
 
 bool	RequestHandler::redirectOnMissingTrailingSlasch(const Request& request, Response& response)
@@ -79,32 +80,29 @@ bool	RequestHandler::isAllowedMethod(const Request& request)
 
 void	RequestHandler::createErrorResponse(const Request& request, Response& response, int statusCode)
 {
-	auto itEP = request.resolvedLocationBlock->errorPagePaths.find(statusCode);
-	if (itEP != request.resolvedLocationBlock->errorPagePaths.end()
-	    && !Utils::isDirectory(itEP->second)
-		&& Utils::fileExists(itEP->second)
-		&& Utils::hasPermission(itEP->second, R_OK)) {
-		response.setStatusCode(statusCode);
+	if (request.resolvedLocationBlock != nullptr) {
+		auto itEP = request.resolvedLocationBlock->errorPagePaths.find(statusCode);
+		if (itEP != request.resolvedLocationBlock->errorPagePaths.end()
+			&& !Utils::isDirectory(itEP->second)
+			&& Utils::fileExists(itEP->second)
+			&& Utils::hasPermission(itEP->second, R_OK)) {
+			
+			response.setStatusCode(statusCode);
 
-		// get extension
-		std::string ext;
-		size_t pos = itEP->second.find_last_of(".");
-		if (pos != std::string::npos) {
-			ext = itEP->second.substr(pos);
+			// get extension
+			std::string ext;
+			size_t pos = itEP->second.find_last_of(".");
+			if (pos != std::string::npos) {
+				ext = itEP->second.substr(pos);
+			}
+
+			response.addHeader("Content-Type", HTTP::getMimeType(ext));
+			response.setBodyFileBufferReader(itEP->second);
+			return;
 		}
-
-		response.addHeader("Content-Type", HTTP::getMimeType(ext));
-		response.setBodyFileBufferReader(itEP->second);
-		return;
 	}
 
 	response.setStatusCode(statusCode);
 	response.addHeader("Content-Type", HTTP::getMimeType(".html"));
 	response.setBodyString(HTTP::getErrorPageTemplate(statusCode));
-}
-
-bool	RequestHandler::isCGIRequest(const Request& request)
-{
-	return !request.resolvedLocationBlock->cgiExtension.empty() 
-	       && Utils::endsWith(request.URI, request.resolvedLocationBlock->cgiExtension);
 }

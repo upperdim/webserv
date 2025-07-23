@@ -5,7 +5,7 @@
 
 void	DeleteHandler::handle(const Request& request, Response& response)
 {
-	LOGC("HTTP_METHOD_HANDLER", "-> handle DELETE Request", LIGHTMAGENTA, LIGHTCYAN);
+	LOGC("REQUEST_HANDLER", "-> handle DELETE Request", LIGHTMAGENTA, LIGHTCYAN);
 
 	std::filesystem::path resourcePath(request.resolvedPath);
 

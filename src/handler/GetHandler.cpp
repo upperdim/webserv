@@ -6,7 +6,7 @@
 
 void	GetHandler::handle(const Request& request, Response& response)
 {
-	LOGC("HTTP_METHOD_HANDLER", "-> handle GET Request", LIGHTMAGENTA, LIGHTCYAN);
+	LOGC("REQUEST_HANDLER", "-> handle GET Request", LIGHTMAGENTA, LIGHTCYAN);
 
 	if (Utils::isDirectory(request.resolvedPath)) {
 		if (redirectOnMissingTrailingSlasch(request, response))

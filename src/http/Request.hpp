@@ -12,6 +12,7 @@ class Request
 {
 public:
 	Request(std::vector<ServerBlock>& _serverBlocks);
+	~Request();
 
 	enum class ParsingState {
 		REQUEST_LINE,
@@ -50,6 +51,14 @@ public:
 	std::optional<size_t>							contentLength;
 	std::optional<HTTP::ContentTypeInfo_t>			contentType;
 	std::string										resolvedPath;
+	std::string										queryString; // URL query string after '?'
+
+	bool											isCGIRequest();
+	bool											isRedirectRequest();
+	bool											hasBody();
+	bool											isFileUploadRequest();
+	bool											createTempBodyFile();
+	bool											deleteTempBodyFile();
 
 private:
 };

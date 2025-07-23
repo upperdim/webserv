@@ -1,8 +1,6 @@
 #include "RequestParser.hpp"
 #include <algorithm>
 #include <sstream>
-#include <fcntl.h>  // open()
-#include <unistd.h> // close()
 #include "HTTP.hpp"
 #include "RequestHandler.hpp"
 #include "Validator.hpp"
@@ -110,9 +108,8 @@ void	RequestParser::parseHeader(Request& request)
 	if (!resolveRequestContext(request))
 		return;
 
-	if (hasBody(request)) {
-		// TODO: Confirm the assumption that rawRequest will be empty when we are here
-		if (!createTempBodyFile(request.bodyFile, request.bodyTempFilename)) {
+	if (request.hasBody()) {
+		if (!request.createTempBodyFile()) {
 			request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
 			request.parsingState = Request::ParsingState::INVALID;
 			return;
@@ -124,13 +121,13 @@ void	RequestParser::parseHeader(Request& request)
 
 void	RequestParser::parseBody(Request& request)
 {
-	if (!hasBody(request)) {
+	if (!request.hasBody()) {
 		request.parsingState = Request::ParsingState::COMPLETE;
 		return;
 	}
 
 	// We support any kind of (content type) request body for requests which target CGI script URIs
-	if (RequestHandler::isCGIRequest(request)) {
+	if (request.isCGIRequest()) {
 		// We still need to unchunk the body before passing it to the script
 		if (request.isChunkedBodyTransfer) {
 			storeChunkedTransferBody(request);
@@ -144,108 +141,6 @@ void	RequestParser::parseBody(Request& request)
 	// We don't support any other type of request body
 	request.errorStatusCode = WSSC_BAD_REQUEST;
 	request.parsingState = Request::ParsingState::INVALID;
-}
-
-void	RequestParser::storeContentLengthBody(Request& request)
-{
-	try {
-		LOGT(Log::DEBUG, "Storing Content-Length: " << request.headers.at("content-length") << " request body");
-	} catch(std::exception) {
-		LOGT(Log::DEBUG, "ERROR: Could not access request header \"content-length\" in storeContentLengthBody()");
-	}
-
-	request.bodyFile.write(request.rawRequest.data(), request.rawRequest.size());
-	request.bodyBytesStored += request.rawRequest.size();
-
-	LOGT(Log::DEBUG, "written " << request.rawRequest.size() << " bytes (total written: " << request.bodyBytesStored << " bytes)");
-	
-	request.rawRequest.erase(0, request.rawRequest.size());
-	
-	if (request.bodyBytesStored >= request.contentLength) {
-		LOGT(Log::DEBUG, "Storing body: COMPLETE (total written: " << request.bodyBytesStored << " bytes)");
-		request.bodyFile.close();
-		request.parsingState = Request::ParsingState::COMPLETE;
-	}
-}
-
-// Chunked request:
-// <Request line>\r\n
-// <Headers>\r\n
-// \r\n
-// <chunk size in hex>\r\n<chunk data>\r\n
-// ...
-// Final chunk: 0\r\n\r\n
-void	RequestParser::storeChunkedTransferBody(Request& request)
-{
-	LOGT(Log::DEBUG, "Storing Transfer-Encoding: chunked request body");
-
-	while (!request.rawRequest.empty()) {
-		if (request.awaitingChunkSize) {
-			// Look for chunk size line ending in \r\n
-			size_t pos = request.rawRequest.find("\r\n");
-			if (pos == std::string::npos) {
-				// Wait for more data
-				return;
-			}
-
-			std::string chunkSizeStr = request.rawRequest.substr(0, pos);
-			std::stringstream ss;
-			ss << std::hex << chunkSizeStr;
-			ss >> request.currentChunkSize;
-
-			request.rawRequest.erase(0, pos + 2);  // Remove chunk size line + \r\n
-
-			if (request.currentChunkSize == 0) {
-				// Last chunk
-				size_t trailerEnd = request.rawRequest.find("\r\n");
-				if (trailerEnd != std::string::npos) {
-					request.parsingState = Request::ParsingState::COMPLETE;
-					request.bodyFile.close();
-				}
-				return;
-			}
-
-			request.awaitingChunkSize = false;
-			request.currentChunkBytesReceived = 0;
-		} else {
-			// Processing chunk data
-
-			// Calculate how many bytes we can write now
-			size_t remainingChunkBytes = request.currentChunkSize - request.currentChunkBytesReceived;
-			size_t bytesAvailable = request.rawRequest.size();
-
-			// If enough bytes available for full chunk
-			if (bytesAvailable >= remainingChunkBytes + 2) {
-				// Write chunk data
-				request.bodyFile.write(request.rawRequest.data(), remainingChunkBytes);
-				request.currentChunkBytesReceived += remainingChunkBytes;
-
-				// Skip chunk data + trailing \r\n
-				request.rawRequest.erase(0, remainingChunkBytes + 2);
-
-				// Ready to read next chunk size
-				request.awaitingChunkSize = true;
-			} else {
-				// Not enough data yet
-				size_t toWrite = std::min(remainingChunkBytes, bytesAvailable);
-				request.bodyFile.write(request.rawRequest.data(), toWrite);
-				request.currentChunkBytesReceived += toWrite;
-				request.rawRequest.erase(0, toWrite);
-				return;  // Wait for more data
-			}
-		}
-	}
-}
-
-bool	RequestParser::hasBody(const Request& request)
-{
-	return request.contentLength.has_value() || request.isChunkedBodyTransfer;
-}
-
-bool	RequestParser::isFileUploadRequest(const Request& request)
-{
-	return request.contentType.has_value()
-	       && request.contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA;
 }
 
 bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
@@ -281,8 +176,16 @@ bool	RequestParser::validateRequestTarget(Request& request)
 	}
 
 	if (!validRawRequestTargetChars(request.requestTarget) ||
-		!percentDecoding(request.requestTarget, request.URI) ||
-		!validDecodedRequestTargetChars(request.URI) ||
+		!percentDecoding(request.requestTarget, request.URI)) {
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
+		return false;
+	}
+
+	parseQueryString(request.URI, request.queryString);
+	truncateQueryAndFragments(request.URI);
+
+	if (!validDecodedRequestTargetChars(request.URI) ||
 	    !isRelativeForm_EnsureLeadingSlash(request.URI) ||
 	    !Utils::removeDotSegments(request.URI) ||
 		!Utils::collapseDuplicateSlashes(request.URI)) {
@@ -350,34 +253,42 @@ bool	RequestParser::validDecodedRequestTargetChars(const std::string& uri)
 	return true;
 }
 
-const std::string	RequestParser::truncateQueryAndFragments(const std::string& requestTarget)
+void	RequestParser::parseQueryString(const std::string& sourceURI, std::string& destQueryString)
 {
-	size_t pos = requestTarget.find_first_of("?#");
+	size_t queryStartIdx = sourceURI.find("?");
+	if (queryStartIdx == std::string::npos && sourceURI.size() >= queryStartIdx + 1) {
+		destQueryString = "";
+	} else {
+		destQueryString = sourceURI.substr(queryStartIdx + 1);
+	}
+}
+
+void	RequestParser::truncateQueryAndFragments(std::string& URI)
+{
+	size_t pos = URI.find_first_of("?#");
 	if (pos != std::string::npos)
-		return requestTarget.substr(0, pos);
-	return requestTarget;
+		URI = URI.substr(0, pos);
 }
 
 bool	RequestParser::percentDecoding(const std::string& requestTarget, std::string& destURI)
 {
-	const std::string truncTarget = truncateQueryAndFragments(requestTarget);
-	destURI.reserve(truncTarget.size());
+	destURI.reserve(requestTarget.size());
 
-	for (size_t idx = 0; idx < truncTarget.size(); ++idx) {
-		if (truncTarget[idx] == '%') {
-			if (idx + 2 < truncTarget.size() &&
-			    std::isxdigit(static_cast<unsigned char>(truncTarget[idx + 1])) &&
-			    std::isxdigit(static_cast<unsigned char>(truncTarget[idx + 2]))) {
+	for (size_t idx = 0; idx < requestTarget.size(); ++idx) {
+		if (requestTarget[idx] == '%') {
+			if (idx + 2 < requestTarget.size() &&
+			    std::isxdigit(static_cast<unsigned char>(requestTarget[idx + 1])) &&
+			    std::isxdigit(static_cast<unsigned char>(requestTarget[idx + 2]))) {
 					// Valid percent-encoding: decode and append character
-					char hiHex = truncTarget[++idx];
-					char loHex = truncTarget[++idx];
+					char hiHex = requestTarget[++idx];
+					char loHex = requestTarget[++idx];
 					destURI += static_cast<char>((hexToInt(hiHex) << 4) | hexToInt(loHex));
 			} else {
 				// invalid Hex character, or too short for valid hex form: xFF
 				return false;
 			}
 		} else {
-			destURI += truncTarget[idx];
+			destURI += requestTarget[idx];
 		}
 	}
 	return true;
@@ -390,7 +301,7 @@ int	RequestParser::hexToInt(const char c)
 
 bool	RequestParser::isRelativeForm_EnsureLeadingSlash(std::string& uri)
 {
-	if (Utils::startsWith(uri, "http://") || Utils::startsWith(uri, "https://"))
+	if (Utils::strStartsWith(uri, "http://") || Utils::strStartsWith(uri, "https://"))
 		return false;
 
 	// make URI absolute per RFC 7230: Section 5.3.1
@@ -517,34 +428,6 @@ bool	RequestParser::validateOptionalHeaderFields(Request& request)
 	return true;
 }
 
-bool	RequestParser::createTempBodyFile(std::ofstream& reqTempBodyFile, std::string& reqTempBodyFileName)
-{
-	static int counter = 0;
-
-	std::time_t now = std::time(nullptr);
-
-	std::ostringstream oss;
-	oss << "./tmp/webserv_body_" << now << "_" << counter++;
-	reqTempBodyFileName = oss.str();
-
-	// 0600 = owner -> read write, group -> ---, others -> ---
-	int tmpFileFd = open(reqTempBodyFileName.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
-	if (tmpFileFd == -1) {
-		LOGT(Log::ERROR, "open() failed");
-		return false;
-	}
-	close(tmpFileFd); // We will open it with ofstream
-
-	reqTempBodyFile.open(reqTempBodyFileName, std::ios::binary);
-	if (!reqTempBodyFile.is_open()) {
-		LOGT(Log::ERROR, "open() failed on ofstream");
-		return false;
-	}
-
-	LOGT(Log::DEBUG, "Created temp file " << reqTempBodyFileName);
-	return true;
-}
-
 bool	RequestParser::validateHost(Request& request, std::string& dest)
 {
 	auto hostIT = request.headers.find("host");
@@ -569,7 +452,6 @@ bool	RequestParser::validateHost(Request& request, std::string& dest)
 	dest = hostSTR;
 	return true;
 }
-
 
 //=============================================================================
 // Resolve Request Context
@@ -641,7 +523,7 @@ bool	RequestParser::resolveLocationBlock(Request& request)
 	// TODO: use the resolved serverBlock
 	const LocationBlock* bestMatch = nullptr;
 	for (const LocationBlock& loc : request.resolvedServerBlock->locationBlocks) {
-		if (Utils::startsWith(request.URI, loc.route)) {
+		if (Utils::strStartsWith(request.URI, loc.route)) {
 			if (bestMatch == nullptr || bestMatch->route.length() < loc.route.length())
 				bestMatch = &loc;
 		}
@@ -677,4 +559,95 @@ bool	RequestParser::resolvePath(Request& request)
 	LOGT(Log::INFO, LIGHTMAGENTA << "resolvedPath: " << LIGHTGREEN << BOLD << resolvedPath);
 	request.resolvedPath = resolvedPath;
 	return true;
+}
+
+void	RequestParser::storeContentLengthBody(Request& request)
+{
+	if (request.headers.find("content-length") != request.headers.end()) {
+		LOGT(Log::DEBUG, "Storing Content-Length: " << request.headers.at("content-length") << " request body");
+	} else {
+		LOGT(Log::DEBUG, "ERROR: Could not access request header \"content-length\" in storeContentLengthBody()");
+	}
+
+	request.bodyFile.write(request.rawRequest.data(), request.rawRequest.size());
+	request.bodyBytesStored += request.rawRequest.size();
+
+	LOGT(Log::DEBUG, "written " << request.rawRequest.size() << " bytes (total written: " << request.bodyBytesStored << " bytes)");
+	
+	request.rawRequest.erase(0, request.rawRequest.size());
+	
+	if (request.bodyBytesStored >= request.contentLength) {
+		LOGT(Log::DEBUG, "Storing body: COMPLETE (total written: " << request.bodyBytesStored << " bytes)");
+		request.bodyFile.close();
+		request.parsingState = Request::ParsingState::COMPLETE;
+	}
+}
+
+// Chunked request:
+// <Request line>\r\n
+// <Headers>\r\n
+// \r\n
+// <chunk size in hex>\r\n<chunk data>\r\n
+// ...
+// Final chunk: 0\r\n\r\n
+void	RequestParser::storeChunkedTransferBody(Request& request)
+{
+	LOGT(Log::DEBUG, "Storing Transfer-Encoding: chunked request body");
+
+	while (!request.rawRequest.empty()) {
+		if (request.awaitingChunkSize) {
+			// Look for chunk size line ending in \r\n
+			size_t pos = request.rawRequest.find("\r\n");
+			if (pos == std::string::npos) {
+				// Wait for more data
+				return;
+			}
+
+			std::string chunkSizeStr = request.rawRequest.substr(0, pos);
+			std::stringstream ss;
+			ss << std::hex << chunkSizeStr;
+			ss >> request.currentChunkSize;
+
+			request.rawRequest.erase(0, pos + 2);  // Remove chunk size line + \r\n
+
+			if (request.currentChunkSize == 0) {
+				// Last chunk
+				size_t trailerEnd = request.rawRequest.find("\r\n");
+				if (trailerEnd != std::string::npos) {
+					request.parsingState = Request::ParsingState::COMPLETE;
+					request.bodyFile.close();
+				}
+				return;
+			}
+
+			request.awaitingChunkSize = false;
+			request.currentChunkBytesReceived = 0;
+		} else {
+			// Processing chunk data
+
+			// Calculate how many bytes we can write now
+			size_t remainingChunkBytes = request.currentChunkSize - request.currentChunkBytesReceived;
+			size_t bytesAvailable = request.rawRequest.size();
+
+			// If enough bytes available for full chunk
+			if (bytesAvailable >= remainingChunkBytes + 2) {
+				// Write chunk data
+				request.bodyFile.write(request.rawRequest.data(), remainingChunkBytes);
+				request.currentChunkBytesReceived += remainingChunkBytes;
+
+				// Skip chunk data + trailing \r\n
+				request.rawRequest.erase(0, remainingChunkBytes + 2);
+
+				// Ready to read next chunk size
+				request.awaitingChunkSize = true;
+			} else {
+				// Not enough data yet
+				size_t toWrite = std::min(remainingChunkBytes, bytesAvailable);
+				request.bodyFile.write(request.rawRequest.data(), toWrite);
+				request.currentChunkBytesReceived += toWrite;
+				request.rawRequest.erase(0, toWrite);
+				return;  // Wait for more data
+			}
+		}
+	}
 }
