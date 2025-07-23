@@ -17,8 +17,16 @@ void CGIHandler::handle(const Request& request, Response& response)
 	const std::string& scriptPath  = request.resolvedPath;
 
 	int inputPipe[2];  // Parent writes to [1], child  reads from [0]
+	if (pipe(inputPipe) < 0) {
+		LOGT(Log::ERROR, "Could not pipe for CGI process");
+		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+		return;
+	}
+	
 	int outputPipe[2]; // Child  writes to [1], parent reads from [0]
-	if (pipe(inputPipe) < 0 || pipe(outputPipe) < 0) {
+	if (pipe(outputPipe) < 0) {
+		close(inputPipe[0]);
+		close(inputPipe[1]);
 		LOGT(Log::ERROR, "Could not pipe for CGI process");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
@@ -26,6 +34,10 @@ void CGIHandler::handle(const Request& request, Response& response)
 
 	pid_t pid = fork();
 	if (pid < 0) {
+		close(inputPipe[0]);
+		close(inputPipe[1]);
+		close(outputPipe[0]);
+		close(outputPipe[1]);
 		LOGT(Log::ERROR, "Could not fork a CGI process");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
