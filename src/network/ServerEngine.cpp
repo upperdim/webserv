@@ -52,7 +52,7 @@ ServerEngine::~ServerEngine()
 		close(serverSockets[i].getFd());
 		LOG("closed server fd = " << serverSockets[i].getFd());
 	}
-	
+
 	for (auto it = clients.begin(); it != clients.end(); ++it) {
 		close(it->second.getFd());
 		LOG("closed ClientConnection fd = " << it->second.getFd());
@@ -75,7 +75,7 @@ void ServerEngine::run()
 			
 			iteratePollFds(eventCount);
 		}
-		
+
 		updatePollFds();
 	}
 
