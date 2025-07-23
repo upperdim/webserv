@@ -72,7 +72,7 @@ void ServerEngine::run()
 			if (eventCount == -1 && isRunning) {
 				throw std::runtime_error("poll() error");
 			}
-			
+
 			iteratePollFds(eventCount);
 		}
 
