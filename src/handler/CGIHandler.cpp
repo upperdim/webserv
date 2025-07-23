@@ -101,16 +101,8 @@ void CGIHandler::handle(const Request& request, Response& response)
 	}
 		
 	// Parent process
-	close(bodyFileFd);   // Duplicated copy lives in STDIN of CGI process, we can close this
+	close(bodyFileFd);    // Duplicated copy lives in STDIN of CGI process, we can close this
 	close(outputPipe[1]); // We won't use writing end of this pipe
-
-	// If POST, write request body to child STDIN
-	// if (request.method == HTTP::Method::POST && !requestBody.empty()) {
-	// 	ssize_t written = write(inputPipe[1], requestBody.c_str(), requestBody.length());
-	// 	if (written < 0) {
-	// 		// Error: write failed
-	// 	}
-	// }
 
 	// Read CGI output
 	std::ostringstream cgiOutput;
@@ -132,8 +124,6 @@ void CGIHandler::handle(const Request& request, Response& response)
 	
 	close(outputPipe[0]);  // Finished reading
 	waitpid(pid, NULL, 0); // Wait for child process
-
-	// LOGT(Log::DEBUG, "CGI Output = " << cgiOutput.str());
 
 	// RFC 3875 CGI 1.1
 	// Response type: 1 or more header files, blank line, message body (may be null)
