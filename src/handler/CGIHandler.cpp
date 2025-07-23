@@ -16,17 +16,19 @@ void CGIHandler::handle(const Request& request, Response& response)
 
 	const std::string& scriptPath  = request.resolvedPath;
 
-	int inputPipe[2];  // Parent writes to [1], child  reads from [0]
-	if (pipe(inputPipe) < 0) {
-		LOGT(Log::ERROR, "Could not pipe for CGI process");
-		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		return;
+	int bodyFileFd = -1;
+	if (!request.bodyTempFilename.empty()) {
+		bodyFileFd = open(request.bodyTempFilename.c_str(), O_RDONLY);
+		if (bodyFileFd < 0) {
+			LOGT(Log::ERROR, "Failed opening temp body file in CGI handler");
+			createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+			return;
+		}
 	}
 	
 	int outputPipe[2]; // Child  writes to [1], parent reads from [0]
 	if (pipe(outputPipe) < 0) {
-		close(inputPipe[0]);
-		close(inputPipe[1]);
+		close(bodyFileFd);
 		LOGT(Log::ERROR, "Could not pipe for CGI process");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
@@ -34,8 +36,7 @@ void CGIHandler::handle(const Request& request, Response& response)
 
 	pid_t pid = fork();
 	if (pid < 0) {
-		close(inputPipe[0]);
-		close(inputPipe[1]);
+		close(bodyFileFd);
 		close(outputPipe[0]);
 		close(outputPipe[1]);
 		LOGT(Log::ERROR, "Could not fork a CGI process");
@@ -48,9 +49,8 @@ void CGIHandler::handle(const Request& request, Response& response)
 	// Child process
 	if (pid == 0) {
 		// Redirect stdin
-		dup2(inputPipe[0], STDIN_FILENO); // We will write here, to STDIN of CGI
-		close(inputPipe[0]); // Duplicated copy lives in STDIN of CGI process, we can close this
-		close(inputPipe[1]); // We won't use writing end of this pipe
+		dup2(bodyFileFd, STDIN_FILENO); // We will write here, to STDIN of CGI
+		close(bodyFileFd);   // Duplicated copy lives in STDIN of CGI process, we can close this
 
 		// Redirect stdout
 		dup2(outputPipe[1], STDOUT_FILENO); // We will read here, from STDOUT of CGi
@@ -101,7 +101,7 @@ void CGIHandler::handle(const Request& request, Response& response)
 	}
 		
 	// Parent process
-	close(inputPipe[0]);  // We won't use reading end of this pipe
+	close(bodyFileFd);   // Duplicated copy lives in STDIN of CGI process, we can close this
 	close(outputPipe[1]); // We won't use writing end of this pipe
 
 	// If POST, write request body to child STDIN
@@ -111,7 +111,6 @@ void CGIHandler::handle(const Request& request, Response& response)
 	// 		// Error: write failed
 	// 	}
 	// }
-	close(inputPipe[1]); // Finished writing
 
 	// Read CGI output
 	std::ostringstream cgiOutput;
