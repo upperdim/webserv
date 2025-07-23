@@ -248,6 +248,12 @@ void ServerEngine::readClientIncomingData(int clientFd)
 
 	if (client.getRequest().doneReceiving) {
 		RequestHandler::handle(client.getRequest(), client.getResponse());
+
+		if (!client.getRequest().bodyTempFilename.empty()) {
+			if (!client.getRequest().deleteTempBodyFile()) {
+				LOGT(Log::INFO, "Failed to delete file: " << client.getRequest().bodyTempFilename);
+			}
+		}
 		
 		setPollFdEvents(clientFd, POLLOUT | POLLERR | POLLHUP);
 		LOG("Now listening to POLLOUT event for ClientConnection fd = " << clientFd << " socket");
@@ -257,12 +263,6 @@ void ServerEngine::readClientIncomingData(int clientFd)
 void ServerEngine::writeToClient(int clientFd)
 {
 	ClientConnection& client = getClientConnectionByFd(clientFd);
-
-	if (!client.getRequest().bodyTempFilename.empty()) {
-		if (!client.getRequest().deleteTempBodyFile()) {
-			LOGT(Log::INFO, "Failed to delete file: " << client.getRequest().bodyTempFilename);
-		}
-	}
 
 	client.sendResponse();
 
