@@ -27,14 +27,14 @@ void	RequestHandler::handle(Request& request, Response& response)
 		return;
 	}
 	
-	if (isRedirectRequest(request)) {
+	if (request.isRedirectRequest()) {
 		response.setStatusCode(WSSC_FOUND);
 		response.addHeader("Location", request.resolvedLocationBlock->returnRoute);
 		response.addHeader("content-length", "0");
 		return;
 	}
 
-	if (isCGIRequest(request)) {
+	if (request.isCGIRequest()) {
 		CGIHandler::handle(request, response);
 		return;
 	}
@@ -105,16 +105,4 @@ void	RequestHandler::createErrorResponse(const Request& request, Response& respo
 	response.setStatusCode(statusCode);
 	response.addHeader("Content-Type", HTTP::getMimeType(".html"));
 	response.setBodyString(HTTP::getErrorPageTemplate(statusCode));
-}
-
-bool	RequestHandler::isCGIRequest(const Request& request)
-{
-	return !request.resolvedLocationBlock->cgiExtension.empty() 
-	       && Utils::strEndsWith(request.URI, request.resolvedLocationBlock->cgiExtension);
-}
-
-bool	RequestHandler::isRedirectRequest(const Request& request)
-{
-	return !request.resolvedLocationBlock->returnRoute.empty()
-	       && Utils::strEndsWith(request.URI, request.resolvedLocationBlock->cgiExtension);
 }

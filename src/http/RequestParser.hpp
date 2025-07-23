@@ -15,10 +15,7 @@ public:
 private:
 	static void					parseRequestLine(Request& request);
 	static void					parseHeader(Request& request);
-	static bool					createTempBodyFile(std::ofstream& reqTempBodyFile, std::string& reqTempBodyFileName);
 	static void					parseBody(Request& request);
-	static bool					hasBody(const Request& request);
-	static bool					isFileUploadRequest(const Request& request);
 	static void					storeContentLengthBody(Request& request);
 	static void					storeChunkedTransferBody(Request& request);
 

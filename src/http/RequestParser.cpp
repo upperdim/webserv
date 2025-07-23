@@ -1,8 +1,6 @@
 #include "RequestParser.hpp"
 #include <algorithm>
 #include <sstream>
-#include <fcntl.h>  // open()
-#include <unistd.h> // close()
 #include "HTTP.hpp"
 #include "RequestHandler.hpp"
 #include "Validator.hpp"
@@ -110,9 +108,9 @@ void	RequestParser::parseHeader(Request& request)
 	if (!resolveRequestContext(request))
 		return;
 
-	if (hasBody(request)) {
+	if (request.hasBody()) {
 		// TODO: Confirm the assumption that rawRequest will be empty when we are here
-		if (!createTempBodyFile(request.bodyFile, request.bodyTempFilename)) {
+		if (!request.createTempBodyFile()) {
 			request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
 			request.parsingState = Request::ParsingState::INVALID;
 			return;
@@ -124,13 +122,13 @@ void	RequestParser::parseHeader(Request& request)
 
 void	RequestParser::parseBody(Request& request)
 {
-	if (!hasBody(request)) {
+	if (!request.hasBody()) {
 		request.parsingState = Request::ParsingState::COMPLETE;
 		return;
 	}
 
 	// We support any kind of (content type) request body for requests which target CGI script URIs
-	if (RequestHandler::isCGIRequest(request)) {
+	if (request.isCGIRequest()) {
 		// We still need to unchunk the body before passing it to the script
 		if (request.isChunkedBodyTransfer) {
 			storeChunkedTransferBody(request);
@@ -235,17 +233,6 @@ void	RequestParser::storeChunkedTransferBody(Request& request)
 			}
 		}
 	}
-}
-
-bool	RequestParser::hasBody(const Request& request)
-{
-	return request.contentLength.has_value() || request.isChunkedBodyTransfer;
-}
-
-bool	RequestParser::isFileUploadRequest(const Request& request)
-{
-	return request.contentType.has_value()
-	       && request.contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA;
 }
 
 bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
@@ -530,34 +517,6 @@ bool	RequestParser::validateOptionalHeaderFields(Request& request)
 		return false;
 	}
 
-	return true;
-}
-
-bool	RequestParser::createTempBodyFile(std::ofstream& reqTempBodyFile, std::string& reqTempBodyFileName)
-{
-	static int counter = 0;
-
-	std::time_t now = std::time(nullptr);
-
-	std::ostringstream oss;
-	oss << "./tmp/webserv_body_" << now << "_" << counter++;
-	reqTempBodyFileName = oss.str();
-
-	// 0600 = owner -> read write, group -> ---, others -> ---
-	int tmpFileFd = open(reqTempBodyFileName.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
-	if (tmpFileFd == -1) {
-		LOGT(Log::ERROR, "open() failed");
-		return false;
-	}
-	close(tmpFileFd); // We will open it with ofstream
-
-	reqTempBodyFile.open(reqTempBodyFileName, std::ios::binary);
-	if (!reqTempBodyFile.is_open()) {
-		LOGT(Log::ERROR, "open() failed on ofstream");
-		return false;
-	}
-
-	LOGT(Log::DEBUG, "Created temp file " << reqTempBodyFileName);
 	return true;
 }
 
