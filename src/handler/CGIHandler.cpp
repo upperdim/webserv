@@ -13,9 +13,11 @@
 void CGIHandler::handle(const Request& request, Response& response)
 {
 	LOGC("REQUEST_HANDLER", "-> handle CGI Request", LIGHTMAGENTA, LIGHTCYAN);
+	LOGT(Log::DEBUG, "Using python3 from " << PYTHON3_PATH); // TODO: remove me
 
 	const std::string& scriptPath  = request.resolvedPath;
 
+	// Open if there is a body file
 	int bodyFileFd = -1;
 	if (!request.bodyTempFilename.empty()) {
 		bodyFileFd = open(request.bodyTempFilename.c_str(), O_RDONLY);
@@ -26,6 +28,7 @@ void CGIHandler::handle(const Request& request, Response& response)
 		}
 	}
 	
+	// Create CGI output pipe
 	int outputPipe[2]; // Child  writes to [1], parent reads from [0]
 	if (pipe(outputPipe) < 0) {
 		close(bodyFileFd);
@@ -34,6 +37,7 @@ void CGIHandler::handle(const Request& request, Response& response)
 		return;
 	}
 
+	// Fork CGI process
 	pid_t pid = fork();
 	if (pid < 0) {
 		close(bodyFileFd);
@@ -44,16 +48,14 @@ void CGIHandler::handle(const Request& request, Response& response)
 		return;
 	}
 
-	LOGT(Log::DEBUG, "Using python3 from " << PYTHON3_PATH); // TODO: remove me
-
-	// Child process
+	// Child process to execute the CGI script
 	if (pid == 0) {
-		// Redirect stdin
+		// Redirect STDIN to the body file
 		dup2(bodyFileFd, STDIN_FILENO); // We will write here, to STDIN of CGI
-		close(bodyFileFd);   // Duplicated copy lives in STDIN of CGI process, we can close this
+		close(bodyFileFd); // Duplicated copy lives in STDIN of CGI process, we can close this
 
 		// Redirect stdout
-		dup2(outputPipe[1], STDOUT_FILENO); // We will read here, from STDOUT of CGi
+		dup2(outputPipe[1], STDOUT_FILENO); // We will read here, from STDOUT of CGI
 		close(outputPipe[1]); // Duplicated copy lives in STDOUT of CGI process, we can close this
 		close(outputPipe[0]); // We won't use reading end of this pipe
 
@@ -88,20 +90,18 @@ void CGIHandler::handle(const Request& request, Response& response)
 			envp.push_back(const_cast<char*>(s.c_str()));
 		envp.push_back(NULL);
 
-		// Execute script
+		// Execute the CGI script
 		execve(pythonPath.c_str(), argv, envp.data());
-
-		// TODO: REMOVE THIS
-		LOGT(Log::ERROR, "execve errno = " << errno);
 
 		// If we are here, execve() failed
 		LOGT(Log::ERROR, "CGI Process execve() failed, PID = " << pid);
+		LOGT(Log::ERROR, "execve errno = " << errno); // TODO: REMOVE THIS
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		exit(EXIT_FAILURE);
 	}
 		
 	// Parent process
-	close(bodyFileFd);    // Duplicated copy lives in STDIN of CGI process, we can close this
+	close(bodyFileFd);    // We won't read or write to the body file
 	close(outputPipe[1]); // We won't use writing end of this pipe
 
 	// Read CGI output
@@ -127,7 +127,6 @@ void CGIHandler::handle(const Request& request, Response& response)
 
 	// RFC 3875 CGI 1.1
 	// Response type: 1 or more header files, blank line, message body (may be null)
-
 	// response.addHeader WIP
 	response.setBodyString(cgiOutput.str());
 }
