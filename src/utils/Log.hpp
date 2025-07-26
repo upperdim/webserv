@@ -2,10 +2,7 @@
 #define LOG_HPP
 
 #include <string>
-#include <iostream>
-#include <iomanip>
 #include <sstream>
-#include "colors.hpp"
 
 # define ENABLE_LOG		true
 # define PRINT_DEBUG	true
