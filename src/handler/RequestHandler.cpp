@@ -52,18 +52,10 @@ void	RequestHandler::handle(Request& request, Response& response)
 	}
 }
 
-bool	RequestHandler::redirectOnMissingTrailingSlasch(const Request& request, Response& response)
-{
-	if (request.resolvedPath.back() != '/') {
-		// If requested resource is a directory but looks like a file,
-		// we redirect to another URI
-		response.setStatusCode(WSSC_MOVED_PERMANENTLY);
-		response.addHeader("Location", std::string(request.URI) + '/');
-		response.addHeader("content-length", "0");
-		return true;
-	}
-	return false;
-}
+
+//=============================================================================
+// Protected
+//=============================================================================
 
 bool	RequestHandler::isAllowedMethod(const Request& request)
 {
@@ -76,6 +68,18 @@ bool	RequestHandler::isAllowedMethod(const Request& request)
 			request.resolvedLocationBlock->allowMethods.end(),
 			request.method
 		) != request.resolvedLocationBlock->allowMethods.end();
+}
+
+std::string	RequestHandler::getIndexAppendedResource(const Request& request)
+{
+	std::string indexedResource = request.resolvedPath;
+	if (indexedResource.back() == '/') {
+		indexedResource += request.resolvedLocationBlock->index;
+	} else if (!Utils::fileExists(indexedResource)) {
+		indexedResource += "/" + request.resolvedLocationBlock->index;
+	}
+	LOGT(Log::INFO, LIGHTMAGENTA << BOLD << "indexedResource: " << LIGHTGREEN << indexedResource);
+	return indexedResource;
 }
 
 void	RequestHandler::createErrorResponse(const Request& request, Response& response, int statusCode)
@@ -105,4 +109,17 @@ void	RequestHandler::createErrorResponse(const Request& request, Response& respo
 	response.setStatusCode(statusCode);
 	response.addHeader("Content-Type", HTTP::getMimeType(".html"));
 	response.setBodyString(HTTP::getErrorPageTemplate(statusCode));
+}
+
+bool	RequestHandler::redirectOnMissingTrailingSlasch(const Request& request, Response& response)
+{
+	if (request.resolvedPath.back() != '/') {
+		// If requested resource is a directory but looks like a file,
+		// we redirect to another URI
+		response.setStatusCode(WSSC_MOVED_PERMANENTLY);
+		response.addHeader("Location", std::string(request.URI) + '/');
+		response.addHeader("content-length", "0");
+		return true;
+	}
+	return false;
 }

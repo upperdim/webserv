@@ -77,19 +77,6 @@ void	GetHandler::handle(const Request& request, Response& response)
 	response.setBodyFileBufferReader(request.resolvedPath);
 }
 
-std::string	GetHandler::getIndexAppendedResource(const Request& request)
-{
-	std::string indexedResource = request.resolvedPath;
-	if (indexedResource.back() == '/') {
-		indexedResource += request.resolvedLocationBlock->index;
-	} else if (!Utils::fileExists(indexedResource)) {
-		indexedResource += "/" + request.resolvedLocationBlock->index;
-	}
-	LOGT(Log::INFO, LIGHTMAGENTA << BOLD << "indexedResource: " << LIGHTGREEN << indexedResource);
-	return indexedResource;
-}
-
-
 void	GetHandler::handleAutoIndex(const Request& request, Response& response)
 {
 	LOGT(Log::INFO, LIGHTMAGENTA << "handle Auto Index");
