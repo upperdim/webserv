@@ -2,7 +2,6 @@
 #define REQUESTPARSER_HPP
 
 #include <string>
-#include "colors.hpp"
 #include "Request.hpp"
 
 #define REQUEST_MAX_URI_LENGTH	2048
