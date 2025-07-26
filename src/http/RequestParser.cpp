@@ -56,7 +56,7 @@ void	RequestParser::parseRequestLine(Request& request)
 		return;
 	}
 
-	LOG("---> raw requestLine:       " << LIGHTRED << HTTP::methodToString(request.method)
+	LOG("---> raw requestLine:       " << LIGHTRED << "UNDEFINED_METHOD"
 		<< " " << LIGHTGREEN << request.requestTarget << " " << LIGHTBLUE
 		<< request.protokoll);
 
@@ -124,11 +124,29 @@ void	RequestParser::parseHeader(Request& request)
 	if (!resolveServerBlock(request))
 		return;
 
+	if (!resolveLocationBlock(request)) {
+		// This would be a critical ERROR, we should always find a locationBlock. But if sth bad happen, we return "internal server error"
+		LOGT(Log::WARNING, "something went terrible wrong while matching locations: failed to find default \"/\" location in RequestParser::resolveLocationBlock()");
+		request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+		request.parsingState = Request::ParsingState::INVALID;
+		return;
+	}
+	//	all the config attributes are now resolved, and we can use:
+	//	ServerBlock
+			// listenPort, listenHostStr, serverNames
+	//	LocationBlock
+			// route, root, index, clientmaxBodySize, errorPagePaths, allowMethods,
+			// returnRoute, autoIndex, cgiExtension, allowUpload, uploadDir
+
 	if (!validateOptionalHeaderFields(request))
 		return;
 
-	if (!resolveRequestContext(request))
+	if (!resolvePath(request)) {
+		// This should not happen
+		request.errorStatusCode = WSSC_BAD_REQUEST;
+		request.parsingState = Request::ParsingState::INVALID;
 		return;
+	}
 
 	if (request.hasBody()) {
 		if (!request.createTempBodyFile()) {
@@ -248,8 +266,8 @@ void	RequestParser::parseMultiformBody(Request& request)
 			return;
 		}
 
-		// found
-		LOGT(Log::SUCCESS, "found: " <<  BOLD << it->first << REGULAR << " in the multipart/form-data header, parsing parameters(filename)");
+		// found content-disposition
+		LOGT(Log::SUCCESS, "found: " << BOLD << LIGHTGREEN << it->first << REGULAR << GREEN << " in the multipart/form-data header, parsing parameters(filename)" << DEFAULT);
 
 		const std::string& disposition = it->second;
 		size_t posFilname = disposition.find("filename=");
@@ -268,11 +286,18 @@ void	RequestParser::parseMultiformBody(Request& request)
 		//			we might want to be more inteligent for storing these files,
 		//			what if two clients upload the same file at the same time?
 
+		if (filename.empty()) {
+			// return WSSC_NO_CONTENT, if the filename is empty
+			request.errorStatusCode = WSSC_NO_CONTENT;
+			request.parsingState = Request::ParsingState::INVALID;
+			return;
+		}
+
 		std::string tmpPath = "./tmp/" + filename;
 		std::filesystem::create_directories("./tmp/");
 		std::ofstream ofs(tmpPath, std::ios::binary);
 		if (!ofs) {
-			LOGT(Log::ERROR, "Failed to open temporary file to stosre the multipart/form-data file with filename: \"" << filename << '"');
+			LOGT(Log::ERROR, "Failed to open temporary file to store the multipart/form-data file with filename: \"" << filename << '"');
 			request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
 			request.parsingState = Request::ParsingState::INVALID;
 			return;
@@ -524,7 +549,8 @@ bool	RequestParser::validateOptionalHeaderFields(Request& request)
 			size_t resolvedContentLength = std::stoull(contentLengthStr);
 
 			//	TODO:	use resolved clientMaxBodySize
-			if (resolvedContentLength > request.resolvedServerBlock->clientMaxBodySize) {
+			if (resolvedContentLength > request.resolvedLocationBlock->clientMaxBodySize) {
+				LOGT(Log::WARNING, "Content-Length too large: " << resolvedContentLength << " | client_max_body_size: " << request.resolvedServerBlock->clientMaxBodySize);
 				request.errorStatusCode = WSSC_CONTENT_TOO_LARGE;
 				request.parsingState = Request::ParsingState::INVALID;
 				return false;
@@ -652,39 +678,12 @@ bool	RequestParser::resolveServerBlock(Request& request)
 	// we take the first serverBlock as default	if no server_name matches the host
 	LOG("no host '" << hostStr << "' matches any server_name: we take the first serverBlock as default");
 	request.resolvedServerBlock = &request.serverBlocks.front();
-	return true;
-}
-
-bool	RequestParser::resolveRequestContext(Request& request)
-{
-	// resolve LocationBlock
-	if (!resolveLocationBlock(request)) {
-		// This would be a critical ERROR, we should alwys find a locationBlock.
-		// But if sth bad happen, we return "internal server error"
-		LOGT(Log::WARNING, "something went terrible wrong while matching locations: failed to find default \"/\" location in RequestParser::resolveLocationBlock()");
-		request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
-		request.parsingState = Request::ParsingState::INVALID;
-		return false;
-	}
-
-	//	all the config attributes are now resolved, and we can use:
-	//	ServerBlock
-			// listenPort, listenHostStr, serverNames, errorPagePaths
-	//	LocationBlock
-			// route, root, index, clientmaxBodySize, allowMethods, returnRoute,
-			// autoIndex, cgiExtension, allowUpload, uploadDir
-
-	//	resolve path
-	if (!resolvePath(request)) {
-		return false;
-	}
 
 	return true;
 }
 
 bool	RequestParser::resolveLocationBlock(Request& request)
 {
-	// TODO: use the resolved serverBlock
 	const LocationBlock* bestMatch = nullptr;
 	for (const LocationBlock& loc : request.resolvedServerBlock->locationBlocks) {
 		if (Utils::strStartsWith(request.URI, loc.route)) {

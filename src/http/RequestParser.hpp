@@ -39,7 +39,6 @@ private:
 
 	// Header -> Resolve request context helpers
 	static bool					resolveServerBlock(Request& request);
-	static bool					resolveRequestContext(Request& request);
 	static bool					resolveLocationBlock(Request& request);
 	static bool					resolvePath(Request& request);
 
