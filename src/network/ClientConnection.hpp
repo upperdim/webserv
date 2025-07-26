@@ -1,12 +1,13 @@
 #ifndef CLIENTCONNECTION_HPP
 #define CLIENTCONNECTION_HPP
 
-#include <string>
 #include "ServerSocket.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 
 #define RECV_BUFFER_SIZE	2048
+
+#define MAX_NUM_OF_TRIES_ON_ZERO_BYTES_READ 300
 
 class ClientConnection
 {
@@ -17,6 +18,7 @@ int					fd;
 	bool			disconnected;
 	Request			request;
 	Response		response;
+	int				zeroBytesReadCounter;
 
 public:
 	ClientConnection(int fd, ServerSocket& connectedServerSocket);

@@ -7,7 +7,9 @@ ClientConnection::ClientConnection(int fd, ServerSocket& _connectedServerSocket)
 	:	fd(fd),
 		connectedServerSocket(_connectedServerSocket),
 		connectionError(false),
-		request(connectedServerSocket.serverBlocks)
+		disconnected(false),
+		request(connectedServerSocket.serverBlocks),
+		zeroBytesReadCounter(0)
 {
 }
 
@@ -30,8 +32,15 @@ void ClientConnection::receiveRequest()
 		connectionError = true;
 		LOGT(Log::ERROR, "ClientConnection error, fd = " << fd);
 	} else if (bytesRead == 0) {
-		disconnected = true;
-		LOG("ClientConnection fd = " << fd << " has disconnected");
+		// LOGT(Log::INFO, "ClientConnection fd = " << fd << " has sent 0 bytes for " << zeroBytesReadCounter + 1 << " time(s).");
+		if (zeroBytesReadCounter < MAX_NUM_OF_TRIES_ON_ZERO_BYTES_READ) {
+			++zeroBytesReadCounter; // Try again on the next poll turn
+			// LOGT(Log::INFO, "It will try sending again on the next poll loop.");
+		} else {
+			disconnected = true;
+			LOGT(Log::INFO, "ClientConnection fd = " << fd << " has sent 0 bytes for " << zeroBytesReadCounter << " time(s).");
+			LOGT(Log::INFO, "ClientConnection fd = " << fd << " has disconnected");
+		}
 	}
 }
 
