@@ -1,13 +1,10 @@
 #include <iostream>
 #include <unistd.h> // close()
-#include <thread>   // std::this_thread::sleep_for
-#include <chrono>   // std::chrono::seconds
 #include "ServerEngine.hpp"
 #include "ClientConnection.hpp"
 #include "RequestHandler.hpp"
 #include "ServerSocket.hpp"
 #include "Config.hpp"
-#include "HTTP.hpp"
 #include "Log.hpp"
 
 volatile std::sig_atomic_t ServerEngine::isRunning = false;
