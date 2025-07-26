@@ -7,7 +7,7 @@
 
 #define RECV_BUFFER_SIZE	2048
 
-#define MAX_NUM_OF_TRIES_ON_ZERO_BYTES_READ 300
+#define MAX_NUM_OF_TRIES_ON_ZERO_BYTES_READ 5
 
 class ClientConnection
 {
