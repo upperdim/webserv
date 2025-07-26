@@ -53,6 +53,7 @@ public:
 	std::string										resolvedPath;
 	std::string										queryString; // URL query string after '?'
 
+	void											invalidateWithError(int errorStatusCode);
 	bool											isCGIRequest();
 	bool											isRedirectRequest();
 	bool											hasBody();

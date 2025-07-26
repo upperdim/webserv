@@ -28,6 +28,12 @@ Request::~Request()
 	}
 }
 
+void	Request::invalidateWithError(int errorStatusCode)
+{
+	this->errorStatusCode = errorStatusCode;
+	parsingState = Request::ParsingState::INVALID;
+}
+
 bool	Request::isCGIRequest()
 {
 	return resolvedLocationBlock != nullptr
