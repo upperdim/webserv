@@ -31,7 +31,9 @@ void CGIHandler::handle(const Request& request, Response& response)
 	// Create CGI output pipe
 	int outputPipe[2]; // Child  writes to [1], parent reads from [0]
 	if (pipe(outputPipe) < 0) {
-		close(bodyFileFd);
+		if (!request.bodyTempFilename.empty() && bodyFileFd >= 0) {
+			close(bodyFileFd);
+		}
 		LOGT(Log::ERROR, "Could not pipe for CGI process");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
