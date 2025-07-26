@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <sstream>
 #include "HTTP.hpp"
-#include "RequestHandler.hpp"
 #include "Validator.hpp"
 #include "Log.hpp"
 #include "Utils.hpp"
