@@ -96,11 +96,14 @@ class Log
 public:
 	~Log();
 
-	static const size_t DEBUG	= 0;
-	static const size_t INFO	= 1;
-	static const size_t WARNING	= 2;
-	static const size_t ERROR	= 3;
-	static const size_t SUCCESS	= 4;
+	enum Level {
+		DEBUG,
+		INFO,
+		WARNING,
+		ERROR,
+		SUCCESS,
+		CUSTOM
+	};
 
 	static void	log(size_t typeIdx, const std::ostringstream& oss);
 	static void	log(size_t typeIdx, const std::ostringstream& label, const std::ostringstream& oss);
