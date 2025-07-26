@@ -17,6 +17,7 @@ private:
 	static void					parseHeader(Request& request);
 	static void					parseBody(Request& request);
 	static void					parseMultiformBody(Request& request);
+	static bool					streamMultipartPartToFile(std::ifstream& ifs, std::ofstream& ofs, const std::string& boundary);
 
 	// Request line helpers
 	static bool					validateHttpMethod(std::string& methodStr, Request& request);
