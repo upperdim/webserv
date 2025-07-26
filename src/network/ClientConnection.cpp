@@ -30,8 +30,8 @@ void ClientConnection::receiveRequest()
 		connectionError = true;
 		LOGT(Log::ERROR, "ClientConnection error, fd = " << fd);
 	} else if (bytesRead == 0) {
-		request.doneReceiving = true;
-		LOG("ClientConnection fd = " << fd << " has received all of the request");
+		disconnected = true;
+		LOG("ClientConnection fd = " << fd << " has disconnected");
 	}
 }
 
@@ -44,6 +44,7 @@ void ClientConnection::sendResponse()
 }
 
 int         	ClientConnection::getFd()                 		{ return fd; }
+bool        	ClientConnection::getDisconnected()    		    { return disconnected; }
 bool        	ClientConnection::getConnectionError()    		{ return connectionError; }
 ServerSocket&	ClientConnection::getConnectedServerSocket()    { return connectedServerSocket; }
 Request&    	ClientConnection::getRequest()            		{ return request; }

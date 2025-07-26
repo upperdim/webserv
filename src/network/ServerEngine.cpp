@@ -238,9 +238,9 @@ void ServerEngine::readClientIncomingData(int clientFd)
 	
 	client.receiveRequest();
 
-	if (client.getConnectionError()) {
-		LOGT(Log::ERROR, "Connection error on ClientConnection fd = " << clientFd);
+	if (client.getConnectionError() || client.getDisconnected()) {
 		disconnectClient(clientFd);
+		return;
 	}
 
 	if (client.getRequest().doneReceiving) {
@@ -259,6 +259,7 @@ void ServerEngine::writeToClient(int clientFd)
 
 	if (client.getResponse().error()) {
 		disconnectClient(clientFd);
+		return;
 	}
 
 	if (client.getResponse().complete()) {

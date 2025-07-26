@@ -14,6 +14,7 @@ private:
 int					fd;
 	ServerSocket&	connectedServerSocket;
 	bool			connectionError;
+	bool			disconnected;
 	Request			request;
 	Response		response;
 
@@ -24,6 +25,7 @@ public:
 	void			sendResponse();
 	
 	int				getFd();
+	bool			getDisconnected();
 	bool			getConnectionError();
 	ServerSocket&	getConnectedServerSocket();
 	Request&		getRequest();
