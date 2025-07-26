@@ -40,7 +40,9 @@ void CGIHandler::handle(const Request& request, Response& response)
 	// Fork CGI process
 	pid_t pid = fork();
 	if (pid < 0) {
-		close(bodyFileFd);
+		if (!request.bodyTempFilename.empty() && bodyFileFd >= 0) {
+			close(bodyFileFd);
+		}
 		close(outputPipe[0]);
 		close(outputPipe[1]);
 		LOGT(Log::ERROR, "Could not fork a CGI process");
