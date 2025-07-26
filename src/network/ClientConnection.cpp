@@ -32,7 +32,7 @@ void ClientConnection::receiveRequest()
 		connectionError = true;
 		LOGT(Log::ERROR, "ClientConnection error, fd = " << fd);
 	} else if (bytesRead == 0) {
-		if (zeroBytesReadCounter < MAX_NUM_OF_TRIES_ON_ZERO_BYTES_READ) {
+		if (zeroBytesReadCounter < MAX_NUM_OF_TRIES_FOR_ZERO_BYTES_READ) {
 			++zeroBytesReadCounter; // Try again on the next poll turn
 		} else {
 			disconnected = true;

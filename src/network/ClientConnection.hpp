@@ -5,9 +5,8 @@
 #include "Request.hpp"
 #include "Response.hpp"
 
-#define RECV_BUFFER_SIZE	2048
-
-#define MAX_NUM_OF_TRIES_ON_ZERO_BYTES_READ 5
+#define MAX_NUM_OF_TRIES_FOR_ZERO_BYTES_READ 5
+#define RECV_BUFFER_SIZE                     2048
 
 class ClientConnection
 {
