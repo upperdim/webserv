@@ -145,6 +145,8 @@ void	CGIHandler::checkCgiCompletion(Request& request, Response& response)
 {
 	LOGT(Log::DEBUG, "Checking CGI completion");
 
+	(void) response;
+
 	int status;
 	pid_t result = waitpid(request.cgiSession.pid, &status, WNOHANG);
 	if (result == request.cgiSession.pid) {
@@ -160,6 +162,9 @@ void	CGIHandler::checkCgiCompletion(Request& request, Response& response)
 void	CGIHandler::completeCgi(Request& request, Response& response)
 {
 	LOGT(Log::DEBUG, "Completing CGI session");
+	
+	(void) request;
+	(void) response;
 
 	// RFC 3875 CGI 1.1
 	// Response type: 1 or more header files, blank line, message body (may be null)
