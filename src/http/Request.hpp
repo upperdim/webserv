@@ -25,8 +25,16 @@ public:
 	enum class CgiState {
 		INIT,
 		RUNNING,
-		COMPLETE
+		PROCESS_FINISHED,
+		COMPLETE,
+		FAILED
 	};
+
+	// TODO: Timeout
+	typedef struct CgiSession_s {
+		pid_t		pid;
+		CgiState	state;
+	} CgiSession_t;
 
 	std::string										rawRequest;
 	ParsingState									parsingState;
@@ -39,7 +47,7 @@ public:
 	std::string										protokoll;
 	std::unordered_map<std::string, std::string>	headers;
 	// CGI Output
-	CgiState										cgiState;
+	CgiSession_t									cgiSession;
 	std::ofstream									cgiOutFile;
 	std::string										cgiOutFilename;
 	// Body

@@ -4,6 +4,7 @@
 #include "ClientConnection.hpp"
 #include "RequestHandler.hpp"
 #include "ServerSocket.hpp"
+#include "CGIHandler.hpp"
 #include "Config.hpp"
 #include "Log.hpp"
 
@@ -254,6 +255,17 @@ void ServerEngine::readClientIncomingData(int clientFd)
 void ServerEngine::writeToClient(int clientFd)
 {
 	ClientConnection& client = getClientConnectionByFd(clientFd);
+
+	// TODO: refactor
+	if (client.getRequest().isCGIRequest()
+		&& client.getRequest().cgiSession.state != Request::CgiState::COMPLETE) {
+
+		CGIHandler::handle(client.getRequest(), client.getResponse());
+
+		if (client.getRequest().cgiSession.state != Request::CgiState::COMPLETE) {
+			return;
+		}
+	}
 
 	client.sendResponse();
 

@@ -21,7 +21,7 @@ private:
 
 	static void	initCgi(Request& request, Response& response);
 	static void	checkCgiCompletion(Request& request, Response& response);
-	static void	finalizeCgi(Request& request, Response& response);
+	static void	completeCgi(Request& request, Response& response);
 };
 
 #endif

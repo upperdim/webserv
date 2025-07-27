@@ -3,32 +3,32 @@
 #include <vector>
 #include <string>
 #include <cstring>
-#include <errno.h> // TODO: REMOVE THIS
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include "HTTP.hpp"
 #include "CGIHandler.hpp"
-#include "cgi_process.hpp"
 
 void CGIHandler::handle(Request& request, Response& response)
 {
 	LOGC("CGI_HANDLER", " ", LIGHTMAGENTA, LIGHTCYAN);
 
-	if (request.cgiState == Request::CgiState::INIT) {
+	if (request.cgiSession.state == Request::CgiState::INIT) {
 		initCgi(request, response);
 	}
-	if (request.cgiState == Request::CgiState::RUNNING) {
+	if (request.cgiSession.state == Request::CgiState::RUNNING) {
 		checkCgiCompletion(request, response);
 	}
-	if (request.cgiState == Request::CgiState::COMPLETE) {
-		finalizeCgi(request, response);
+	if (request.cgiSession.state == Request::CgiState::PROCESS_FINISHED) {
+		completeCgi(request, response);
 	}
+	// if (request.cgiSession.state == Request::CgiState::COMPLETE) {
+	// }
 }
 
 void	CGIHandler::initCgi(Request& request, Response& response)
 {
-	LOGT(Log::DEBUG, "Initializing CGI...");
+	LOGT(Log::DEBUG, "Initializing CGI");
 	LOGT(Log::DEBUG, "Using python3 from " << PYTHON3_PATH); // TODO: remove me
 
 	const std::string& scriptPath  = request.resolvedPath;
@@ -40,6 +40,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	if (request.bodyFilename.empty()) {
 		if (!request.createBodyFile()) {
 			createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+			request.cgiSession.state = Request::CgiState::FAILED;
 			return;
 		}
 	}
@@ -50,20 +51,22 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	if (bodyFileFd < 0) {
 		LOGT(Log::ERROR, "Failed opening temp body file in CGI handler");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+		request.cgiSession.state = Request::CgiState::FAILED;
 		return;
 	}
 
 	// Create and open CGI output file
 	if (!request.createCgiOutFile()) {
+		close(bodyFileFd);
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+		request.cgiSession.state = Request::CgiState::FAILED;
 		return;
 	}
 	int cgiOutputFileFd = open(request.cgiOutFilename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
 	if (cgiOutputFileFd < 0) {
-		if (bodyFileFd >= 0) {
-			close(bodyFileFd);
-		}
+		close(bodyFileFd);
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+		request.cgiSession.state = Request::CgiState::FAILED;
 		return;
 	}
 	
@@ -74,6 +77,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		close(cgiOutputFileFd);
 		LOGT(Log::ERROR, "Could not fork a CGI process");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+		request.cgiSession.state = Request::CgiState::FAILED;
 		return;
 	}
 
@@ -131,62 +135,34 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		
 	// Parent process
 	close(bodyFileFd); // We won't read or write to the body file
+	close(cgiOutputFileFd);
 
-	CgiProcess process;
-	process.pid = pid;
-	process.outputFile = outputFileTemplate;
-	process.response = &response;
-	process.request = request;
-	process.finished = false;
-	process.startTime = time(NULL);
-
-	// ...
+	request.cgiSession.pid = pid;
+	request.cgiSession.state = Request::CgiState::RUNNING;
 }
 
 void	CGIHandler::checkCgiCompletion(Request& request, Response& response)
 {
-	LOGT(Log::DEBUG, "Checking CGI completion...");
+	LOGT(Log::DEBUG, "Checking CGI completion");
 
 	int status;
-	pid_t result = waitpid(cgiPid, &status, WNOHANG);
-	if (result == cgiPid) {
-		// CGI finished
+	pid_t result = waitpid(request.cgiSession.pid, &status, WNOHANG);
+	if (result == request.cgiSession.pid) {
+		request.cgiSession.state = Request::CgiState::COMPLETE; // CGI process finished
 	} else if (result == 0) {
 		// CGI still running
+		// TODO: Check for timeout
 	} else {
-		// Error
+		request.cgiSession.state = Request::CgiState::FAILED;
 	}
+}
 
-	int readFd = open(tempPath, O_RDONLY);
-
-	// Read CGI output
-	std::ostringstream cgiOutput;
-	char buffer[CGI_OUTPUT_BUFFER_SIZE];
-	ssize_t bytesRead;
-	do {
-		bytesRead = read(outputPipe[0], buffer, CGI_OUTPUT_BUFFER_SIZE - 1);
-		if (bytesRead < 0) {
-			LOGT(Log::ERROR, "Error reading from CGI output");
-			close(outputPipe[0]); // Finished reading
-			waitpid(pid, NULL, 0);
-			createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-			return;
-		}
-		
-		// buffer[bytesRead] = '\0';
-		cgiOutput.write(buffer, bytesRead);
-	} while (bytesRead != 0);
-	
-	close(outputPipe[0]);  // Finished reading
-	waitpid(pid, NULL, 0); // Wait for child process
+void	CGIHandler::completeCgi(Request& request, Response& response)
+{
+	LOGT(Log::DEBUG, "Completing CGI session");
 
 	// RFC 3875 CGI 1.1
 	// Response type: 1 or more header files, blank line, message body (may be null)
 	// response.addHeader WIP
-	response.setBodyString(cgiOutput.str());
-}
-
-void	CGIHandler::finalizeCgi(Request& request, Response& response)
-{
-
+	// response.setBodyString(cgiOutput.str()); // TODO: Instead, set BodyFileBufferReader
 }
