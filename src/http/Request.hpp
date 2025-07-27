@@ -82,7 +82,7 @@ public:
 	bool											deleteCgiOutFile();
 
 private:
-	std::string										createFileName(std::string fileNamePrefixPath, int countDirection);
+	std::string										createFileName(std::string fileNamePrefixPath);
 	bool											deleteFile(std::string fileName);
 };
 

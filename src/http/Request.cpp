@@ -76,22 +76,14 @@ bool	Request::isFileUploadRequest()
 // General File Methods
 //=============================================================================
 
-std::string	Request::createFileName(std::string fileNamePrefixPath, int countDirection)
+std::string	Request::createFileName(std::string fileNamePrefixPath)
 {
-	static int forwardsCounter = 0;
-	static int backwardsCounter = -1;
-
-	int suffixNumber = 0;
-	if (countDirection > 0) {
-		suffixNumber = forwardsCounter++;
-	} else {
-		suffixNumber = backwardsCounter++;
-	}
+	static int counter = 0;
 
 	std::time_t now = std::time(nullptr);
 
 	std::ostringstream oss;
-	oss << fileNamePrefixPath << now << "_" << suffixNumber++;
+	oss << fileNamePrefixPath << now << "_" << counter++;
 
 	return oss.str();
 }
