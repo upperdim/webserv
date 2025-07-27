@@ -17,8 +17,6 @@ void CGIHandler::handle(Request& request, Response& response)
 
 	const std::string& scriptPath  = request.resolvedPath;
 
-	// TODO: Should I be using request.bodyFile directly at this point? It was opened?
-
 	// If there was no body in this request, create an empty one.
 	// Empty file will be redirected as STDIN to the CGI script.
 	// This will prevent CGI script from hanging if it will wait input from STDIN.
@@ -42,9 +40,7 @@ void CGIHandler::handle(Request& request, Response& response)
 	// Create CGI output pipe
 	int outputPipe[2]; // Child  writes to [1], parent reads from [0]
 	if (pipe(outputPipe) < 0) {
-		if (!request.bodyTempFilename.empty() && bodyFileFd >= 0) {
-			close(bodyFileFd);
-		}
+		close(bodyFileFd);
 		LOGT(Log::ERROR, "Could not pipe for CGI process");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
@@ -53,9 +49,7 @@ void CGIHandler::handle(Request& request, Response& response)
 	// Fork CGI process
 	pid_t pid = fork();
 	if (pid < 0) {
-		if (!request.bodyTempFilename.empty() && bodyFileFd >= 0) {
-			close(bodyFileFd);
-		}
+		close(bodyFileFd);
 		close(outputPipe[0]);
 		close(outputPipe[1]);
 		LOGT(Log::ERROR, "Could not fork a CGI process");
