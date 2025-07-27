@@ -10,22 +10,33 @@
 #include "CGIHandler.hpp"
 #include "HTTP.hpp"
 
-void CGIHandler::handle(const Request& request, Response& response)
+void CGIHandler::handle(Request& request, Response& response)
 {
 	LOGC("REQUEST_HANDLER", "-> handle CGI Request", LIGHTMAGENTA, LIGHTCYAN);
 	LOGT(Log::DEBUG, "Using python3 from " << PYTHON3_PATH); // TODO: remove me
 
 	const std::string& scriptPath  = request.resolvedPath;
 
-	// Open if there is a body file
-	int bodyFileFd = -1;
-	if (!request.bodyTempFilename.empty()) {
-		bodyFileFd = open(request.bodyTempFilename.c_str(), O_RDONLY);
-		if (bodyFileFd < 0) {
-			LOGT(Log::ERROR, "Failed opening temp body file in CGI handler");
+	// TODO: Should I be using request.bodyFile directly at this point? It was opened?
+
+	// If there was no body in this request, create an empty one.
+	// Empty file will be redirected as STDIN to the CGI script.
+	// This will prevent CGI script from hanging if it will wait input from STDIN.
+	// No request body = no body file content = no input = empty STDIN.
+	if (request.bodyTempFilename.empty()) {
+		if (!request.createTempBodyFile()) {
 			createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 			return;
 		}
+	}
+
+	// Open the body file
+	int bodyFileFd = -1;
+	bodyFileFd = open(request.bodyTempFilename.c_str(), O_RDONLY);
+	if (bodyFileFd < 0) {
+		LOGT(Log::ERROR, "Failed opening temp body file in CGI handler");
+		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+		return;
 	}
 	
 	// Create CGI output pipe
@@ -54,8 +65,8 @@ void CGIHandler::handle(const Request& request, Response& response)
 
 	// Child process to execute the CGI script
 	if (pid == 0) {
-		// Redirect STDIN to the body file
-		dup2(bodyFileFd, STDIN_FILENO); // We will write here, to STDIN of CGI
+		// Redirect body file to STDIN
+		dup2(bodyFileFd, STDIN_FILENO); // CGI will read from the body file as STDIN
 		close(bodyFileFd); // Duplicated copy lives in STDIN of CGI process, we can close this
 
 		// Redirect stdout
@@ -63,7 +74,7 @@ void CGIHandler::handle(const Request& request, Response& response)
 		close(outputPipe[1]); // Duplicated copy lives in STDOUT of CGI process, we can close this
 		close(outputPipe[0]); // We won't use reading end of this pipe
 
-		// Prepare argv
+		// Prepare script argv
 		std::string pythonPath = PYTHON3_PATH;
 
 		char *argv[] = {
@@ -72,7 +83,7 @@ void CGIHandler::handle(const Request& request, Response& response)
 			NULL
 		};
 
-		// Prepare envp
+		// Prepare script envp
 		std::vector<std::string> envStrings;
 		envStrings.push_back("GATEWAY_INTERFACE=CGI/1.1");
 		envStrings.push_back("SERVER_PROTOCOL=HTTP/1.1");
