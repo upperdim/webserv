@@ -102,7 +102,6 @@ bool	Request::deleteFile(std::string fileName)
 		return true; // Already non-existent
 	}
 
-	// TODO: check if allowed
 	std::filesystem::path path(fileName.c_str());
 	if (std::filesystem::remove(path) != 0) {
 		LOGT(Log::ERROR, "Failed to delete " << fileName);
