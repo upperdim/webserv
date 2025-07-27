@@ -2,13 +2,14 @@
 #include <sstream>
 #include <vector>
 #include <string>
-#include <errno.h> // TODO: REMOVE THIS
 #include <cstring>
+#include <errno.h> // TODO: REMOVE THIS
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <fcntl.h>
-#include "CGIHandler.hpp"
 #include "HTTP.hpp"
+#include "CGIHandler.hpp"
+#include "cgi_process.hpp"
 
 void CGIHandler::handle(Request& request, Response& response)
 {
@@ -36,22 +37,25 @@ void CGIHandler::handle(Request& request, Response& response)
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
-	
-	// Create CGI output pipe
-	int outputPipe[2]; // Child  writes to [1], parent reads from [0]
-	if (pipe(outputPipe) < 0) {
-		close(bodyFileFd);
-		LOGT(Log::ERROR, "Could not pipe for CGI process");
+
+	// Create and open CGI output file
+	if (!request.createCgiOutFile()) {
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
-
+	int cgiOutputFileFd = open(request.cgiOutFilename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
+	if (cgiOutputFileFd < 0) {
+		if (bodyFileFd >= 0) {
+			close(bodyFileFd);
+		}
+		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+		return;
+	}
+	
 	// Fork CGI process
 	pid_t pid = fork();
 	if (pid < 0) {
 		close(bodyFileFd);
-		close(outputPipe[0]);
-		close(outputPipe[1]);
 		LOGT(Log::ERROR, "Could not fork a CGI process");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
@@ -64,9 +68,8 @@ void CGIHandler::handle(Request& request, Response& response)
 		close(bodyFileFd); // Duplicated copy lives in STDIN of CGI process, we can close this
 
 		// Redirect stdout
-		dup2(outputPipe[1], STDOUT_FILENO); // We will read here, from STDOUT of CGI
-		close(outputPipe[1]); // Duplicated copy lives in STDOUT of CGI process, we can close this
-		close(outputPipe[0]); // We won't use reading end of this pipe
+		dup2(cgiOutputFileFd, STDOUT_FILENO); // CGI will write to the cgiOut file as STDOUT
+		close(cgiOutputFileFd); // Duplicated copy lives in STDOUT of CGI process, we can close this
 
 		// Prepare script argv
 		std::string pythonPath = PYTHON3_PATH;
@@ -110,8 +113,27 @@ void CGIHandler::handle(Request& request, Response& response)
 	}
 		
 	// Parent process
-	close(bodyFileFd);    // We won't read or write to the body file
-	close(outputPipe[1]); // We won't use writing end of this pipe
+	close(bodyFileFd); // We won't read or write to the body file
+	close(cgiOutputFileFd);
+
+	CgiProcess process;
+    process.pid = pid;
+    process.outputFile = outputFileTemplate;
+    process.response = &response;
+    process.request = request;
+    process.finished = false;
+    process.startTime = time(NULL);
+	
+	int status;
+	pid_t result = waitpid(cgiPid, &status, WNOHANG);
+	if (result == cgiPid) {
+		// CGI finished
+	} else if (result == 0) {
+		// CGI still running
+	} else {
+		// Error
+	}
+	int readFd = open(tempPath, O_RDONLY);
 
 	// Read CGI output
 	std::ostringstream cgiOutput;
