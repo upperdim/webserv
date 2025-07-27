@@ -21,8 +21,8 @@ void CGIHandler::handle(Request& request, Response& response)
 	// Empty file will be redirected as STDIN to the CGI script.
 	// This will prevent CGI script from hanging if it will wait input from STDIN.
 	// No request body = no body file content = no input = empty STDIN.
-	if (request.bodyTempFilename.empty()) {
-		if (!request.createTempBodyFile()) {
+	if (request.bodyFilename.empty()) {
+		if (!request.createBodyFile()) {
 			createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 			return;
 		}
@@ -30,7 +30,7 @@ void CGIHandler::handle(Request& request, Response& response)
 
 	// Open the body file
 	int bodyFileFd = -1;
-	bodyFileFd = open(request.bodyTempFilename.c_str(), O_RDONLY);
+	bodyFileFd = open(request.bodyFilename.c_str(), O_RDONLY);
 	if (bodyFileFd < 0) {
 		LOGT(Log::ERROR, "Failed opening temp body file in CGI handler");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);

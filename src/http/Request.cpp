@@ -27,16 +27,16 @@ Request::~Request()
 		bodyFile.close();
 	}
 
-	if (!bodyTempFilename.empty()) {
-		deleteTempBodyFile();
+	if (!bodyFilename.empty()) {
+		deleteBodyFile();
 	}
 
-	if (cgiOutputFile.is_open()) {
-		cgiOutputFile.close();
+	if (cgiOutFile.is_open()) {
+		cgiOutFile.close();
 	}
 
-	if (!cgiOutputTempFilename.empty()) {
-		deleteTempCGIOutputFile();
+	if (!cgiOutFilename.empty()) {
+		deleteCgiOutFile();
 	}
 }
 
@@ -71,99 +71,116 @@ bool	Request::isFileUploadRequest()
 	       && contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA;
 }
 
-// TODO: Generalized function for temporary body and cgiOutput files
-bool	Request::createTempBodyFile()
+//=============================================================================
+// General File Methods
+//=============================================================================
+
+std::string	Request::createFileName(std::string fileNamePrefixPath, int countDirection)
 {
-	static int counter = 0;
+	static int forwardsCounter = 0;
+	static int backwardsCounter = -1;
+
+	int suffixNumber = 0;
+	if (countDirection > 0) {
+		suffixNumber = forwardsCounter++;
+	} else {
+		suffixNumber = backwardsCounter++;
+	}
 
 	std::time_t now = std::time(nullptr);
 
 	std::ostringstream oss;
-	oss << "./tmp/webserv_body_" << now << "_" << counter++;
-	bodyTempFilename = oss.str();
+	oss << fileNamePrefixPath << now << "_" << suffixNumber++;
 
+	return oss.str();
+}
+
+bool	Request::deleteFile(std::string fileName)
+{
+	if (fileName.empty()) {
+		LOGT(Log::INFO, "Attempted to delete non-existent file ");
+		return true; // Already non-existent
+	}
+
+	// TODO: check if allowed
+	std::filesystem::path path(fileName.c_str());
+	if (std::filesystem::remove(path) != 0) {
+		LOGT(Log::ERROR, "Failed to delete " << fileName);
+		return false;
+	}
+	
+	LOGT(Log::DEBUG, "Deleted file " << fileName);
+	fileName.clear(); // Marking as deleted
+
+	return true;
+}
+
+//=============================================================================
+// Body File Methods
+//=============================================================================
+
+bool	Request::createBodyFile()
+{
+	bodyFilename = createFileName("./tmp/webserv_body_", 1);
+	
 	// 0600 = owner -> read write, group -> ---, others -> ---
-	int tmpFileFd = open(bodyTempFilename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
+	int tmpFileFd = open(bodyFilename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
 	if (tmpFileFd == -1) {
 		LOGT(Log::ERROR, "open() failed on createTempBodyFile()");
 		return false;
 	}
 	close(tmpFileFd); // We will open it with ofstream
 
-	// TODO: Does this need closing? Is this open() syscall?
-	// TODO: Move these to separate openBodyFile closeBodyFile functions for clarity and readability?
-	bodyFile.open(bodyTempFilename, std::ios::binary);
+	LOGT(Log::DEBUG, "Created temp file " << bodyFilename);
+	return true;
+}
+
+bool	Request::openBodyFile()
+{
+	bodyFile.open(bodyFilename, std::ios::binary);
 	if (!bodyFile.is_open()) {
 		LOGT(Log::ERROR, "open() failed on createTempBodyFile() ofstream");
 		return false;
 	}
-
-	LOGT(Log::DEBUG, "Created temp file " << bodyTempFilename);
 	return true;
 }
 
-bool	Request::deleteTempBodyFile()
+bool	Request::deleteBodyFile()
 {
-	if (bodyTempFilename.empty()) {
-		LOGT(Log::INFO, "Attempted to delete non-existent temp body file ");
-		return true; // Already non-existent
-	}
-
-	if (std::remove(bodyTempFilename.c_str()) != 0) {
-		LOGT(Log::ERROR, "Failed to delete temp body file " << bodyTempFilename);
-		return false;
-	}
-	
-	LOGT(Log::DEBUG, "Deleted temp body file " << bodyTempFilename);
-	bodyTempFilename.clear(); // Marking as deleted
-
-	return true;
+	return deleteFile(bodyFilename);
 }
 
-bool	Request::createTempCGIOutputFile()
+//=============================================================================
+// CGI Output File Methods
+//=============================================================================
+
+bool	Request::createCgiOutFile()
 {
-	static int negativeCounter = -1;
-
-	std::time_t now = std::time(nullptr);
-
-	std::ostringstream oss;
-	oss << "./tmp/webserv_CGI_output_" << now << "_" << negativeCounter--;
-	cgiOutputTempFilename = oss.str();
+	cgiOutFilename = createFileName("./tmp/webserv_CGI_output_", 0);
 
 	// 0600 = owner -> read write, group -> ---, others -> ---
-	int tmpFileFd = open(cgiOutputTempFilename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
+	int tmpFileFd = open(cgiOutFilename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
 	if (tmpFileFd == -1) {
 		LOGT(Log::ERROR, "open() failed on createTempCGIOutputFile()");
 		return false;
 	}
 	close(tmpFileFd); // We will open it with ofstream
 
-	// TODO: Does this need closing? Is this open() syscall?
-	// TODO: Move these to separate openCgiOutputFile closeCgiOutputFile functions for clarity and readability?
-	cgiOutputFile.open(cgiOutputTempFilename, std::ios::binary);
-	if (!cgiOutputFile.is_open()) {
-		LOGT(Log::ERROR, "open() failed on createTempCGIOutputFile() ofstream");
-		return false;
-	}
-
-	LOGT(Log::DEBUG, "Created temp CGI output file " << cgiOutputTempFilename);
+	LOGT(Log::DEBUG, "Created temp CGI output file " << cgiOutFilename);
 	return true;
 }
 
-bool	Request::deleteTempCGIOutputFile()
+bool	Request::openCgiOutFile()
 {
-	if (cgiOutputTempFilename.empty()) {
-		LOGT(Log::INFO, "Attempted to delete non-existent temp CGI output file ");
-		return true; // Already non-existent
-	}
-
-	if (std::remove(cgiOutputTempFilename.c_str()) != 0) {
-		LOGT(Log::ERROR, "Failed to delete temp CGI output file " << cgiOutputTempFilename);
+	cgiOutFile.open(cgiOutFilename, std::ios::binary);
+	if (!cgiOutFile.is_open()) {
+		LOGT(Log::ERROR, "open() failed on createTempCGIOutputFile() ofstream");
 		return false;
 	}
-	
-	LOGT(Log::DEBUG, "Deleted temp CGI output file " << cgiOutputTempFilename);
-	cgiOutputTempFilename.clear(); // Marking as deleted
-
 	return true;
+}
+
+bool	Request::deleteCgiOutFile()
+{
+	return deleteFile(cgiOutFilename);
 }

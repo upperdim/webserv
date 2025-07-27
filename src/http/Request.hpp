@@ -33,11 +33,11 @@ public:
 	std::string										protokoll;
 	std::unordered_map<std::string, std::string>	headers;
 	// CGI Output
-	std::ofstream									cgiOutputFile;
-	std::string										cgiOutputTempFilename;
+	std::ofstream									cgiOutFile;
+	std::string										cgiOutFilename;
 	// Body
 	std::ofstream									bodyFile;
-	std::string										bodyTempFilename;
+	std::string										bodyFilename;
 	size_t											bodyBytesStored;
 	// Chunked transfer
 	bool											isChunkedBodyTransfer;
@@ -61,10 +61,17 @@ public:
 	bool											isRedirectRequest();
 	bool											hasBody();
 	bool											isFileUploadRequest();
-	bool											createTempBodyFile();
-	bool											deleteTempBodyFile();
-	bool											createTempCGIOutputFile();
-	bool											deleteTempCGIOutputFile();
+	
+	std::string										createFileName(std::string fileNamePrefixPath, int countDirection);
+	bool											deleteFile(std::string fileName);
+
+	bool											createBodyFile();
+	bool											openBodyFile();
+	bool											deleteBodyFile();
+	
+	bool											createCgiOutFile();
+	bool											openCgiOutFile();
+	bool											deleteCgiOutFile();
 
 
 private:

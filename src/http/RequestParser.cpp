@@ -103,7 +103,7 @@ void	RequestParser::parseHeader(Request& request)
 		return;
 
 	if (request.hasBody()) {
-		if (!request.createTempBodyFile()) {
+		if (!request.createTempBodyFile() || !request.openBodyFile()) {
 			request.invalidateWithError(WSSC_INTERNAL_SERVER_ERROR);
 			return;
 		}
