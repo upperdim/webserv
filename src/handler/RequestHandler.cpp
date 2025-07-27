@@ -35,7 +35,7 @@ void	RequestHandler::handle(Request& request, Response& response)
 	}
 
 	if (request.isCGIRequest()) {
-		CGIHandler::handle(request, response);
+		CGIHandler::initCgi(request, response);
 		return;
 	}
 	

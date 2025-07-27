@@ -256,15 +256,11 @@ void ServerEngine::writeToClient(int clientFd)
 {
 	ClientConnection& client = getClientConnectionByFd(clientFd);
 
-	// TODO: refactor
-	if (client.getRequest().isCGIRequest()
-		&& client.getRequest().cgiSession.state != Request::CgiState::COMPLETE) {
-
-		CGIHandler::handle(client.getRequest(), client.getResponse());
-
-		if (client.getRequest().cgiSession.state != Request::CgiState::COMPLETE) {
-			return;
+	if (client.getRequest().isCGIRequest()) {
+		if (!CGIHandler::checkCgiCompletion(client.getRequest())) {
+			return; // Wait for CGI to finish
 		}
+		CGIHandler::createCgiResponse(client.getRequest(), client.getResponse());
 	}
 
 	client.sendResponse();

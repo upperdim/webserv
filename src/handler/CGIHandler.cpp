@@ -7,23 +7,6 @@
 #include "HTTP.hpp"
 #include "CGIHandler.hpp"
 
-void CGIHandler::handle(Request& request, Response& response)
-{
-	LOGC("CGI_HANDLER", " ", LIGHTMAGENTA, LIGHTCYAN);
-
-	if (request.cgiSession.state == Request::CgiState::INIT) {
-		initCgi(request, response);
-	}
-	if (request.cgiSession.state == Request::CgiState::RUNNING) {
-		checkCgiCompletion(request, response);
-	}
-	if (request.cgiSession.state == Request::CgiState::PROCESS_FINISHED) {
-		completeCgi(request, response);
-	}
-	// if (request.cgiSession.state == Request::CgiState::COMPLETE) {
-	// }
-}
-
 void	CGIHandler::initCgi(Request& request, Response& response)
 {
 	LOGT(Log::DEBUG, "Initializing CGI");
@@ -38,7 +21,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	if (request.bodyFilename.empty()) {
 		if (!request.createBodyFile()) {
 			createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-			request.cgiSession.state = Request::CgiState::FAILED;
+			request.cgiSession.error = true;
 			return;
 		}
 	}
@@ -49,7 +32,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	if (bodyFileFd < 0) {
 		LOGT(Log::ERROR, "Failed opening temp body file in CGI handler");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.state = Request::CgiState::FAILED;
+		request.cgiSession.error = true;
 		return;
 	}
 
@@ -57,14 +40,14 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	if (!request.createCgiOutFile()) {
 		close(bodyFileFd);
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.state = Request::CgiState::FAILED;
+		request.cgiSession.error = true;
 		return;
 	}
 	int cgiOutputFileFd = open(request.cgiOutFilename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
 	if (cgiOutputFileFd < 0) {
 		close(bodyFileFd);
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.state = Request::CgiState::FAILED;
+		request.cgiSession.error = true;
 		return;
 	}
 	
@@ -75,7 +58,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		close(cgiOutputFileFd);
 		LOGT(Log::ERROR, "Could not fork a CGI process");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.state = Request::CgiState::FAILED;
+		request.cgiSession.error = true;
 		return;
 	}
 
@@ -136,28 +119,31 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	close(cgiOutputFileFd);
 
 	request.cgiSession.pid = pid;
-	request.cgiSession.state = Request::CgiState::RUNNING;
 }
 
-void	CGIHandler::checkCgiCompletion(Request& request, Response& response)
+bool	CGIHandler::checkCgiCompletion(Request& request)
 {
 	LOGT(Log::DEBUG, "Checking CGI completion");
 
-	(void) response;
+	if (request.cgiSession.error) {
+		return true;
+	}
 
 	int status;
 	pid_t result = waitpid(request.cgiSession.pid, &status, WNOHANG);
 	if (result == request.cgiSession.pid) {
-		request.cgiSession.state = Request::CgiState::COMPLETE; // CGI process finished
+		return true;
 	} else if (result == 0) {
 		// CGI still running
 		// TODO: Check for timeout
+		return false;
 	} else {
-		request.cgiSession.state = Request::CgiState::FAILED;
+		request.cgiSession.error = true;
+		return true;
 	}
 }
 
-void	CGIHandler::completeCgi(Request& request, Response& response)
+void	CGIHandler::createCgiResponse(Request& request, Response& response)
 {
 	LOGT(Log::DEBUG, "Completing CGI session");
 	

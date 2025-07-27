@@ -14,14 +14,12 @@
 class CGIHandler : RequestHandler
 {
 public:
-	static void	handle(Request& request, Response& response);
+	static void	initCgi(Request& request, Response& response);
+	static bool	checkCgiCompletion(Request& request);
+	static void	createCgiResponse(Request& request, Response& response);
 
 private:
 	CGIHandler();
-
-	static void	initCgi(Request& request, Response& response);
-	static void	checkCgiCompletion(Request& request, Response& response);
-	static void	completeCgi(Request& request, Response& response);
 };
 
 #endif
