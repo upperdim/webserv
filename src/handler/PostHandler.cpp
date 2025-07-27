@@ -40,6 +40,13 @@ void	PostHandler::handle(const Request& request, Response& response)
 			}
 		}
 
+		if (request.resolvedLocationBlock->autoIndex) {
+			// handle autoIndex
+			handleAutoIndex(request, response);
+			response.setStatusCode(WSSC_CREATED);
+			return;
+		}
+
 		if (Utils::fileExists(indexedResource)) {
 			// check permission to serve the index
 			if (!Utils::hasPermission(indexedResource, R_OK)) {
