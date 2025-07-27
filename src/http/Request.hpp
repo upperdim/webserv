@@ -72,24 +72,26 @@ public:
 	std::string										queryString; // URL query string after '?'
 
 	void											invalidateWithError(int errorStatusCode);
+	
+	// Queries
 	bool											isCGIRequest();
 	bool											isRedirectRequest();
 	bool											hasBody();
 	bool											isFileUploadRequest();
 	
-	std::string										createFileName(std::string fileNamePrefixPath, int countDirection);
-	bool											deleteFile(std::string fileName);
-
+	// Body file
 	bool											createBodyFile();
 	bool											openBodyFile();
 	bool											deleteBodyFile();
 	
+	// CGI output file
 	bool											createCgiOutFile();
 	bool											openCgiOutFile();
 	bool											deleteCgiOutFile();
 
-
 private:
+	std::string										createFileName(std::string fileNamePrefixPath, int countDirection);
+	bool											deleteFile(std::string fileName);
 };
 
 #endif
