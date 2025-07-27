@@ -32,6 +32,9 @@ public:
 	std::string										requestTarget;
 	std::string										protokoll;
 	std::unordered_map<std::string, std::string>	headers;
+	// CGI Output
+	std::ofstream									cgiOutputFile;
+	std::string										cgiOutputTempFilename;
 	// Body
 	std::ofstream									bodyFile;
 	std::string										bodyTempFilename;
@@ -60,6 +63,9 @@ public:
 	bool											isFileUploadRequest();
 	bool											createTempBodyFile();
 	bool											deleteTempBodyFile();
+	bool											createTempCGIOutputFile();
+	bool											deleteTempCGIOutputFile();
+
 
 private:
 };
