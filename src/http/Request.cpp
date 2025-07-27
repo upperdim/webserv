@@ -23,8 +23,16 @@ Request::Request(std::vector<ServerBlock>& _serverBlocks)
 
 Request::~Request()
 {
+	if (bodyFile.is_open()) {
+		bodyFile.close();
+	}
+
 	if (!bodyTempFilename.empty()) {
 		deleteTempBodyFile();
+	}
+
+	if (cgiOutputFile.is_open()) {
+		cgiOutputFile.close();
 	}
 
 	if (!cgiOutputTempFilename.empty()) {
