@@ -18,6 +18,10 @@ public:
 
 private:
 	CGIHandler();
+
+	static void	initCgi(Request& request, Response& response);
+	static void	checkCgiCompletion(Request& request, Response& response);
+	static void	finalizeCgi(Request& request, Response& response);
 };
 
 #endif

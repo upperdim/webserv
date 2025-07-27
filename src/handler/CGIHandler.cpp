@@ -13,7 +13,22 @@
 
 void CGIHandler::handle(Request& request, Response& response)
 {
-	LOGC("REQUEST_HANDLER", "-> handle CGI Request", LIGHTMAGENTA, LIGHTCYAN);
+	LOGC("CGI_HANDLER", " ", LIGHTMAGENTA, LIGHTCYAN);
+
+	if (request.cgiState == Request::CgiState::INIT) {
+		initCgi(request, response);
+	}
+	if (request.cgiState == Request::CgiState::RUNNING) {
+		checkCgiCompletion(request, response);
+	}
+	if (request.cgiState == Request::CgiState::COMPLETE) {
+		finalizeCgi(request, response);
+	}
+}
+
+void	CGIHandler::initCgi(Request& request, Response& response)
+{
+	LOGT(Log::DEBUG, "Initializing CGI...");
 	LOGT(Log::DEBUG, "Using python3 from " << PYTHON3_PATH); // TODO: remove me
 
 	const std::string& scriptPath  = request.resolvedPath;
@@ -56,6 +71,7 @@ void CGIHandler::handle(Request& request, Response& response)
 	pid_t pid = fork();
 	if (pid < 0) {
 		close(bodyFileFd);
+		close(cgiOutputFileFd);
 		LOGT(Log::ERROR, "Could not fork a CGI process");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
@@ -104,26 +120,33 @@ void CGIHandler::handle(Request& request, Response& response)
 
 		// Execute the CGI script
 		execve(pythonPath.c_str(), argv, envp.data());
-
 		// If we are here, execve() failed
-		LOGT(Log::ERROR, "CGI Process execve() failed, PID = " << pid);
-		LOGT(Log::ERROR, "execve errno = " << errno); // TODO: REMOVE THIS
-		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+
+		// TODO: Write internal server error into the cgi out file
+		//	 it will be the response back to client
+		// createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+		
 		exit(EXIT_FAILURE);
 	}
 		
 	// Parent process
 	close(bodyFileFd); // We won't read or write to the body file
-	close(cgiOutputFileFd);
 
 	CgiProcess process;
-    process.pid = pid;
-    process.outputFile = outputFileTemplate;
-    process.response = &response;
-    process.request = request;
-    process.finished = false;
-    process.startTime = time(NULL);
-	
+	process.pid = pid;
+	process.outputFile = outputFileTemplate;
+	process.response = &response;
+	process.request = request;
+	process.finished = false;
+	process.startTime = time(NULL);
+
+	// ...
+}
+
+void	CGIHandler::checkCgiCompletion(Request& request, Response& response)
+{
+	LOGT(Log::DEBUG, "Checking CGI completion...");
+
 	int status;
 	pid_t result = waitpid(cgiPid, &status, WNOHANG);
 	if (result == cgiPid) {
@@ -133,6 +156,7 @@ void CGIHandler::handle(Request& request, Response& response)
 	} else {
 		// Error
 	}
+
 	int readFd = open(tempPath, O_RDONLY);
 
 	// Read CGI output
@@ -160,4 +184,9 @@ void CGIHandler::handle(Request& request, Response& response)
 	// Response type: 1 or more header files, blank line, message body (may be null)
 	// response.addHeader WIP
 	response.setBodyString(cgiOutput.str());
+}
+
+void	CGIHandler::finalizeCgi(Request& request, Response& response)
+{
+
 }

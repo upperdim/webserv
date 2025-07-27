@@ -22,6 +22,12 @@ public:
 		INVALID
 	};
 
+	enum class CgiState {
+		INIT,
+		RUNNING,
+		COMPLETE
+	};
+
 	std::string										rawRequest;
 	ParsingState									parsingState;
 	bool											doneReceiving;
@@ -33,6 +39,7 @@ public:
 	std::string										protokoll;
 	std::unordered_map<std::string, std::string>	headers;
 	// CGI Output
+	CgiState										cgiState;
 	std::ofstream									cgiOutFile;
 	std::string										cgiOutFilename;
 	// Body
