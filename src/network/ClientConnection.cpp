@@ -72,7 +72,7 @@ bool	ClientConnection::isWaitingForCgi()
 		return false;
 	}
 	
-	if (CGIHandler::checkCgiProcess(request)) {
+	if (CGIHandler::checkCgiCompletion(request)) {
 		CGIHandler::createCgiResponse(request, response);
 		return false;
 	}

@@ -123,7 +123,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	request.cgiSession.state = Request::CgiState::RUNNING;
 }
 
-bool	CGIHandler::checkCgiProcess(Request& request)
+bool	CGIHandler::checkCgiCompletion(Request& request)
 {
 	LOGT(Log::DEBUG, "Checking CGI completion");
 

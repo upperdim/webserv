@@ -15,7 +15,7 @@ class CGIHandler : RequestHandler
 {
 public:
 	static void	initCgi(Request& request, Response& response);
-	static bool	checkCgiProcess(Request& request);
+	static bool	checkCgiCompletion(Request& request);
 	static void	createCgiResponse(Request& request, Response& response);
 
 private:
