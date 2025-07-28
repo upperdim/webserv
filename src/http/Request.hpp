@@ -54,6 +54,8 @@ public:
 	std::vector<std::string>						tmpUploadedFiles;
 	std::string										queryString; // URL query string after '?'
 
+	bool											deleteTmpUploadedFiles();
+
 	bool											isCGIRequest();
 	bool											isRedirectRequest();
 	bool											hasBody();
