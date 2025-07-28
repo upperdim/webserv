@@ -1,5 +1,6 @@
 #include <unistd.h>	// W_OK
 #include <filesystem>
+#include <vector>
 #include "PostHandler.hpp"
 #include "Utils.hpp"
 
@@ -25,6 +26,10 @@ void	PostHandler::handle(const Request& request, Response& response)
 
 	if (request.tmpUploadedFiles.size() > 0) {
 		// we should have a list of uploaded files
+
+		std::vector<std::string> successfullyMoved;
+		successfullyMoved.reserve(request.tmpUploadedFiles.size());
+
 		for (const std::string& tmpPath : request.tmpUploadedFiles) {
 			std::filesystem::path source = tmpPath;
 			std::filesystem::path filename = source.filename();
@@ -32,11 +37,23 @@ void	PostHandler::handle(const Request& request, Response& response)
 
 			try {
 				std::filesystem::rename(source, dest);
+				successfullyMoved.emplace_back(tmpPath);
 				LOGT(Log::SUCCESS, "Moved file to: " << dest);
 			} catch(const std::exception& e) {
 				LOGT(Log::ERROR, "Failed to move file \"" << filename.c_str() << "\" to dest: " << dest << ": " << e.what());
 				createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 				return;
+			}
+		}
+
+		// erase succesfully moved files from Request class tmpUploadedFiles list
+		// we don't need to delete those files if error occures somewhere
+		for (const std::string& path : successfullyMoved) {
+			auto it = request.tmpUploadedFiles.find(
+				request.tmpUploadedFiles.begin(), request.tmpUploadedFiles.end(), path
+			);
+			if (it != request.tmpUploadedFiles.end()) {
+				request.tmpUploadedFiles.erase(it);
 			}
 		}
 
