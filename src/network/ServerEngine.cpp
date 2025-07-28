@@ -96,7 +96,6 @@ void ServerEngine::iteratePollFds(int eventCount)
 		}
 
 		if (pollFds[i].revents & POLLOUT) {
-			LOG("POLLOUT event, fd = " << pollFds[i].fd);
 			writeToClient(pollFds[i].fd);
 		}
 		
@@ -260,6 +259,7 @@ void ServerEngine::writeToClient(int clientFd)
 		return;
 	}
 
+	LOG("POLLOUT event, fd = " << clientFd);
 	client.sendResponse();
 
 	if (client.getResponse().error()) {
