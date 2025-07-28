@@ -1,3 +1,4 @@
+#include <sstream>
 #include "HTTP.hpp"
 
 const std::map<int, std::string>	HTTP::m_statusMessages = {
@@ -103,21 +104,23 @@ const std::string	HTTP::m_partialContentTemplate = {R"(
 		<div style="display: block; margin: 0 0.25em; color: oklch(0.656 0.241 354.308); font-weight: 700;">{{STATUS_CODE}}</div>
 		<div style="display: block; margin: 0 0.25em; color: oklch(0.823 0.12 346.018); font-weight: 300; ">{{REASON_PHRASE}}</div>
 	</h2>
+	<div>
+		<div style="display: block; margin: 1em 0; text-align: left;">
+			<h4 style="margin-bottom: 0; color: oklch(84.1% 0.238 128.85); line-height: 150%">Successfully uploaded files:</h4>
+			<ul style="margin-top: 0; padding-left: 20px; color: oklch(89.7% 0.196 126.665); line-height: 150%;">
+{{SUCCESS_FILES}}
+			</ul>
+		</div>
+		<div style="display: block; margin: 1em 0; text-align: left;">
+			<h4 style="margin-bottom: 0; color: oklch(65.6% 0.241 354.308); line-height: 150%">Failed to uploaded files:</h4>
+			<ul style="margin-top: 0; padding-left: 20px; color: oklch(82.3% 0.12 346.018); line-height: 150%">
+{{FAILED_FILES}}
+			</ul>
+		</div>
+	</div>
 	<div style="display: block; margin: 1em 0; width:50%; height: 1px; border-top-style: solid; border-top-width: 1px; border-color: oklch(0.205 0 0);"></div>
 	<div style="color: oklch(0.841 0.238 128.85); font-weight: 300;">
 		webserv
-	</div>
-	<div style="display: block; margin: 1em 0;">
-		<h2>Successfully uploaded files:</h2>
-		<ul>
-		{{SUCCESS_FILES}}
-		</ul>
-	</div>
-	<div style="display: block; margin: 1em 0;">
-		<h2>Failed to uploaded files:</h2>
-		<ul>
-		{{FAILED_FILES}}
-		</ul>
 	</div>
 </body>
 </html>)"};
@@ -196,31 +199,14 @@ HTTP::ContentTypeInfo_t	HTTP::getContentTypeInfo(const std::string& fieldValue, 
 std::string	HTTP::getErrorPageTemplate(const int& status_code)
 {
 	std::string page = m_errorPageTemplate;
-	size_t		pos  = 0;
 
-	std::string	needle = "{{STATUS_CODE}}";
-	std::string	replacement = std::to_string(status_code);
-	while ((pos = page.find(needle, pos)) != std::string::npos) {
-		page.replace(pos, needle.length(), replacement);
-		pos += replacement.length();
-	}
+	replaceAllPlaceholders("{{STATUS_CODE}}", std::to_string(status_code), page);
+	replaceAllPlaceholders("{{REASON_PHRASE}}", getStatusMessage(status_code), page);
 
-	pos = 0;	
-	needle = "{{REASON_PHRASE}}";
-	replacement = getStatusMessage(status_code);
-	while ((pos = page.find(needle, pos)) != std::string::npos) {
-		page.replace(pos, needle.length(), replacement);
-		pos += replacement.length();
-	}
-
-	pos = 0;	
-	needle = "{{TEAPOT}}";
-	(status_code == WSSC_I_M_A_TEAPOT)	? replacement = m_teapot
-										: replacement = "";
-	while ((pos = page.find(needle, pos)) != std::string::npos) {
-		page.replace(pos, needle.length(), replacement);
-		pos += replacement.length();
-	}
+	std::string replacement;
+	if (status_code == WSSC_I_M_A_TEAPOT) { replacement = m_teapot }
+	else { replacement = ""; }
+	replaceAllPlaceholders("{{TEAPOT}}", replacement, page);
 
 	return page;
 }
@@ -231,9 +217,20 @@ std::string	HTTP::getPartialContentTemplate(const std::vector<std::string>& succ
 	replaceAllPlaceholders("{{STATUS_CODE}}", "206", page);
 	replaceAllPlaceholders("{{REASON_PHRASE}}", getStatusMessage(WSSC_PARTIAL_CONTENT), page);
 
+	std::ostringstream succededFilesListItems;
+	std::ostringstream failedFilesListItems;
 
-	(void)succededFiles;
-	(void)failedFiles;
+	for (const std::string& path : succededFiles) {
+		succededFilesListItems << "\t\t\t\t<li>" << path.substr(6, path.length() - 21 - 6) << "</li>\n";
+	}
+
+	for (const std::string& path : failedFiles) {
+		failedFilesListItems << "\t\t\t\t<li>" << path.substr(6, path.length() - 21 - 6) << "</li>\n";
+	}
+
+	replaceAllPlaceholders("{{SUCCESS_FILES}}", succededFilesListItems.str(), page);
+	replaceAllPlaceholders("{{FAILED_FILES}}", failedFilesListItems.str(), page);
+
 	return page;
 }
 

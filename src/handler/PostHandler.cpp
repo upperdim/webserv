@@ -47,6 +47,7 @@ void	PostHandler::handle(Request& request, Response& response)
 				createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 				return;
 			}
+			break;	//	TODO:	deleteme
 		}
 
 		// erase succesfully moved files from Request class tmpUploadedFiles list
@@ -58,6 +59,7 @@ void	PostHandler::handle(Request& request, Response& response)
 			if (it != request.tmpUploadedFiles.end()) {
 				request.tmpUploadedFiles.erase(it);
 			}
+			break;	//	TODO:	deleteme
 		}
 
 		// return 206 Partial Content if we didn't succed moving all the files
