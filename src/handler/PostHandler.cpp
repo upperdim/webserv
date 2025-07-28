@@ -1,10 +1,11 @@
 #include <unistd.h>	// W_OK
 #include <filesystem>
 #include <vector>
+#include <algorithm>
 #include "PostHandler.hpp"
 #include "Utils.hpp"
 
-void	PostHandler::handle(const Request& request, Response& response)
+void	PostHandler::handle(Request& request, Response& response)
 {
 	LOGC("POST_HANDLER", "-> handle POST Request", LIGHTMAGENTA, LIGHTCYAN);
 
@@ -49,7 +50,7 @@ void	PostHandler::handle(const Request& request, Response& response)
 		// erase succesfully moved files from Request class tmpUploadedFiles list
 		// we don't need to delete those files if error occures somewhere
 		for (const std::string& path : successfullyMoved) {
-			auto it = request.tmpUploadedFiles.find(
+			std::vector<std::string>::iterator it = std::find(
 				request.tmpUploadedFiles.begin(), request.tmpUploadedFiles.end(), path
 			);
 			if (it != request.tmpUploadedFiles.end()) {
