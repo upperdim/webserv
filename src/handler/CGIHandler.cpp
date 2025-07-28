@@ -4,6 +4,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
+#include <signal.h>
 #include <sys/wait.h>
 #include "HTTP.hpp"
 #include "Request.hpp"
