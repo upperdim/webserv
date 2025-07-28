@@ -228,10 +228,9 @@ std::string	HTTP::getErrorPageTemplate(const int& status_code)
 std::string	HTTP::getPartialContentTemplate(const std::vector<std::string>& succededFiles, const std::vector<std::string>& failedFiles)
 {
 	std::string page = m_partialContentTemplate;
-	replacePlaceHolder("{{STATUS_CODE}}", "206", page);
-	replacePlaceHolder("{{REASON_PHRASE}}", getStatusMessage(WSSC_PARTIAL_CONTENT), page);
+	replaceAllPlaceholders("{{STATUS_CODE}}", "206", page);
+	replaceAllPlaceholders("{{REASON_PHRASE}}", getStatusMessage(WSSC_PARTIAL_CONTENT), page);
 
-	WORK HERE
 
 	(void)succededFiles;
 	(void)failedFiles;
@@ -272,7 +271,7 @@ HTTP::Method	HTTP::strToMethod(const std::string& str)
 // Private methods
 //=============================================================================
 
-bool	HTTP::replacePlaceHolder(std::string placeHolder, std::string replacement, std::string& page)
+bool	HTTP::replaceAllPlaceholders(std::string placeHolder, std::string replacement, std::string& page)
 {
 	bool	foundPlaceHolder = false;	
 	size_t	pos  = 0;

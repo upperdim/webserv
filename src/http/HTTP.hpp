@@ -117,7 +117,7 @@ private:
 	HTTP(const HTTP& other);
 	HTTP&	operator=(const HTTP& rhs);
 
-	static bool	replacePlaceHolder(std::string placeHolder, std::string replacement, std::string& page);
+	static bool	replaceAllPlaceholders(std::string placeHolder, std::string replacement, std::string& page);
 
 };
 
