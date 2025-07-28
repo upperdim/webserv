@@ -236,7 +236,7 @@ void	RequestParser::parseMultiformBody(Request& request)
 		if (line == finalBoundaryMarker)
 			break;
 
-			// read multipart headers
+		// read multipart headers
 		multipartHeaders.clear();
 		while (std::getline(ifs, line)) {
 			if (!line.empty() && line.back() == '\r')
@@ -282,9 +282,11 @@ void	RequestParser::parseMultiformBody(Request& request)
 		std::string filename = disposition.substr(posFilname + 9);
 		Utils::unquote(filename, '"');
 
-		//	TODO:	is it ok to use the filenmae, or do we need to make it unique
-		//			we might want to be more inteligent for storing these files,
-		//			what if two clients upload the same file at the same time?
+		static size_t count;
+		std::ostringstream oss;
+		oss << filename.c_str() << '.' << std::setw(20) << std::setfill('0') << count++;
+		filename = oss.str();
+		LOGT(Log::INFO, "final tmp filename: " << filename);
 
 		if (filename.empty()) {
 			// return WSSC_NO_CONTENT, if the filename is empty

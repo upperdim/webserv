@@ -33,15 +33,17 @@ void	PostHandler::handle(Request& request, Response& response)
 
 		for (const std::string& tmpPath : request.tmpUploadedFiles) {
 			std::filesystem::path source = tmpPath;
-			std::filesystem::path filename = source.filename();
-			std::filesystem::path dest = request.resolvedPath / filename;
+			std::string filenameStr = source.filename().string();
+			if (filenameStr.length() > 21)
+				filenameStr.erase(filenameStr.length() - 21);
+			std::filesystem::path dest = std::filesystem::path(request.resolvedPath) / filenameStr;
 
 			try {
 				std::filesystem::rename(source, dest);
 				successfullyMoved.emplace_back(tmpPath);
 				LOGT(Log::SUCCESS, "Moved file to: " << dest);
 			} catch(const std::exception& e) {
-				LOGT(Log::ERROR, "Failed to move file \"" << filename.c_str() << "\" to dest: " << dest << ": " << e.what());
+				LOGT(Log::ERROR, "Failed to move file \"" << filenameStr << "\" to dest: " << dest << ": " << e.what());
 				createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 				return;
 			}
