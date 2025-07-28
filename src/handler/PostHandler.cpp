@@ -60,6 +60,14 @@ void	PostHandler::handle(Request& request, Response& response)
 			}
 		}
 
+		// return 206 Partial Content if we didn't succed moving all the files
+		if (request.tmpUploadedFiles.size() > 0) {
+			response.setStatusCode(WSSC_PARTIAL_CONTENT);
+			response.addHeader("Content-Type", HTTP::getMimeType(".html"));
+			response.setBodyString(HTTP::getPartialContentTemplate(successfullyMoved, request.tmpUploadedFiles));
+			return;
+		}
+
 		if (request.resolvedLocationBlock->autoIndex) {
 			// handle autoIndex
 			handleAutoIndex(request, response);
