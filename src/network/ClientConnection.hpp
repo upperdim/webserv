@@ -24,6 +24,7 @@ public:
 
 	void			receiveRequest();
 	void			sendResponse();
+	bool			isWaitingForCgi();
 	
 	int				getFd();
 	bool			getDisconnected();

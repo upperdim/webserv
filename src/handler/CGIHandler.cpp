@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include "HTTP.hpp"
+#include "Request.hpp"
 #include "CGIHandler.hpp"
 
 void	CGIHandler::initCgi(Request& request, Response& response)
@@ -21,7 +22,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	if (request.bodyFilename.empty()) {
 		if (!request.createBodyFile()) {
 			createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-			request.cgiSession.error = true;
+			request.cgiSession.state = Request::CgiState::FAILED;
 			return;
 		}
 	}
@@ -32,7 +33,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	if (bodyFileFd < 0) {
 		LOGT(Log::ERROR, "Failed opening temp body file in CGI handler");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.error = true;
+		request.cgiSession.state = Request::CgiState::FAILED;
 		return;
 	}
 
@@ -40,14 +41,14 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	if (!request.createCgiOutFile()) {
 		close(bodyFileFd);
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.error = true;
+		request.cgiSession.state = Request::CgiState::FAILED;
 		return;
 	}
 	int cgiOutputFileFd = open(request.cgiOutFilename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
 	if (cgiOutputFileFd < 0) {
 		close(bodyFileFd);
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.error = true;
+		request.cgiSession.state = Request::CgiState::FAILED;
 		return;
 	}
 	
@@ -58,7 +59,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		close(cgiOutputFileFd);
 		LOGT(Log::ERROR, "Could not fork a CGI process");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.error = true;
+		request.cgiSession.state = Request::CgiState::FAILED;
 		return;
 	}
 
@@ -119,26 +120,24 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	close(cgiOutputFileFd);
 
 	request.cgiSession.pid = pid;
+	request.cgiSession.state = Request::CgiState::RUNNING;
 }
 
-bool	CGIHandler::checkCgiCompletion(Request& request)
+bool	CGIHandler::checkCgiProcess(Request& request)
 {
 	LOGT(Log::DEBUG, "Checking CGI completion");
-
-	if (request.cgiSession.error) {
-		return true;
-	}
 
 	int status;
 	pid_t result = waitpid(request.cgiSession.pid, &status, WNOHANG);
 	if (result == request.cgiSession.pid) {
+		request.cgiSession.state = Request::CgiState::PROCESS_FINISHED;
 		return true;
 	} else if (result == 0) {
 		// CGI still running
 		// TODO: Check for timeout
 		return false;
 	} else {
-		request.cgiSession.error = true;
+		request.cgiSession.state = Request::CgiState::FAILED;
 		return true;
 	}
 }
@@ -146,12 +145,11 @@ bool	CGIHandler::checkCgiCompletion(Request& request)
 void	CGIHandler::createCgiResponse(Request& request, Response& response)
 {
 	LOGT(Log::DEBUG, "Completing CGI session");
-	
-	(void) request;
-	(void) response;
 
 	// RFC 3875 CGI 1.1
 	// Response type: 1 or more header files, blank line, message body (may be null)
 	// response.addHeader WIP
-	// response.setBodyString(cgiOutput.str()); // TODO: Instead, set BodyFileBufferReader
+	response.addHeader("Just-Testing", "hey_there");
+	response.setBodyFileBufferReader(request.cgiOutFilename);
+	request.cgiSession.state = Request::CgiState::COMPLETE;
 }

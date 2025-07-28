@@ -1,5 +1,6 @@
 #include "ClientConnection.hpp"
 #include "RequestParser.hpp"
+#include "CGIHandler.hpp"
 #include "colors.hpp"
 #include "Log.hpp"
 
@@ -48,6 +49,35 @@ void ClientConnection::sendResponse()
 	
 	std::string	chunk = response.getNextChunk();
 	send(fd, chunk.c_str(), chunk.length(), 0); // TODO: return val & checks
+}
+
+bool	ClientConnection::isWaitingForCgi()
+{
+	if (!request.isCGIRequest()) {
+		return false;
+	}
+
+	// This check is necessary for visits after the CGI was complete.
+	//
+	// If the CGI was already completed
+	// and a response with multiple chunks was created,
+	// it will take multiple poll iterations to send the response.
+	// Therefore we will hit this function multiple times
+	// until all the response chunks are sent to the client.
+	//
+	// We should prevent creating the response over and over again
+	// for the repeated visits.
+	if (request.cgiSession.state == Request::CgiState::COMPLETE
+	    || request.cgiSession.state == Request::CgiState::FAILED) {
+		return false;
+	}
+	
+	if (CGIHandler::checkCgiProcess(request)) {
+		CGIHandler::createCgiResponse(request, response);
+		return false;
+	}
+
+	return true;
 }
 
 int         	ClientConnection::getFd()                 		{ return fd; }

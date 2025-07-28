@@ -2,9 +2,9 @@
 #include <unistd.h> // close()
 #include "ServerEngine.hpp"
 #include "ClientConnection.hpp"
+#include "Request.hpp"
 #include "RequestHandler.hpp"
 #include "ServerSocket.hpp"
-#include "CGIHandler.hpp"
 #include "Config.hpp"
 #include "Log.hpp"
 
@@ -256,11 +256,8 @@ void ServerEngine::writeToClient(int clientFd)
 {
 	ClientConnection& client = getClientConnectionByFd(clientFd);
 
-	if (client.getRequest().isCGIRequest()) {
-		if (!CGIHandler::checkCgiCompletion(client.getRequest())) {
-			return; // Wait for CGI to finish
-		}
-		CGIHandler::createCgiResponse(client.getRequest(), client.getResponse());
+	if (client.isWaitingForCgi()) {
+		return;
 	}
 
 	client.sendResponse();

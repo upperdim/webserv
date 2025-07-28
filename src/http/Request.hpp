@@ -22,10 +22,18 @@ public:
 		INVALID
 	};
 
+	enum class CgiState {
+		INIT,
+		RUNNING,
+		PROCESS_FINISHED,
+		COMPLETE,
+		FAILED
+	};
+
 	// TODO: Timeout
 	typedef struct CgiSession_s {
 		pid_t		pid;
-		bool		error;
+		CgiState	state;
 	} CgiSession_t;
 
 	std::string										rawRequest;

@@ -8,6 +8,7 @@ webserv
 
 # Temporary files
 tmp/webserv_body_*
+tmp/webserv_CGI_output_*
 
 # Dev tools
 compile_commands.json

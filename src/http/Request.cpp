@@ -20,6 +20,8 @@ Request::Request(std::vector<ServerBlock>& _serverBlocks)
 		resolvedServerBlock(nullptr),
 		resolvedLocationBlock(nullptr)
 {
+	cgiSession.pid = -1;
+	cgiSession.state = CgiState::INIT;
 }
 
 Request::~Request()
@@ -97,7 +99,7 @@ bool	Request::deleteFile(std::string fileName)
 
 	std::filesystem::path path(fileName.c_str());
 	if (std::filesystem::remove(path) != 0) {
-		LOGT(Log::ERROR, "Failed to delete " << fileName);
+		LOGT(Log::ERROR, "Failed to delete file " << fileName);
 		return false;
 	}
 	
@@ -113,7 +115,7 @@ bool	Request::deleteFile(std::string fileName)
 
 bool	Request::createBodyFile()
 {
-	bodyFilename = createFileName("./tmp/webserv_body_", 1);
+	bodyFilename = createFileName("./tmp/webserv_body_");
 	
 	// 0600 = owner -> read write, group -> ---, others -> ---
 	int tmpFileFd = open(bodyFilename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
@@ -148,7 +150,7 @@ bool	Request::deleteBodyFile()
 
 bool	Request::createCgiOutFile()
 {
-	cgiOutFilename = createFileName("./tmp/webserv_CGI_output_", 0);
+	cgiOutFilename = createFileName("./tmp/webserv_CGI_output_");
 
 	// 0600 = owner -> read write, group -> ---, others -> ---
 	int tmpFileFd = open(cgiOutFilename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
