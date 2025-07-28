@@ -28,8 +28,6 @@ public:
 
 	bool				complete(void) const;
 	bool				error(void) const;
-	
-	int					statusCode;
 
 	// for debugging
 	std::string			getResponseStateString();
@@ -49,9 +47,13 @@ private:
 	};
 
 	ResponseState		m_state;
+
 	std::string			m_protocol;
+	int					m_status_code;
 	std::string			m_status_msg;
+
 	HeaderMap			m_headers;
+	
 	std::string			m_body;
 	FileBufferReader	m_file_buffer_reader;
 	BodyType			m_bodyType;

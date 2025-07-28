@@ -1,9 +1,9 @@
 #include "Response.hpp"
 
 Response::Response()
-	:	statusCode(200),
-		m_state(ResponseState::SEND_HEADER),
+	:	m_state(ResponseState::SEND_HEADER),
 		m_protocol("HTTP/1.1"),
+		m_status_code(200),
 		m_status_msg(HTTP::getStatusMessage(WSSC_OK)),
 		m_bodyType(BodyType::BODY_NONE),
 		m_done(false)
@@ -24,8 +24,18 @@ void	Response::setProtocol(const std::string& _protocol)
 
 void	Response::setStatusCode(const int& _statusCode)
 {
-	statusCode = _statusCode;
-	m_status_msg = HTTP::getStatusMessage(statusCode);
+	m_status_code = _statusCode;
+	m_status_msg = HTTP::getStatusMessage(m_status_code);
+}
+
+bool	Response::complete(void) const
+{
+	return ( m_done );
+}
+
+bool	Response::error(void) const
+{
+	return (m_state == ResponseState::SEND_ERROR);
 }
 
 void	Response::addHeader(const std::string& key, const std::string& value)
@@ -45,6 +55,13 @@ void	Response::setBodyFileBufferReader(std::string path)
 	m_bodyType = BodyType::BODY_FILE_BUFFER;
 	m_file_buffer_reader = FileBufferReader(path, RESPONSE_BUFFER_SIZE);
 	m_headers["Content-Length"] = std::to_string(m_file_buffer_reader.getSize());
+}
+
+void	Response::setState(ResponseState _state)
+{
+	m_state = _state;
+	if (m_state == ResponseState::SEND_COMPLETE || m_state == ResponseState::SEND_ERROR)
+		m_done = true;
 }
 
 std::string	Response::getNextChunk(void)
@@ -90,44 +107,11 @@ void	Response::checkBodyState()
 	}
 }
 
-bool	Response::complete(void) const
-{
-	return ( m_done );
-}
-
-bool	Response::error(void) const
-{
-	return (m_state == ResponseState::SEND_ERROR);
-}
-
-std::string			Response::getResponseStateString()
-{
-	switch (m_state)
-	{
-		case (ResponseState::SEND_HEADER):
-			return ("SEND_HEADER");
-		case (ResponseState::SEND_BODY):
-			return ("SEND_BODY");
-		case (ResponseState::SEND_COMPLETE):
-			return ("SEND_COMPLETE");
-		case (ResponseState::SEND_ERROR):
-			return ("SEND_ERROR");
-		default:
-			break ;
-	}
-	return ("CRITICAL_ERROR_::_RESPONSE_STATE_NOT_SET_TO_VALID_STATE");
-}
-
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
-
 std::string	Response::getHeader(void) const
 {
 	std::string	buff;
 	buff	+= m_protocol + " "
-			+ std::to_string(statusCode) + " "
+			+ std::to_string(m_status_code) + " "
 			+ m_status_msg + "\r\n";
 	for (const auto& header : m_headers)
 		buff += header.first + ": " + header.second + "\r\n";
@@ -157,9 +141,20 @@ std::string	Response::getNextBodyChunk(void)
 	return ( ss.str() );
 }
 
-void	Response::setState(ResponseState _state)
+std::string			Response::getResponseStateString()
 {
-	m_state = _state;
-	if (m_state == ResponseState::SEND_COMPLETE || m_state == ResponseState::SEND_ERROR)
-		m_done = true;
+	switch (m_state)
+	{
+		case (ResponseState::SEND_HEADER):
+			return ("SEND_HEADER");
+		case (ResponseState::SEND_BODY):
+			return ("SEND_BODY");
+		case (ResponseState::SEND_COMPLETE):
+			return ("SEND_COMPLETE");
+		case (ResponseState::SEND_ERROR):
+			return ("SEND_ERROR");
+		default:
+			break ;
+	}
+	return ("CRITICAL_ERROR_::_RESPONSE_STATE_NOT_SET_TO_VALID_STATE");
 }
