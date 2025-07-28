@@ -26,6 +26,14 @@ Request::~Request()
 	if (!bodyTempFilename.empty()) {
 		deleteTempBodyFile();
 	}
+
+	if (tmpUploadedFiles.size() > 0) {
+		for (auto it = tmpUploadedFiles.begin(); it < tmpUploadedFiles.end(); ++it) {
+			if (!std::filesystem::remove(*it)) {
+				LOGT(Log::ERROR, "failed to delete tmp uploaded file: " << *it);
+			}
+		}
+	}
 }
 
 bool	Request::isCGIRequest()
