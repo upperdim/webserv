@@ -1,3 +1,4 @@
+#include <chrono>
 #include <vector>
 #include <string>
 #include <cstring>
@@ -6,6 +7,7 @@
 #include <sys/wait.h>
 #include "HTTP.hpp"
 #include "Request.hpp"
+#include "Response.hpp"
 #include "CGIHandler.hpp"
 
 void	CGIHandler::initCgi(Request& request, Response& response)
@@ -51,6 +53,8 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		request.cgiSession.state = Request::CgiState::FAILED;
 		return;
 	}
+
+	request.cgiSession.startTime = std::chrono::steady_clock::now();
 	
 	// Fork CGI process
 	pid_t pid = fork();
@@ -123,21 +127,28 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	request.cgiSession.state = Request::CgiState::RUNNING;
 }
 
-bool	CGIHandler::checkCgiCompletion(Request& request)
+bool	CGIHandler::checkCgiCompletion(Request& request, Response& response)
 {
-	LOGT(Log::DEBUG, "Checking CGI completion");
+	Request::CgiSession_t& session = request.cgiSession;
 
 	int status;
-	pid_t result = waitpid(request.cgiSession.pid, &status, WNOHANG);
-	if (result == request.cgiSession.pid) {
-		request.cgiSession.state = Request::CgiState::PROCESS_FINISHED;
+	pid_t result = waitpid(session.pid, &status, WNOHANG);
+	if (result == session.pid) {
+		session.state = Request::CgiState::PROCESS_FINISHED;
 		return true;
 	} else if (result == 0) {
 		// CGI still running
-		// TODO: Check for timeout
+		if (std::chrono::steady_clock::now() - session.startTime > std::chrono::seconds(CGI_TIMEOUT_SECONDS)) {
+			// Timeout
+			kill(session.pid, SIGKILL);
+			waitpid(session.pid, NULL, 0); // clean up process entry from OS
+			createErrorResponse(request,	response, WSSC_GATEWAY_TIMEOUT);
+			session.state = Request::CgiState::FAILED;
+			return false;
+		}
 		return false;
 	} else {
-		request.cgiSession.state = Request::CgiState::FAILED;
+		session.state = Request::CgiState::FAILED;
 		return true;
 	}
 }

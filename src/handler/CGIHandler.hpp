@@ -2,8 +2,10 @@
 #define CGIHANDLER_HPP
 
 #include "RequestHandler.hpp"
+#include "Response.hpp"
 
 #define CGI_OUTPUT_BUFFER_SIZE	4096
+#define CGI_TIMEOUT_SECONDS		5
 
 #if defined(__linux__)
 	#define PYTHON3_PATH			"/usr/bin/python3"
@@ -15,7 +17,7 @@ class CGIHandler : RequestHandler
 {
 public:
 	static void	initCgi(Request& request, Response& response);
-	static bool	checkCgiCompletion(Request& request);
+	static bool	checkCgiCompletion(Request& request, Response& response);
 	static void	createCgiResponse(Request& request, Response& response);
 
 private:

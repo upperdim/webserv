@@ -1,6 +1,7 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
+#include <chrono>
 #include <unordered_map>
 #include <optional>
 #include <fstream>
@@ -32,8 +33,9 @@ public:
 
 	// TODO: Timeout
 	typedef struct CgiSession_s {
-		pid_t		pid;
-		CgiState	state;
+		pid_t												pid;
+		CgiState											state;
+		std::chrono::time_point<std::chrono::steady_clock>	startTime;
 	} CgiSession_t;
 
 	std::string										rawRequest;
