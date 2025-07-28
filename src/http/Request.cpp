@@ -30,12 +30,12 @@ Request::~Request()
 		bodyFile.close();
 	}
 
-	if (!bodyFilename.empty()) {
-		deleteBodyFile();
-	}
-
 	if (cgiOutFile.is_open()) {
 		cgiOutFile.close();
+	}
+
+	if (!bodyFilename.empty()) {
+		deleteBodyFile();
 	}
 
 	if (!cgiOutFilename.empty()) {
@@ -98,7 +98,7 @@ bool	Request::deleteFile(std::string fileName)
 	}
 
 	std::filesystem::path path(fileName.c_str());
-	if (std::filesystem::remove(path) != 0) {
+	if (!std::filesystem::remove(path) != 0) {
 		LOGT(Log::ERROR, "Failed to delete file " << fileName);
 		return false;
 	}
