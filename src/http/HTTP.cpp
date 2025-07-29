@@ -1,6 +1,7 @@
+#include <sstream>
 #include "HTTP.hpp"
 
-const std::map<int, std::string>	HTTP::m_status_messages = {
+const std::map<int, std::string>	HTTP::m_statusMessages = {
 	{100,	"Continue"},
 	{101,	"Wwitching Protocols"},
 	{102,	"Processing"},
@@ -68,7 +69,7 @@ const std::map<int, std::string>	HTTP::m_status_messages = {
 	{511,	"Network Authentication Required"}
 };
 
-const std::map<std::string, std::string>	HTTP::m_mime_types = {
+const std::map<std::string, std::string>	HTTP::m_mimeTypes = {
 	{".txt", "text/plain"},
 	{".htm", "text/html"},
 	{".html", "text/html"},
@@ -79,7 +80,7 @@ const std::map<std::string, std::string>	HTTP::m_mime_types = {
 	{".json", "application/json"}
 };
 
-const std::string	HTTP::m_error_page_template = {R"(
+const std::string	HTTP::m_errorPageTemplate = {R"(
 <html>
 <head><title>{{STATUS_CODE}} - {{REASON_PHRASE}}</title></head>
 <body style="display: flex; flex-direction: column; align-items: center; margin-top: 2em; background-color: oklch(0.145 0 0); font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; line-height: 100%; text-align: center;">
@@ -92,6 +93,35 @@ const std::string	HTTP::m_error_page_template = {R"(
 		webserv
 	</div>
 	{{TEAPOT}}
+</body>
+</html>)"};
+
+const std::string	HTTP::m_partialContentTemplate = {R"(
+<html>
+<head><title>{{STATUS_CODE}} - {{REASON_PHRASE}}</title></head>
+<body style="display: flex; flex-direction: column; align-items: center; margin-top: 2em; background-color: oklch(0.145 0 0); font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; line-height: 100%; text-align: center;">
+	<h2 style="display: flex; flex-direction: row; margin: 0;">
+		<div style="display: block; margin: 0 0.25em; color: oklch(0.656 0.241 354.308); font-weight: 700;">{{STATUS_CODE}}</div>
+		<div style="display: block; margin: 0 0.25em; color: oklch(0.823 0.12 346.018); font-weight: 300; ">{{REASON_PHRASE}}</div>
+	</h2>
+	<div>
+		<div style="display: block; margin: 1em 0; text-align: left;">
+			<h4 style="margin-bottom: 0; color: oklch(84.1% 0.238 128.85); line-height: 150%">Successfully uploaded files:</h4>
+			<ul style="margin-top: 0; padding-left: 20px; color: oklch(89.7% 0.196 126.665); line-height: 150%;">
+{{SUCCESS_FILES}}
+			</ul>
+		</div>
+		<div style="display: block; margin: 1em 0; text-align: left;">
+			<h4 style="margin-bottom: 0; color: oklch(65.6% 0.241 354.308); line-height: 150%">Failed to uploaded files:</h4>
+			<ul style="margin-top: 0; padding-left: 20px; color: oklch(82.3% 0.12 346.018); line-height: 150%">
+{{FAILED_FILES}}
+			</ul>
+		</div>
+	</div>
+	<div style="display: block; margin: 1em 0; width:50%; height: 1px; border-top-style: solid; border-top-width: 1px; border-color: oklch(0.205 0 0);"></div>
+	<div style="color: oklch(0.841 0.238 128.85); font-weight: 300;">
+		webserv
+	</div>
 </body>
 </html>)"};
 
@@ -129,8 +159,8 @@ HTTP::~HTTP()
 
 std::string HTTP::getStatusMessage(int _status_code)
 {
-	auto it = m_status_messages.find(_status_code);
-	return ( it != m_status_messages.end() ? it->second : std::string("Unknown"));
+	auto it = m_statusMessages.find(_status_code);
+	return ( it != m_statusMessages.end() ? it->second : std::string("Unknown"));
 }
 
 std::string	HTTP::getMimeType(const std::string& path)
@@ -140,8 +170,8 @@ std::string	HTTP::getMimeType(const std::string& path)
 		return ("text/plain");
 		
 	std::string ext = path.substr(pos);
-	auto it = m_mime_types.find(ext);
-	return ( it != m_mime_types.end() ? it->second : std::string("application/octet-stream") );
+	auto it = m_mimeTypes.find(ext);
+	return ( it != m_mimeTypes.end() ? it->second : std::string("application/octet-stream") );
 }
 
 HTTP::ContentTypeInfo_t	HTTP::getContentTypeInfo(const std::string& fieldValue, bool& error)
@@ -168,39 +198,45 @@ HTTP::ContentTypeInfo_t	HTTP::getContentTypeInfo(const std::string& fieldValue, 
 
 std::string	HTTP::getErrorPageTemplate(const int& status_code)
 {
-	std::string page = m_error_page_template;
-	size_t		pos  = 0;
+	std::string page = m_errorPageTemplate;
 
-	std::string	needle = "{{STATUS_CODE}}";
-	std::string	replacement = std::to_string(status_code);
-	while ((pos = page.find(needle, pos)) != std::string::npos) {
-		page.replace(pos, needle.length(), replacement);
-		pos += replacement.length();
+	replaceAllPlaceholders("{{STATUS_CODE}}", std::to_string(status_code), page);
+	replaceAllPlaceholders("{{REASON_PHRASE}}", getStatusMessage(status_code), page);
+
+	std::string replacement("");
+	if (status_code == WSSC_I_M_A_TEAPOT)
+		replacement = m_teapot;
+	replaceAllPlaceholders("{{TEAPOT}}", replacement, page);
+
+	return page;
+}
+
+std::string	HTTP::getPartialContentTemplate(const std::vector<std::string>& succededFiles, const std::vector<std::string>& failedFiles)
+{
+	std::string page = m_partialContentTemplate;
+	replaceAllPlaceholders("{{STATUS_CODE}}", "206", page);
+	replaceAllPlaceholders("{{REASON_PHRASE}}", getStatusMessage(WSSC_PARTIAL_CONTENT), page);
+
+	std::ostringstream succededFilesListItems;
+	std::ostringstream failedFilesListItems;
+
+	for (const std::string& path : succededFiles) {
+		succededFilesListItems << "\t\t\t\t<li>" << path.substr(6, path.length() - 21 - 6) << "</li>\n";
 	}
 
-	pos = 0;	
-	needle = "{{REASON_PHRASE}}";
-	replacement = getStatusMessage(status_code);
-	while ((pos = page.find(needle, pos)) != std::string::npos) {
-		page.replace(pos, needle.length(), replacement);
-		pos += replacement.length();
+	for (const std::string& path : failedFiles) {
+		failedFilesListItems << "\t\t\t\t<li>" << path.substr(6, path.length() - 21 - 6) << "</li>\n";
 	}
 
-	pos = 0;	
-	needle = "{{TEAPOT}}";
-	(status_code == WSSC_I_M_A_TEAPOT)	? replacement = m_teapot
-										: replacement = "";
-	while ((pos = page.find(needle, pos)) != std::string::npos) {
-		page.replace(pos, needle.length(), replacement);
-		pos += replacement.length();
-	}
+	replaceAllPlaceholders("{{SUCCESS_FILES}}", succededFilesListItems.str(), page);
+	replaceAllPlaceholders("{{FAILED_FILES}}", failedFilesListItems.str(), page);
 
-	return (page);
+	return page;
 }
 
 bool	HTTP::isValidStatusCode(int& statusCode)
 {
-	if (m_status_messages.find(statusCode) != m_status_messages.end())
+	if (m_statusMessages.find(statusCode) != m_statusMessages.end())
 		return true;
 	return false;
 }
@@ -225,4 +261,22 @@ HTTP::Method	HTTP::strToMethod(const std::string& str)
 	else if (str == "DELETE\0")
 		return HTTP::Method::DELETE;
 	return HTTP::Method::GET;
+}
+
+
+//=============================================================================
+// Private methods
+//=============================================================================
+
+bool	HTTP::replaceAllPlaceholders(std::string placeHolder, std::string replacement, std::string& page)
+{
+	bool	foundPlaceHolder = false;	
+	size_t	pos  = 0;
+
+	while ((pos = page.find(placeHolder, pos)) != std::string::npos) {
+		page.replace(pos, placeHolder.length(), replacement);
+		pos += replacement.length();
+		foundPlaceHolder = true;
+	}
+	return foundPlaceHolder;
 }

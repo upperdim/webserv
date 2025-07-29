@@ -33,20 +33,19 @@ private:
 	static bool					isRelativeForm_EnsureLeadingSlash(std::string& uri);
 
 	// Header helpers
-	static bool					readHeaders(Request& request, const size_t headerEnd, std::unordered_map<std::string, std::string>& headers);
-
 	static bool					validateOptionalHeaderFields(Request& request);
 	static bool					validateHost(Request& request, std::string& dest);
 
 	// Header -> Resolve request context helpers
 	static bool					resolveServerBlock(Request& request);
-	static bool					resolveRequestContext(Request& request);
 	static bool					resolveLocationBlock(Request& request);
 	static bool					resolvePath(Request& request);
 
 	// Body helpers
 	static void					storeContentLengthBody(Request& request);
 	static void					storeChunkedTransferBody(Request& request);
+	static void					parseMultiformBody(Request& request);
+	static bool					streamMultipartPartToFile(std::ifstream& ifs, std::ofstream& ofs, const std::string& boundary);
 };
 
 #endif

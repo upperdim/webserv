@@ -11,9 +11,6 @@ public:
 private:
 	GetHandler();
 
-	static std::string			getIndexAppendedResource(const Request& request);
-	static void					handleAutoIndex(const Request& request, Response& response);
-	static const std::string	getDirListingPadding(size_t entrySize);
 };
 
 #endif

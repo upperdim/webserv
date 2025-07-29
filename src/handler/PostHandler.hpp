@@ -6,10 +6,11 @@
 class PostHandler : RequestHandler
 {
 public:
-	static void	handle(const Request& request, Response& response);
+	static void	handle(Request& request, Response& response);
 
 private:
 	PostHandler();
+
 };
 
 #endif
