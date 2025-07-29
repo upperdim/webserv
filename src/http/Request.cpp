@@ -74,10 +74,6 @@ bool	Request::isFileUploadRequest()
 	       && contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA;
 }
 
-//=============================================================================
-// General File Methods
-//=============================================================================
-
 std::string	Request::createFileName(std::string fileNamePrefixPath)
 {
 	static int counter = 0;
@@ -106,6 +102,16 @@ bool	Request::createFile(std::string filenamePrefix, std::string& filename)
 	return true;
 }
 
+bool	Request::openFile(std::ofstream& file, std::string filename)
+{
+	file.open(filename, std::ios::binary);
+	if (!file.is_open()) {
+		LOGT(Log::ERROR, "Failed to open ofstream " << filename);
+		return false;
+	}
+	return true;
+}
+
 bool	Request::deleteFile(std::string fileName)
 {
 	if (fileName.empty()) {
@@ -125,50 +131,10 @@ bool	Request::deleteFile(std::string fileName)
 	return true;
 }
 
-//=============================================================================
-// Body File Methods
-//=============================================================================
+bool	Request::createBodyFile() { return createFile("./tmp/webserv_body_", bodyFilename); }
+bool	Request::openBodyFile()   { return openFile(bodyFile, bodyFilename); }
+bool	Request::deleteBodyFile() { return deleteFile(bodyFilename); }
 
-bool	Request::createBodyFile()
-{
-	return createFile("./tmp/webserv_body_", bodyFilename);
-}
-
-bool	Request::openBodyFile()
-{
-	bodyFile.open(bodyFilename, std::ios::binary);
-	if (!bodyFile.is_open()) {
-		LOGT(Log::ERROR, "open() failed on createTempBodyFile() ofstream");
-		return false;
-	}
-	return true;
-}
-
-bool	Request::deleteBodyFile()
-{
-	return deleteFile(bodyFilename);
-}
-
-//=============================================================================
-// CGI Output File Methods
-//=============================================================================
-
-bool	Request::createCgiOutFile()
-{
-	return createFile("./tmp/webserv_cgi_output_", cgiOutFilename);
-}
-
-bool	Request::openCgiOutFile()
-{
-	cgiOutFile.open(cgiOutFilename, std::ios::binary);
-	if (!cgiOutFile.is_open()) {
-		LOGT(Log::ERROR, "open() failed on createTempCGIOutputFile() ofstream");
-		return false;
-	}
-	return true;
-}
-
-bool	Request::deleteCgiOutFile()
-{
-	return deleteFile(cgiOutFilename);
-}
+bool	Request::createCgiOutFile() { return createFile("./tmp/webserv_cgi_output_", cgiOutFilename); }
+bool	Request::openCgiOutFile()   { return openFile(cgiOutFile, cgiOutFilename); }
+bool	Request::deleteCgiOutFile() { return deleteFile(cgiOutFilename); }
