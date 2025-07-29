@@ -10,8 +10,13 @@ webserv
 tmp/webserv_body_*
 
 # Dev tools
+compile_commands.json
+.clangd
+.cache
+
 .vscode
 .idea
+
 *.bat
 *.ps1
 *.sh
