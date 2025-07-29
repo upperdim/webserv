@@ -268,6 +268,7 @@ void	RequestParser::parseMultiformBody(Request& request)
 
 		// found content-disposition
 		LOGT(Log::SUCCESS, "found: " << BOLD << LIGHTGREEN << it->first << REGULAR << GREEN << " in the multipart/form-data header, parsing parameters(filename)" << DEFAULT);
+		LOGT(Log::INFO, it->first << ": " << it->second);
 
 		const std::string& disposition = it->second;
 		size_t posFilname = disposition.find("filename=");
@@ -282,18 +283,19 @@ void	RequestParser::parseMultiformBody(Request& request)
 		std::string filename = disposition.substr(posFilname + 9);
 		Utils::unquote(filename, '"');
 
-		static size_t count;
-		std::ostringstream oss;
-		oss << filename.c_str() << '.' << std::setw(20) << std::setfill('0') << count++;
-		filename = oss.str();
-		LOGT(Log::INFO, "final tmp filename: " << filename);
-
 		if (filename.empty()) {
 			// return WSSC_NO_CONTENT, if the filename is empty
 			request.errorStatusCode = WSSC_NO_CONTENT;
 			request.parsingState = Request::ParsingState::INVALID;
 			return;
 		}
+
+		static size_t count;
+		std::ostringstream oss;
+		oss << filename.c_str() << '.' << std::setw(20) << std::setfill('0') << count++;
+		filename = oss.str();
+		LOGT(Log::INFO, "final tmp filename: " << filename);
+
 
 		std::string tmpPath = "./tmp/" + filename;
 		std::filesystem::create_directories("./tmp/");
