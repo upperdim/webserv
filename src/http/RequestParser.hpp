@@ -16,8 +16,6 @@ private:
 	static void					parseRequestLine(Request& request);
 	static void					parseHeader(Request& request);
 	static void					parseBody(Request& request);
-	static void					parseMultiformBody(Request& request);
-	static bool					streamMultipartPartToFile(std::ifstream& ifs, std::ofstream& ofs, const std::string& boundary);
 
 	// Request line helpers
 	static bool					validateHttpMethod(std::string& methodStr, Request& request);
@@ -45,6 +43,8 @@ private:
 	// Body helpers
 	static void					storeContentLengthBody(Request& request);
 	static void					storeChunkedTransferBody(Request& request);
+	static void					parseMultiformBody(Request& request);
+	static bool					streamMultipartPartToFile(std::ifstream& ifs, std::ofstream& ofs, const std::string& boundary);
 };
 
 #endif

@@ -207,164 +207,6 @@ void	RequestParser::parseBody(Request& request)
 	request.parsingState = Request::ParsingState::INVALID;
 }
 
-void	RequestParser::parseMultiformBody(Request& request)
-{
-	std::ifstream ifs(request.bodyTempFilename, std::ios::in | std::ios::binary);
-	if (!ifs) {
-		LOGT(Log::ERROR, "Failed to open request bodyFile: " << request.bodyTempFilename);
-		request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
-		request.parsingState = Request::ParsingState::INVALID;
-		return;
-	}
-
-	const std::string& boundary = request.contentType->boundary.value();
-	const std::string boundaryMarker = "--" + boundary;
-	const std::string finalBoundaryMarker = boundaryMarker + "--";
-	std::string line;
-	std::unordered_map<std::string, std::string> multipartHeaders;
-
-	while (std::getline(ifs, line)) {
-		if (!line.empty() && line.back() == '\r')
-			line.pop_back();
-
-		// skip lines until we reach a boundary
-		if (line != boundaryMarker && line != finalBoundaryMarker)
-			continue;
-
-		if (line == finalBoundaryMarker)
-			break;
-
-		// read multipart headers
-		multipartHeaders.clear();
-		while (std::getline(ifs, line)) {
-			if (!line.empty() && line.back() == '\r')
-				line.pop_back();
-
-			if (line.empty()) {
-				break;
-			}
-
-			std::pair<std::string, std::string> headerField;
-			if (!Utils::splitHeaderLine(line, headerField)) {
-				LOGT(Log::ERROR, "Failed to split multipart/form-data headers: \"" << line << '"');
-				request.errorStatusCode = WSSC_BAD_REQUEST;
-				request.parsingState = Request::ParsingState::INVALID;
-				return;
-			}
-
-			multipartHeaders[headerField.first] = headerField.second;
-		}
-
-		// Look for Content-Disposition with filename
-		auto it = multipartHeaders.find("content-disposition");
-		if (it == multipartHeaders.end()) {
-			LOGT(Log::ERROR, "failed to find \"content-disposition\" in multipart/form-data headers");
-			request.errorStatusCode = WSSC_BAD_REQUEST;
-			request.parsingState = Request::ParsingState::INVALID;
-			return;
-		}
-
-		// found content-disposition
-		LOGT(Log::SUCCESS, "found: " << BOLD << LIGHTGREEN << it->first << REGULAR << GREEN << " in the multipart/form-data header, parsing parameters(filename)" << DEFAULT);
-		LOGT(Log::INFO, it->first << ": " << it->second);
-
-		const std::string& disposition = it->second;
-		size_t posFilname = disposition.find("filename=");
-		if (disposition.find("form-data;") == std::string::npos || posFilname == std::string::npos) {
-			// invalid content-disposition
-			LOGT(Log::ERROR, "Invalid content-dispositions parameters: \"" << disposition << '"');
-			request.errorStatusCode = WSSC_BAD_REQUEST;
-			request.parsingState = Request::ParsingState::INVALID;
-			return;
-		}
-
-		std::string filename = disposition.substr(posFilname + 9);
-		Utils::unquote(filename, '"');
-
-		if (filename.empty()) {
-			// return WSSC_NO_CONTENT, if the filename is empty
-			request.errorStatusCode = WSSC_NO_CONTENT;
-			request.parsingState = Request::ParsingState::INVALID;
-			return;
-		}
-
-		static size_t count;
-		std::ostringstream oss;
-		oss << filename.c_str() << '.' << std::setw(20) << std::setfill('0') << count++;
-		filename = oss.str();
-		LOGT(Log::INFO, "final tmp filename: " << filename);
-
-
-		std::string tmpPath = "./tmp/" + filename;
-		std::filesystem::create_directories("./tmp/");
-		std::ofstream ofs(tmpPath, std::ios::binary);
-		if (!ofs) {
-			LOGT(Log::ERROR, "Failed to open temporary file to store the multipart/form-data file with filename: \"" << filename << '"');
-			request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
-			request.parsingState = Request::ParsingState::INVALID;
-			return;
-		}
-		request.tmpUploadedFiles.emplace_back(tmpPath);
-
-		// copy from bodyFile to tmp filename
-		if (!streamMultipartPartToFile(ifs, ofs, boundary)) {
-			LOGT(Log::ERROR, "Failed to stream multipartpart file from tmpBody to file. uploded filename: \"" << filename << '"');
-			request.errorStatusCode = WSSC_BAD_REQUEST;
-			request.parsingState = Request::ParsingState::INVALID;
-			return;
-		}
-
-		LOGT(Log::SUCCESS, "filename: " << LIGHTGREEN << BOLD << filename);
-	}
-}
-
-bool	RequestParser::streamMultipartPartToFile(std::ifstream& ifs, std::ofstream& ofs, const std::string& boundary)
-{
-	const std::string boundaryPrefix = "\r\n--" + boundary;
-	const std::string finalBoundaryPrefix = boundaryPrefix + "--";
-	const size_t chunkSize = 8192;	//	TODO:	-> make this a define
-
-	std::string buffer;
-	std::vector<char> chunk(chunkSize);
-
-	while (ifs) {
-		ifs.read(chunk.data(), chunkSize);
-		std::streamsize bytesRead = ifs.gcount();
-		if (bytesRead <= 0)
-			break;
-
-		buffer.append(chunk.data(), bytesRead);
-
-		// try to find a boundary in the buffer
-		size_t pos = buffer.find(boundaryPrefix);
-		if (pos == std::string::npos && buffer.rfind("--" + boundary, 0) == 0)
-			pos = 0;
-		if (pos == std::string::npos)
-			pos = buffer.find(finalBoundaryPrefix);
-
-		if (pos != std::string::npos) {
-			// boundary found: write up to the boundary
-			ofs.write(buffer.data(), pos);
-
-			//rewind, so the next iteration can handle the boundary
-			std::streamoff rewind = buffer.size() - pos;
-			ifs.seekg(-rewind, std::ios::cur);
-			return true;
-		}
-
-		// No boundary found: write everything except the last few bytes
-		// to leave room for a possible split boundary in the next chunk
-		size_t keep = boundaryPrefix.size() + 4;
-		if (buffer.size() > keep) {
-			ofs.write(buffer.data(), buffer.size() - keep);
-			buffer.erase(0, buffer.size() - keep);
-		}
-	}
-
-	// no boundary found, something is very wrong
-	return false;
-}
-
 bool	RequestParser::validateHttpMethod(std::string& methodStr, Request& request)
 {
 	if (Validator::isValidMethod(methodStr, request.method))
@@ -815,4 +657,163 @@ void	RequestParser::storeChunkedTransferBody(Request& request)
 			}
 		}
 	}
+}
+
+
+void	RequestParser::parseMultiformBody(Request& request)
+{
+	std::ifstream ifs(request.bodyTempFilename, std::ios::in | std::ios::binary);
+	if (!ifs) {
+		LOGT(Log::ERROR, "Failed to open request bodyFile: " << request.bodyTempFilename);
+		request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+		request.parsingState = Request::ParsingState::INVALID;
+		return;
+	}
+
+	const std::string& boundary = request.contentType->boundary.value();
+	const std::string boundaryMarker = "--" + boundary;
+	const std::string finalBoundaryMarker = boundaryMarker + "--";
+	std::string line;
+	std::unordered_map<std::string, std::string> multipartHeaders;
+
+	while (std::getline(ifs, line)) {
+		if (!line.empty() && line.back() == '\r')
+			line.pop_back();
+
+		// skip lines until we reach a boundary
+		if (line != boundaryMarker && line != finalBoundaryMarker)
+			continue;
+
+		if (line == finalBoundaryMarker)
+			break;
+
+		// read multipart headers
+		multipartHeaders.clear();
+		while (std::getline(ifs, line)) {
+			if (!line.empty() && line.back() == '\r')
+				line.pop_back();
+
+			if (line.empty()) {
+				break;
+			}
+
+			std::pair<std::string, std::string> headerField;
+			if (!Utils::splitHeaderLine(line, headerField)) {
+				LOGT(Log::ERROR, "Failed to split multipart/form-data headers: \"" << line << '"');
+				request.errorStatusCode = WSSC_BAD_REQUEST;
+				request.parsingState = Request::ParsingState::INVALID;
+				return;
+			}
+
+			multipartHeaders[headerField.first] = headerField.second;
+		}
+
+		// Look for Content-Disposition with filename
+		auto it = multipartHeaders.find("content-disposition");
+		if (it == multipartHeaders.end()) {
+			LOGT(Log::ERROR, "failed to find \"content-disposition\" in multipart/form-data headers");
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
+			return;
+		}
+
+		// found content-disposition
+		LOGT(Log::SUCCESS, "found: " << BOLD << LIGHTGREEN << it->first << REGULAR << GREEN << " in the multipart/form-data header, parsing parameters(filename)" << DEFAULT);
+		LOGT(Log::INFO, it->first << ": " << it->second);
+
+		const std::string& disposition = it->second;
+		size_t posFilname = disposition.find("filename=");
+		if (disposition.find("form-data;") == std::string::npos || posFilname == std::string::npos) {
+			// invalid content-disposition
+			LOGT(Log::ERROR, "Invalid content-dispositions parameters: \"" << disposition << '"');
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
+			return;
+		}
+
+		std::string filename = disposition.substr(posFilname + 9);
+		Utils::unquote(filename, '"');
+
+		if (filename.empty()) {
+			// return WSSC_NO_CONTENT, if the filename is empty
+			request.errorStatusCode = WSSC_NO_CONTENT;
+			request.parsingState = Request::ParsingState::INVALID;
+			return;
+		}
+
+		static size_t count;
+		std::ostringstream oss;
+		oss << filename.c_str() << '.' << std::setw(20) << std::setfill('0') << count++;
+		filename = oss.str();
+		LOGT(Log::INFO, "final tmp filename: " << filename);
+
+
+		std::string tmpPath = "./tmp/" + filename;
+		std::filesystem::create_directories("./tmp/");
+		std::ofstream ofs(tmpPath, std::ios::binary);
+		if (!ofs) {
+			LOGT(Log::ERROR, "Failed to open temporary file to store the multipart/form-data file with filename: \"" << filename << '"');
+			request.errorStatusCode = WSSC_INTERNAL_SERVER_ERROR;
+			request.parsingState = Request::ParsingState::INVALID;
+			return;
+		}
+		request.tmpUploadedFiles.emplace_back(tmpPath);
+
+		// copy from bodyFile to tmp filename
+		if (!streamMultipartPartToFile(ifs, ofs, boundary)) {
+			LOGT(Log::ERROR, "Failed to stream multipartpart file from tmpBody to file. uploded filename: \"" << filename << '"');
+			request.errorStatusCode = WSSC_BAD_REQUEST;
+			request.parsingState = Request::ParsingState::INVALID;
+			return;
+		}
+
+		LOGT(Log::SUCCESS, "filename: " << LIGHTGREEN << BOLD << filename);
+	}
+}
+
+bool	RequestParser::streamMultipartPartToFile(std::ifstream& ifs, std::ofstream& ofs, const std::string& boundary)
+{
+	const std::string boundaryPrefix = "\r\n--" + boundary;
+	const std::string finalBoundaryPrefix = boundaryPrefix + "--";
+	const size_t chunkSize = 8192;	//	TODO:	-> make this a define
+
+	std::string buffer;
+	std::vector<char> chunk(chunkSize);
+
+	while (ifs) {
+		ifs.read(chunk.data(), chunkSize);
+		std::streamsize bytesRead = ifs.gcount();
+		if (bytesRead <= 0)
+			break;
+
+		buffer.append(chunk.data(), bytesRead);
+
+		// try to find a boundary in the buffer
+		size_t pos = buffer.find(boundaryPrefix);
+		if (pos == std::string::npos && buffer.rfind("--" + boundary, 0) == 0)
+			pos = 0;
+		if (pos == std::string::npos)
+			pos = buffer.find(finalBoundaryPrefix);
+
+		if (pos != std::string::npos) {
+			// boundary found: write up to the boundary
+			ofs.write(buffer.data(), pos);
+
+			//rewind, so the next iteration can handle the boundary
+			std::streamoff rewind = buffer.size() - pos;
+			ifs.seekg(-rewind, std::ios::cur);
+			return true;
+		}
+
+		// No boundary found: write everything except the last few bytes
+		// to leave room for a possible split boundary in the next chunk
+		size_t keep = boundaryPrefix.size() + 4;
+		if (buffer.size() > keep) {
+			ofs.write(buffer.data(), buffer.size() - keep);
+			buffer.erase(0, buffer.size() - keep);
+		}
+	}
+
+	// no boundary found, something is very wrong
+	return false;
 }
