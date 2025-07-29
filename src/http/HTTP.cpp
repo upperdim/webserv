@@ -203,9 +203,9 @@ std::string	HTTP::getErrorPageTemplate(const int& status_code)
 	replaceAllPlaceholders("{{STATUS_CODE}}", std::to_string(status_code), page);
 	replaceAllPlaceholders("{{REASON_PHRASE}}", getStatusMessage(status_code), page);
 
-	std::string replacement;
-	if (status_code == WSSC_I_M_A_TEAPOT) { replacement = m_teapot }
-	else { replacement = ""; }
+	std::string replacement("");
+	if (status_code == WSSC_I_M_A_TEAPOT)
+		replacement = m_teapot;
 	replaceAllPlaceholders("{{TEAPOT}}", replacement, page);
 
 	return page;
