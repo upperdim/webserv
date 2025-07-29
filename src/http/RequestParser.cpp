@@ -659,7 +659,6 @@ void	RequestParser::storeChunkedTransferBody(Request& request)
 	}
 }
 
-
 void	RequestParser::parseMultiformBody(Request& request)
 {
 	std::ifstream ifs(request.bodyTempFilename, std::ios::in | std::ios::binary);
