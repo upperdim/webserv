@@ -93,6 +93,7 @@ public:
 
 private:
 	std::string										createFileName(std::string fileNamePrefixPath);
+	bool											createFile(std::string filenamePrefix, std::string& filename);
 	bool											deleteFile(std::string fileName);
 };
 

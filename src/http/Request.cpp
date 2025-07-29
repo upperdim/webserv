@@ -90,6 +90,22 @@ std::string	Request::createFileName(std::string fileNamePrefixPath)
 	return oss.str();
 }
 
+bool	Request::createFile(std::string filenamePrefix, std::string& filename)
+{
+	filename = createFileName(filenamePrefix);
+	
+	// 0600 = owner -> read write, group -> ---, others -> ---
+	int tmpFileFd = open(filename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
+	if (tmpFileFd == -1) {
+		LOGT(Log::ERROR, "Failed opening " << filename);
+		return false;
+	}
+	close(tmpFileFd); // We will open it with ofstream
+
+	LOGT(Log::DEBUG, "Created file " << filename);
+	return true;
+}
+
 bool	Request::deleteFile(std::string fileName)
 {
 	if (fileName.empty()) {
@@ -115,18 +131,7 @@ bool	Request::deleteFile(std::string fileName)
 
 bool	Request::createBodyFile()
 {
-	bodyFilename = createFileName("./tmp/webserv_body_");
-	
-	// 0600 = owner -> read write, group -> ---, others -> ---
-	int tmpFileFd = open(bodyFilename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
-	if (tmpFileFd == -1) {
-		LOGT(Log::ERROR, "open() failed on createTempBodyFile()");
-		return false;
-	}
-	close(tmpFileFd); // We will open it with ofstream
-
-	LOGT(Log::DEBUG, "Created temp file " << bodyFilename);
-	return true;
+	return createFile("./tmp/webserv_body_", bodyFilename);
 }
 
 bool	Request::openBodyFile()
@@ -150,18 +155,7 @@ bool	Request::deleteBodyFile()
 
 bool	Request::createCgiOutFile()
 {
-	cgiOutFilename = createFileName("./tmp/webserv_CGI_output_");
-
-	// 0600 = owner -> read write, group -> ---, others -> ---
-	int tmpFileFd = open(cgiOutFilename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
-	if (tmpFileFd == -1) {
-		LOGT(Log::ERROR, "open() failed on createTempCGIOutputFile()");
-		return false;
-	}
-	close(tmpFileFd); // We will open it with ofstream
-
-	LOGT(Log::DEBUG, "Created temp CGI output file " << cgiOutFilename);
-	return true;
+	return createFile("./tmp/webserv_cgi_output_", cgiOutFilename);
 }
 
 bool	Request::openCgiOutFile()
