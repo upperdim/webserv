@@ -24,12 +24,12 @@ public:
 	void				addHeader(const std::string& key, const std::string& value);
 	void				setBodyString(const std::string& _body);
 	void				setBodyFileBufferReader(std::string path);
+	void				setAsCgiResponse(void);
 	std::string			getNextChunk(void);
 
 	bool				complete(void) const;
+	void				setComplete(void);
 	bool				error(void) const;
-	
-	int					statusCode;
 
 	// for debugging
 	std::string			getResponseStateString();
@@ -39,7 +39,8 @@ private:
 		SEND_HEADER,
 		SEND_BODY,
 		SEND_COMPLETE,
-		SEND_ERROR
+		SEND_ERROR,
+		SEND_CGI
 	};
 
 	enum class BodyType {
@@ -49,9 +50,13 @@ private:
 	};
 
 	ResponseState		m_state;
+
 	std::string			m_protocol;
+	int					m_status_code;
 	std::string			m_status_msg;
+
 	HeaderMap			m_headers;
+	
 	std::string			m_body;
 	FileBufferReader	m_file_buffer_reader;
 	BodyType			m_bodyType;
@@ -60,7 +65,8 @@ private:
 
 	Response(const Response& other); // copy constructor =delete
 
-	std::string			getHeader(void) const;
+	std::string			getResponseLine(void) const;
+	std::string			getHeaders(void) const;
 	std::string			getNextBodyChunk(void);
 	void				checkBodyState();
 	void				setState(ResponseState _state);

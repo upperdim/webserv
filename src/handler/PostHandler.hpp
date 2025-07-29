@@ -7,6 +7,10 @@ class PostHandler : RequestHandler
 {
 public:
 	static void	handle(Request& request, Response& response);
+
+private:
+	PostHandler();
+
 };
 
 #endif

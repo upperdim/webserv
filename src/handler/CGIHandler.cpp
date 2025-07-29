@@ -1,63 +1,84 @@
-#include <iostream>
-#include <sstream>
+#include <chrono>
 #include <vector>
 #include <string>
-#include <errno.h> // TODO: REMOVE THIS
 #include <cstring>
-#include <unistd.h>
-#include <sys/wait.h>
 #include <fcntl.h>
-#include "CGIHandler.hpp"
+#include <unistd.h>
+#include <signal.h>
+#include <sys/wait.h>
 #include "HTTP.hpp"
+#include "Request.hpp"
+#include "Response.hpp"
+#include "CGIHandler.hpp"
 
-void CGIHandler::handle(const Request& request, Response& response)
+void	CGIHandler::initCgi(Request& request, Response& response)
 {
-	LOGC("REQUEST_HANDLER", "-> handle CGI Request", LIGHTMAGENTA, LIGHTCYAN);
+	LOGT(Log::DEBUG, "Initializing CGI");
+	LOGT(Log::DEBUG, "Using python3 from " << PYTHON3_PATH); // TODO: remove me
 
 	const std::string& scriptPath  = request.resolvedPath;
 
-	int inputPipe[2];  // Parent writes to [1], child  reads from [0]
-	if (pipe(inputPipe) < 0) {
-		LOGT(Log::ERROR, "Could not pipe for CGI process");
-		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		return;
+	// If there was no body in this request, create an empty one.
+	// Empty file will be redirected as STDIN to the CGI script.
+	// This will prevent CGI script from hanging if it will wait input from STDIN.
+	// No request body = no body file content = no input = empty STDIN.
+	if (request.bodyFilename.empty()) {
+		if (!request.createBodyFile()) {
+			createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+			request.cgiSession.state = Request::CgiState::FAILED;
+			return;
+		}
 	}
-	
-	int outputPipe[2]; // Child  writes to [1], parent reads from [0]
-	if (pipe(outputPipe) < 0) {
-		close(inputPipe[0]);
-		close(inputPipe[1]);
-		LOGT(Log::ERROR, "Could not pipe for CGI process");
+
+	// Open the body file
+	int bodyFileFd = -1;
+	bodyFileFd = open(request.bodyFilename.c_str(), O_RDONLY);
+	if (bodyFileFd < 0) {
+		LOGT(Log::ERROR, "Failed opening temp body file in CGI handler");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+		request.cgiSession.state = Request::CgiState::FAILED;
 		return;
 	}
 
+	// Create and open CGI output file
+	if (!request.createCgiOutFile()) {
+		close(bodyFileFd);
+		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+		request.cgiSession.state = Request::CgiState::FAILED;
+		return;
+	}
+	int cgiOutputFileFd = open(request.cgiOutFilename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
+	if (cgiOutputFileFd < 0) {
+		close(bodyFileFd);
+		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+		request.cgiSession.state = Request::CgiState::FAILED;
+		return;
+	}
+
+	request.cgiSession.startTime = std::chrono::steady_clock::now();
+	
+	// Fork CGI process
 	pid_t pid = fork();
 	if (pid < 0) {
-		close(inputPipe[0]);
-		close(inputPipe[1]);
-		close(outputPipe[0]);
-		close(outputPipe[1]);
+		close(bodyFileFd);
+		close(cgiOutputFileFd);
 		LOGT(Log::ERROR, "Could not fork a CGI process");
 		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+		request.cgiSession.state = Request::CgiState::FAILED;
 		return;
 	}
 
-	LOGT(Log::DEBUG, "Using python3 from " << PYTHON3_PATH); // TODO: remove me
-
-	// Child process
+	// Child process to execute the CGI script
 	if (pid == 0) {
-		// Redirect stdin
-		dup2(inputPipe[0], STDIN_FILENO); // We will write here, to STDIN of CGI
-		close(inputPipe[0]); // Duplicated copy lives in STDIN of CGI process, we can close this
-		close(inputPipe[1]); // We won't use writing end of this pipe
+		// Redirect body file to STDIN
+		dup2(bodyFileFd, STDIN_FILENO); // CGI will read from the body file as STDIN
+		close(bodyFileFd); // Duplicated copy lives in STDIN of CGI process, we can close this
 
 		// Redirect stdout
-		dup2(outputPipe[1], STDOUT_FILENO); // We will read here, from STDOUT of CGi
-		close(outputPipe[1]); // Duplicated copy lives in STDOUT of CGI process, we can close this
-		close(outputPipe[0]); // We won't use reading end of this pipe
+		dup2(cgiOutputFileFd, STDOUT_FILENO); // CGI will write to the cgiOut file as STDOUT
+		close(cgiOutputFileFd); // Duplicated copy lives in STDOUT of CGI process, we can close this
 
-		// Prepare argv
+		// Prepare script argv
 		std::string pythonPath = PYTHON3_PATH;
 
 		char *argv[] = {
@@ -66,7 +87,7 @@ void CGIHandler::handle(const Request& request, Response& response)
 			NULL
 		};
 
-		// Prepare envp
+		// Prepare script envp
 		std::vector<std::string> envStrings;
 		envStrings.push_back("GATEWAY_INTERFACE=CGI/1.1");
 		envStrings.push_back("SERVER_PROTOCOL=HTTP/1.1");
@@ -88,57 +109,66 @@ void CGIHandler::handle(const Request& request, Response& response)
 			envp.push_back(const_cast<char*>(s.c_str()));
 		envp.push_back(NULL);
 
-		// Execute script
+		// Execute the CGI script
 		execve(pythonPath.c_str(), argv, envp.data());
-
-		// TODO: REMOVE THIS
-		LOGT(Log::ERROR, "execve errno = " << errno);
-
 		// If we are here, execve() failed
-		LOGT(Log::ERROR, "CGI Process execve() failed, PID = " << pid);
-		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+
+		// TODO: Write internal server error into the cgi out file
+		//	 it will be the response back to client
+		// createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+		
 		exit(EXIT_FAILURE);
 	}
 		
 	// Parent process
-	close(inputPipe[0]);  // We won't use reading end of this pipe
-	close(outputPipe[1]); // We won't use writing end of this pipe
+	close(bodyFileFd); // We won't read or write to the body file
+	close(cgiOutputFileFd);
 
-	// If POST, write request body to child STDIN
-	// if (request.method == HTTP::Method::POST && !requestBody.empty()) {
-	// 	ssize_t written = write(inputPipe[1], requestBody.c_str(), requestBody.length());
-	// 	if (written < 0) {
-	// 		// Error: write failed
-	// 	}
-	// }
-	close(inputPipe[1]); // Finished writing
+	request.cgiSession.pid = pid;
+	request.cgiSession.state = Request::CgiState::RUNNING;
+}
 
-	// Read CGI output
-	std::ostringstream cgiOutput;
-	char buffer[CGI_OUTPUT_BUFFER_SIZE];
-	ssize_t bytesRead;
-	do {
-		bytesRead = read(outputPipe[0], buffer, CGI_OUTPUT_BUFFER_SIZE - 1);
-		if (bytesRead < 0) {
-			LOGT(Log::ERROR, "Error reading from CGI output");
-			close(outputPipe[0]); // Finished reading
-			waitpid(pid, NULL, 0);
-			createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-			return;
+bool	CGIHandler::checkCgiCompletion(Request& request, Response& response)
+{
+	Request::CgiSession_t& session = request.cgiSession;
+
+	int status;
+	pid_t result = waitpid(session.pid, &status, WNOHANG);
+	if (result == session.pid) {
+		session.state = Request::CgiState::PROCESS_FINISHED;
+		return true;
+	} else if (result == 0) {
+		// CGI still running
+		if (std::chrono::steady_clock::now() - session.startTime > std::chrono::seconds(CGI_TIMEOUT_SECONDS)) {
+			// Timeout
+			kill(session.pid, SIGKILL);
+			waitpid(session.pid, NULL, 0); // clean up process entry from OS
+			createErrorResponse(request,	response, WSSC_GATEWAY_TIMEOUT);
+			session.state = Request::CgiState::FAILED;
+			return false;
 		}
-		
-		// buffer[bytesRead] = '\0';
-		cgiOutput.write(buffer, bytesRead);
-	} while (bytesRead != 0);
-	
-	close(outputPipe[0]);  // Finished reading
-	waitpid(pid, NULL, 0); // Wait for child process
+		return false;
+	} else {
+		session.state = Request::CgiState::FAILED;
+		return true;
+	}
+}
 
-	// LOGT(Log::DEBUG, "CGI Output = " << cgiOutput.str());
+void	CGIHandler::createCgiResponse(Request& request, Response& response)
+{
+	LOGT(Log::DEBUG, "Completing CGI session");
+
+	// RFC 3875 6.2.2 Verify headers
+
+
+
+	// Find "\r\n\r\n" (end of headers). If can't, invalid.
+	// Check headers until the found "\r\n".
+	// Check for "Content-Type" with valid MIME type (RFC 3875 6.2.1). If not, invalid
 
 	// RFC 3875 CGI 1.1
 	// Response type: 1 or more header files, blank line, message body (may be null)
-
-	// response.addHeader WIP
-	response.setBodyString(cgiOutput.str());
+	response.setAsCgiResponse();
+	response.setBodyFileBufferReader(request.cgiOutFilename);
+	request.cgiSession.state = Request::CgiState::COMPLETE;
 }

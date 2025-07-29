@@ -21,6 +21,8 @@ public:
 	static bool			splitHeaderLine(std::string& line, std::pair<std::string, std::string>& headerField);
 
 private:
+	Utils();
+
 	static void			popLastSegment(std::string& oBuf);
 	static bool			splitHeaderField(std::string& line, std::pair<std::string, std::string>& headerField);
 	static void			trimWhitespaces(std::string& str);

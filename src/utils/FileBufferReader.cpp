@@ -24,27 +24,6 @@ FileBufferReader::~FileBufferReader()
 	close_fs();
 }
 
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
-
-// copy assignemnt operator overlaod
-// FileBufferReader&	FileBufferReader::operator=(const FileBufferReader& rhs)
-// {
-// 	if (this != &rhs)
-// 	{
-// 		close_fs();
-// 		m_state		= rhs.m_state;
-// 		m_path		= rhs.m_path;
-// 		m_buff_size	= rhs.m_buff_size;
-// 		m_file_size	= 0;
-// 		open_fs(m_path);
-// 	}
-// 	return (*this);
-// }
-
-// move assignemnt operator overlaod
 FileBufferReader&	FileBufferReader::operator=(FileBufferReader&& rhs)
 {
 	if (this != &rhs)

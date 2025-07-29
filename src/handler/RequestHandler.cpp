@@ -1,5 +1,6 @@
-#include <unistd.h>	// R_OK
+#include <filesystem>
 #include <algorithm>
+#include <unistd.h>	// R_OK
 #include "RequestHandler.hpp"
 #include "DeleteHandler.hpp"
 #include "PostHandler.hpp"
@@ -35,7 +36,7 @@ void	RequestHandler::handle(Request& request, Response& response)
 	}
 
 	if (request.isCGIRequest()) {
-		CGIHandler::handle(request, response);
+		CGIHandler::initCgi(request, response);
 		return;
 	}
 	

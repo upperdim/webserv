@@ -1,7 +1,8 @@
 #include "Request.hpp"
-#include <algorithm>
-#include <fcntl.h>  // open()
+#include <filesystem>
+#include <ctime>    // time()
 #include <unistd.h> // close()
+#include <fcntl.h>  // open()
 #include "Utils.hpp"
 #include "Log.hpp"
 
@@ -19,17 +20,37 @@ Request::Request(std::vector<ServerBlock>& _serverBlocks)
 		resolvedServerBlock(nullptr),
 		resolvedLocationBlock(nullptr)
 {
+	cgiSession.pid = -1;
+	cgiSession.state = CgiState::INIT;
 }
 
 Request::~Request()
 {
-	if (!bodyTempFilename.empty()) {
-		deleteTempBodyFile();
+	if (bodyFile.is_open()) {
+		bodyFile.close();
+	}
+
+	if (cgiOutFile.is_open()) {
+		cgiOutFile.close();
+	}
+
+	if (!bodyFilename.empty()) {
+		deleteBodyFile();
+	}
+
+	if (!cgiOutFilename.empty()) {
+		deleteCgiOutFile();
 	}
 
 	if (tmpUploadedFiles.size() > 0) {
 		deleteTmpUploadedFiles();
 	}
+}
+
+void	Request::invalidateWithError(int errorStatusCode)
+{
+	this->errorStatusCode = errorStatusCode;
+	parsingState = Request::ParsingState::INVALID;
 }
 
 bool	Request::isCGIRequest()
@@ -57,6 +78,63 @@ bool	Request::isFileUploadRequest()
 	       && contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA;
 }
 
+std::string	Request::createFileName(std::string fileNamePrefixPath)
+{
+	static int counter = 0;
+
+	std::time_t now = std::time(nullptr);
+
+	std::ostringstream oss;
+	oss << fileNamePrefixPath << now << "_" << counter++;
+
+	return oss.str();
+}
+
+bool	Request::createFile(std::string filenamePrefix, std::string& filename)
+{
+	filename = createFileName(filenamePrefix);
+	
+	// 0600 = owner -> read write, group -> ---, others -> ---
+	int tmpFileFd = open(filename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
+	if (tmpFileFd == -1) {
+		LOGT(Log::ERROR, "Failed opening " << filename);
+		return false;
+	}
+	close(tmpFileFd); // We will open it with ofstream
+
+	LOGT(Log::DEBUG, "Created file " << filename);
+	return true;
+}
+
+bool	Request::openFile(std::ofstream& file, std::string filename)
+{
+	file.open(filename, std::ios::binary);
+	if (!file.is_open()) {
+		LOGT(Log::ERROR, "Failed to open ofstream " << filename);
+		return false;
+	}
+	return true;
+}
+
+bool	Request::deleteFile(std::string fileName)
+{
+	if (fileName.empty()) {
+		LOGT(Log::INFO, "Attempted to delete non-existent file ");
+		return true; // Already non-existent
+	}
+
+	std::filesystem::path path(fileName.c_str());
+	if (!std::filesystem::remove(path) != 0) {
+		LOGT(Log::ERROR, "Failed to delete file " << fileName);
+		return false;
+	}
+	
+	LOGT(Log::DEBUG, "Deleted file " << fileName);
+	fileName.clear(); // Marking as deleted
+
+	return true;
+}
+
 bool	Request::deleteTmpUploadedFiles()
 {
 	bool succeeded = true; 
@@ -69,49 +147,10 @@ bool	Request::deleteTmpUploadedFiles()
 	return succeeded;
 }
 
+bool	Request::createBodyFile() { return createFile("./tmp/webserv_body_", bodyFilename); }
+bool	Request::openBodyFile()   { return openFile(bodyFile, bodyFilename); }
+bool	Request::deleteBodyFile() { return deleteFile(bodyFilename); }
 
-bool	Request::createTempBodyFile()
-{
-	static int counter = 0;
-
-	std::time_t now = std::time(nullptr);
-
-	std::ostringstream oss;
-	oss << "./tmp/webserv_body_" << now << "_" << counter++;
-	bodyTempFilename = oss.str();
-
-	// 0600 = owner -> read write, group -> ---, others -> ---
-	int tmpFileFd = open(bodyTempFilename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
-	if (tmpFileFd == -1) {
-		LOGT(Log::ERROR, "open() failed");
-		return false;
-	}
-	close(tmpFileFd); // We will open it with ofstream
-
-	bodyFile.open(bodyTempFilename, std::ios::binary);
-	if (!bodyFile.is_open()) {
-		LOGT(Log::ERROR, "open() failed on ofstream");
-		return false;
-	}
-
-	LOGT(Log::DEBUG, "Created temp file " << bodyTempFilename);
-	return true;
-}
-
-bool	Request::deleteTempBodyFile()
-{
-	if (bodyTempFilename.empty()) {
-		LOGT(Log::INFO, "Attempted to delete non-existent temp body file ");
-		return true; // Already non-existent
-	}
-
-	if (std::remove(bodyTempFilename.c_str()) != 0) {
-		LOGT(Log::ERROR, "Failed to delete temp file " << bodyTempFilename);
-		return false;
-	}
-	
-	LOGT(Log::DEBUG, "Deleted temp file " << bodyTempFilename);
-	bodyTempFilename.clear(); // Marking as deleted
-
-	return true;
-}
+bool	Request::createCgiOutFile() { return createFile("./tmp/webserv_cgi_output_", cgiOutFilename); }
+bool	Request::openCgiOutFile()   { return openFile(cgiOutFile, cgiOutFilename); }
+bool	Request::deleteCgiOutFile() { return deleteFile(cgiOutFilename); }

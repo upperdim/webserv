@@ -1,4 +1,7 @@
 #include "Log.hpp"
+#include "colors.hpp"
+#include <iostream>
+#include <iomanip>
 
 Log::~Log()
 {

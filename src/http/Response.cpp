@@ -1,9 +1,9 @@
 #include "Response.hpp"
 
 Response::Response()
-	:	statusCode(200),
-		m_state(ResponseState::SEND_HEADER),
+	:	m_state(ResponseState::SEND_HEADER),
 		m_protocol("HTTP/1.1"),
+		m_status_code(200),
 		m_status_msg(HTTP::getStatusMessage(WSSC_OK)),
 		m_bodyType(BodyType::BODY_NONE),
 		m_done(false)
@@ -14,9 +14,6 @@ Response::~Response()
 {
 }
 
-/* ************************************************************************** */
-/* ************************************************************************** */
-
 void	Response::setProtocol(const std::string& _protocol)
 {
 	m_protocol = _protocol;
@@ -24,8 +21,8 @@ void	Response::setProtocol(const std::string& _protocol)
 
 void	Response::setStatusCode(const int& _statusCode)
 {
-	statusCode = _statusCode;
-	m_status_msg = HTTP::getStatusMessage(statusCode);
+	m_status_code = _statusCode;
+	m_status_msg = HTTP::getStatusMessage(m_status_code);
 }
 
 void	Response::addHeader(const std::string& key, const std::string& value)
@@ -47,13 +44,18 @@ void	Response::setBodyFileBufferReader(std::string path)
 	m_headers["Content-Length"] = std::to_string(m_file_buffer_reader.getSize());
 }
 
+void	Response::setAsCgiResponse(void)
+{
+	setState(ResponseState::SEND_CGI);
+}
+
 std::string	Response::getNextChunk(void)
 {
 	std::string	buff;
 
 	switch (m_state) {
 		case (ResponseState::SEND_HEADER):
-			buff = getHeader();
+			buff = getHeaders();
 			setState(m_bodyType == BodyType::BODY_NONE ? ResponseState::SEND_COMPLETE : ResponseState::SEND_BODY);
 			break ;
 		case (ResponseState::SEND_BODY):
@@ -61,8 +63,15 @@ std::string	Response::getNextChunk(void)
 			checkBodyState();
 			break ;
 		case (ResponseState::SEND_COMPLETE):
-			m_done = true;
+			setComplete();
 			break ;
+		case (ResponseState::SEND_CGI):
+			buff = getResponseLine();
+			if (m_bodyType != BodyType::BODY_FILE_BUFFER) {
+				LOGT(Log::ERROR, "CGI response body type is different than BODY_FILE_BUFFER");
+			}
+			setState(ResponseState::SEND_BODY);
+			break;
 		default:
 			break ;
 	}
@@ -70,29 +79,14 @@ std::string	Response::getNextChunk(void)
 	return (buff);
 }
 
-void	Response::checkBodyState()
-{
-	if (m_bodyType == BodyType::BODY_STRING) {
-		if (m_body.empty()) {
-			setState(ResponseState::SEND_COMPLETE);
-		}
-	} else if (m_bodyType == BodyType::BODY_FILE_BUFFER) {
-		switch (m_file_buffer_reader.getState()) {
-			case (FileBuffer::State::COMPLETE):
-				setState(ResponseState::SEND_COMPLETE);
-				break ;
-			case (FileBuffer::State::ERROR):
-				setState(ResponseState::SEND_ERROR);
-				break ;
-			default:
-				break ;
-		}
-	}
-}
-
 bool	Response::complete(void) const
 {
 	return ( m_done );
+}
+
+void	Response::setComplete(void)
+{
+	m_done = true;
 }
 
 bool	Response::error(void) const
@@ -118,17 +112,18 @@ std::string			Response::getResponseStateString()
 	return ("CRITICAL_ERROR_::_RESPONSE_STATE_NOT_SET_TO_VALID_STATE");
 }
 
-
-/* ************************************************************************** */
-/* ************************************************************************** */
-
-
-std::string	Response::getHeader(void) const
+std::string Response::getResponseLine(void) const
 {
 	std::string	buff;
 	buff	+= m_protocol + " "
-			+ std::to_string(statusCode) + " "
+			+ std::to_string(m_status_code) + " "
 			+ m_status_msg + "\r\n";
+	return (buff);
+}
+
+std::string	Response::getHeaders(void) const
+{
+	std::string buff = getResponseLine();
 	for (const auto& header : m_headers)
 		buff += header.first + ": " + header.second + "\r\n";
 	buff += "\r\n";
@@ -157,9 +152,29 @@ std::string	Response::getNextBodyChunk(void)
 	return ( ss.str() );
 }
 
+void	Response::checkBodyState()
+{
+	if (m_bodyType == BodyType::BODY_STRING) {
+		if (m_body.empty()) {
+			setState(ResponseState::SEND_COMPLETE);
+		}
+	} else if (m_bodyType == BodyType::BODY_FILE_BUFFER) {
+		switch (m_file_buffer_reader.getState()) {
+			case (FileBuffer::State::COMPLETE):
+				setState(ResponseState::SEND_COMPLETE);
+				break ;
+			case (FileBuffer::State::ERROR):
+				setState(ResponseState::SEND_ERROR);
+				break ;
+			default:
+				break ;
+		}
+	}
+}
+
 void	Response::setState(ResponseState _state)
 {
 	m_state = _state;
 	if (m_state == ResponseState::SEND_COMPLETE || m_state == ResponseState::SEND_ERROR)
-		m_done = true;
+		setComplete();
 }

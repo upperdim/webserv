@@ -1,13 +1,11 @@
 #include <iostream>
 #include <unistd.h> // close()
-#include <thread>   // std::this_thread::sleep_for
-#include <chrono>   // std::chrono::seconds
 #include "ServerEngine.hpp"
 #include "ClientConnection.hpp"
+#include "Request.hpp"
 #include "RequestHandler.hpp"
 #include "ServerSocket.hpp"
 #include "Config.hpp"
-#include "HTTP.hpp"
 #include "Log.hpp"
 
 volatile std::sig_atomic_t ServerEngine::isRunning = false;
@@ -98,7 +96,6 @@ void ServerEngine::iteratePollFds(int eventCount)
 		}
 
 		if (pollFds[i].revents & POLLOUT) {
-			LOG("POLLOUT event, fd = " << pollFds[i].fd);
 			writeToClient(pollFds[i].fd);
 		}
 		
@@ -241,9 +238,9 @@ void ServerEngine::readClientIncomingData(int clientFd)
 	
 	client.receiveRequest();
 
-	if (client.getConnectionError()) {
-		LOGT(Log::ERROR, "Connection error on ClientConnection fd = " << clientFd);
+	if (client.getConnectionError() || client.getDisconnected()) {
 		disconnectClient(clientFd);
+		return;
 	}
 
 	if (client.getRequest().doneReceiving) {
@@ -258,10 +255,16 @@ void ServerEngine::writeToClient(int clientFd)
 {
 	ClientConnection& client = getClientConnectionByFd(clientFd);
 
+	if (client.isWaitingForCgi()) {
+		return;
+	}
+
+	LOG("POLLOUT event, fd = " << clientFd);
 	client.sendResponse();
 
 	if (client.getResponse().error()) {
 		disconnectClient(clientFd);
+		return;
 	}
 
 	if (client.getResponse().complete()) {

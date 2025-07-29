@@ -2,7 +2,6 @@
 #define REQUESTPARSER_HPP
 
 #include <string>
-#include "colors.hpp"
 #include "Request.hpp"
 
 #define REQUEST_MAX_URI_LENGTH	2048
@@ -13,6 +12,8 @@ public:
 	static void					parseNext(Request& request);
 
 private:
+	RequestParser();
+
 	static void					parseRequestLine(Request& request);
 	static void					parseHeader(Request& request);
 	static void					parseBody(Request& request);

@@ -1,6 +1,7 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
+#include <chrono>
 #include <unordered_map>
 #include <optional>
 #include <fstream>
@@ -22,6 +23,20 @@ public:
 		INVALID
 	};
 
+	enum class CgiState {
+		INIT,
+		RUNNING,
+		PROCESS_FINISHED,
+		COMPLETE,
+		FAILED
+	};
+
+	typedef struct CgiSession_s {
+		pid_t												pid;
+		CgiState											state;
+		std::chrono::time_point<std::chrono::steady_clock>	startTime;
+	} CgiSession_t;
+
 	std::string										rawRequest;
 	ParsingState									parsingState;
 	bool											doneReceiving;
@@ -32,9 +47,13 @@ public:
 	std::string										requestTarget;
 	std::string										protokoll;
 	std::unordered_map<std::string, std::string>	headers;
+	// CGI Output
+	CgiSession_t									cgiSession;
+	std::ofstream									cgiOutFile;
+	std::string										cgiOutFilename;
 	// Body
 	std::ofstream									bodyFile;
-	std::string										bodyTempFilename;
+	std::string										bodyFilename;
 	size_t											bodyBytesStored;
 	// Chunked transfer
 	bool											isChunkedBodyTransfer;
@@ -54,16 +73,32 @@ public:
 	std::vector<std::string>						tmpUploadedFiles;
 	std::string										queryString; // URL query string after '?'
 
-	bool											deleteTmpUploadedFiles();
-
+	void											invalidateWithError(int errorStatusCode);
+	
+	// Queries
 	bool											isCGIRequest();
 	bool											isRedirectRequest();
 	bool											hasBody();
 	bool											isFileUploadRequest();
-	bool											createTempBodyFile();
-	bool											deleteTempBodyFile();
+	
+	// Body file
+	bool											createBodyFile();
+	bool											openBodyFile();
+	bool											deleteBodyFile();
+	
+	// Upload files
+	bool											deleteTmpUploadedFiles();
+	
+	// CGI output file
+	bool											createCgiOutFile();
+	bool											openCgiOutFile();
+	bool											deleteCgiOutFile();
 
 private:
+	std::string										createFileName(std::string fileNamePrefixPath);
+	bool											createFile(std::string filenamePrefix, std::string& filename);
+	bool											openFile(std::ofstream& file, std::string filename);
+	bool											deleteFile(std::string fileName);
 };
 
 #endif
