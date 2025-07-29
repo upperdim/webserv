@@ -31,7 +31,6 @@ public:
 		FAILED
 	};
 
-	// TODO: Timeout
 	typedef struct CgiSession_s {
 		pid_t												pid;
 		CgiState											state;
