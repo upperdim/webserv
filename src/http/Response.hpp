@@ -28,6 +28,7 @@ public:
 	std::string			getNextChunk(void);
 
 	bool				complete(void) const;
+	void				setComplete(void);
 	bool				error(void) const;
 
 	// for debugging

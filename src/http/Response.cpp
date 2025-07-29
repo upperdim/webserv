@@ -63,7 +63,7 @@ std::string	Response::getNextChunk(void)
 			checkBodyState();
 			break ;
 		case (ResponseState::SEND_COMPLETE):
-			m_done = true;
+			setComplete();
 			break ;
 		case (ResponseState::SEND_CGI):
 			buff = getResponseLine();
@@ -82,6 +82,11 @@ std::string	Response::getNextChunk(void)
 bool	Response::complete(void) const
 {
 	return ( m_done );
+}
+
+void	Response::setComplete(void)
+{
+	m_done = true;
 }
 
 bool	Response::error(void) const
@@ -171,5 +176,5 @@ void	Response::setState(ResponseState _state)
 {
 	m_state = _state;
 	if (m_state == ResponseState::SEND_COMPLETE || m_state == ResponseState::SEND_ERROR)
-		m_done = true;
+		setComplete();
 }

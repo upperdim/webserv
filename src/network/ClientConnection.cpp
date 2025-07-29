@@ -48,7 +48,24 @@ void ClientConnection::sendResponse()
 	LOG("Writing to ClientConnection fd = " << fd);
 	
 	std::string	chunk = response.getNextChunk();
-	send(fd, chunk.c_str(), chunk.length(), 0); // TODO: return val & checks
+	ssize_t bytesSent = send(fd, chunk.c_str(), chunk.length(), 0);
+	LOG(bytesSent << " bytes sent");
+
+	// TODO: Make sure whole response chunk is sent at each try
+
+	if (bytesSent > 0) {
+		if (bytesSent < SENT_CHUNK_LOG_TRESHOLD_LEN) {
+			LOG("chunk = " << LIGHTMAGENTA <<  "<<<\n" << LIGHTCYAN << chunk.c_str() << LIGHTMAGENTA << ">>>" << DEFAULT);
+		} else {
+			LOG("chunk too long to log");
+		}
+	} else if (bytesSent < 0) {
+		connectionError = true;
+		LOGT(Log::ERROR, "ClientConnection error, fd = " << fd);
+	} else if (bytesSent == 0) {
+		response.setComplete();
+		LOG("ClientConnection fd = " << fd << " has done sending the response");
+	}
 }
 
 bool	ClientConnection::isWaitingForCgi()
