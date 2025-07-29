@@ -158,6 +158,14 @@ void	CGIHandler::createCgiResponse(Request& request, Response& response)
 {
 	LOGT(Log::DEBUG, "Completing CGI session");
 
+	// RFC 3875 6.2.2 Verify headers
+
+
+
+	// Find "\r\n\r\n" (end of headers). If can't, invalid.
+	// Check headers until the found "\r\n".
+	// Check for "Content-Type" with valid MIME type (RFC 3875 6.2.1). If not, invalid
+
 	// RFC 3875 CGI 1.1
 	// Response type: 1 or more header files, blank line, message body (may be null)
 	response.setAsCgiResponse();
