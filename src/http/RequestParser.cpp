@@ -180,15 +180,13 @@ void	RequestParser::parseBody(Request& request)
 
 	// We support file upload request bodies on everywhere
 	if (request.isFileUploadRequest()) {
-		// TODO: TBD
-		// Can still be content-length or chunked
-
 		if (request.isChunkedBodyTransfer) {
 			storeChunkedTransferBody(request);
 		} else {
 			storeContentLengthBody(request);
 		}
 
+		// Above function just completed storing the body
 		if (request.parsingState == Request::ParsingState::COMPLETE) {
 			if (!request.contentType.has_value() || !request.contentType.value().boundary.has_value()) {
 				request.errorStatusCode = WSSC_BAD_REQUEST;
