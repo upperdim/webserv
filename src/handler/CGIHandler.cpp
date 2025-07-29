@@ -160,8 +160,7 @@ void	CGIHandler::createCgiResponse(Request& request, Response& response)
 
 	// RFC 3875 CGI 1.1
 	// Response type: 1 or more header files, blank line, message body (may be null)
-	// response.addHeader WIP
-	response.addHeader("Just-Testing", "hey_there");
+	response.setAsCgiResponse();
 	response.setBodyFileBufferReader(request.cgiOutFilename);
 	request.cgiSession.state = Request::CgiState::COMPLETE;
 }

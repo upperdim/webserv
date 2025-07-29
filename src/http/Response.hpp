@@ -24,6 +24,7 @@ public:
 	void				addHeader(const std::string& key, const std::string& value);
 	void				setBodyString(const std::string& _body);
 	void				setBodyFileBufferReader(std::string path);
+	void				setAsCgiResponse(void);
 	std::string			getNextChunk(void);
 
 	bool				complete(void) const;
@@ -37,7 +38,8 @@ private:
 		SEND_HEADER,
 		SEND_BODY,
 		SEND_COMPLETE,
-		SEND_ERROR
+		SEND_ERROR,
+		SEND_CGI
 	};
 
 	enum class BodyType {
@@ -62,7 +64,8 @@ private:
 
 	Response(const Response& other); // copy constructor =delete
 
-	std::string			getHeader(void) const;
+	std::string			getResponseLine(void) const;
+	std::string			getHeaders(void) const;
 	std::string			getNextBodyChunk(void);
 	void				checkBodyState();
 	void				setState(ResponseState _state);

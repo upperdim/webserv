@@ -14,9 +14,6 @@ Response::~Response()
 {
 }
 
-/* ************************************************************************** */
-/* ************************************************************************** */
-
 void	Response::setProtocol(const std::string& _protocol)
 {
 	m_protocol = _protocol;
@@ -26,16 +23,6 @@ void	Response::setStatusCode(const int& _statusCode)
 {
 	m_status_code = _statusCode;
 	m_status_msg = HTTP::getStatusMessage(m_status_code);
-}
-
-bool	Response::complete(void) const
-{
-	return ( m_done );
-}
-
-bool	Response::error(void) const
-{
-	return (m_state == ResponseState::SEND_ERROR);
 }
 
 void	Response::addHeader(const std::string& key, const std::string& value)
@@ -57,11 +44,9 @@ void	Response::setBodyFileBufferReader(std::string path)
 	m_headers["Content-Length"] = std::to_string(m_file_buffer_reader.getSize());
 }
 
-void	Response::setState(ResponseState _state)
+void	Response::setAsCgiResponse(void)
 {
-	m_state = _state;
-	if (m_state == ResponseState::SEND_COMPLETE || m_state == ResponseState::SEND_ERROR)
-		m_done = true;
+	setState(ResponseState::SEND_CGI);
 }
 
 std::string	Response::getNextChunk(void)
@@ -70,7 +55,7 @@ std::string	Response::getNextChunk(void)
 
 	switch (m_state) {
 		case (ResponseState::SEND_HEADER):
-			buff = getHeader();
+			buff = getHeaders();
 			setState(m_bodyType == BodyType::BODY_NONE ? ResponseState::SEND_COMPLETE : ResponseState::SEND_BODY);
 			break ;
 		case (ResponseState::SEND_BODY):
@@ -80,6 +65,13 @@ std::string	Response::getNextChunk(void)
 		case (ResponseState::SEND_COMPLETE):
 			m_done = true;
 			break ;
+		case (ResponseState::SEND_CGI):
+			buff = getResponseLine();
+			if (m_bodyType != BodyType::BODY_FILE_BUFFER) {
+				LOGT(Log::ERROR, "CGI response body type is different than BODY_FILE_BUFFER");
+			}
+			setState(ResponseState::SEND_BODY);
+			break;
 		default:
 			break ;
 	}
@@ -87,32 +79,46 @@ std::string	Response::getNextChunk(void)
 	return (buff);
 }
 
-void	Response::checkBodyState()
+bool	Response::complete(void) const
 {
-	if (m_bodyType == BodyType::BODY_STRING) {
-		if (m_body.empty()) {
-			setState(ResponseState::SEND_COMPLETE);
-		}
-	} else if (m_bodyType == BodyType::BODY_FILE_BUFFER) {
-		switch (m_file_buffer_reader.getState()) {
-			case (FileBuffer::State::COMPLETE):
-				setState(ResponseState::SEND_COMPLETE);
-				break ;
-			case (FileBuffer::State::ERROR):
-				setState(ResponseState::SEND_ERROR);
-				break ;
-			default:
-				break ;
-		}
-	}
+	return ( m_done );
 }
 
-std::string	Response::getHeader(void) const
+bool	Response::error(void) const
+{
+	return (m_state == ResponseState::SEND_ERROR);
+}
+
+std::string			Response::getResponseStateString()
+{
+	switch (m_state)
+	{
+		case (ResponseState::SEND_HEADER):
+			return ("SEND_HEADER");
+		case (ResponseState::SEND_BODY):
+			return ("SEND_BODY");
+		case (ResponseState::SEND_COMPLETE):
+			return ("SEND_COMPLETE");
+		case (ResponseState::SEND_ERROR):
+			return ("SEND_ERROR");
+		default:
+			break ;
+	}
+	return ("CRITICAL_ERROR_::_RESPONSE_STATE_NOT_SET_TO_VALID_STATE");
+}
+
+std::string Response::getResponseLine(void) const
 {
 	std::string	buff;
 	buff	+= m_protocol + " "
 			+ std::to_string(m_status_code) + " "
 			+ m_status_msg + "\r\n";
+	return (buff);
+}
+
+std::string	Response::getHeaders(void) const
+{
+	std::string buff = getResponseLine();
 	for (const auto& header : m_headers)
 		buff += header.first + ": " + header.second + "\r\n";
 	buff += "\r\n";
@@ -141,20 +147,29 @@ std::string	Response::getNextBodyChunk(void)
 	return ( ss.str() );
 }
 
-std::string			Response::getResponseStateString()
+void	Response::checkBodyState()
 {
-	switch (m_state)
-	{
-		case (ResponseState::SEND_HEADER):
-			return ("SEND_HEADER");
-		case (ResponseState::SEND_BODY):
-			return ("SEND_BODY");
-		case (ResponseState::SEND_COMPLETE):
-			return ("SEND_COMPLETE");
-		case (ResponseState::SEND_ERROR):
-			return ("SEND_ERROR");
-		default:
-			break ;
+	if (m_bodyType == BodyType::BODY_STRING) {
+		if (m_body.empty()) {
+			setState(ResponseState::SEND_COMPLETE);
+		}
+	} else if (m_bodyType == BodyType::BODY_FILE_BUFFER) {
+		switch (m_file_buffer_reader.getState()) {
+			case (FileBuffer::State::COMPLETE):
+				setState(ResponseState::SEND_COMPLETE);
+				break ;
+			case (FileBuffer::State::ERROR):
+				setState(ResponseState::SEND_ERROR);
+				break ;
+			default:
+				break ;
+		}
 	}
-	return ("CRITICAL_ERROR_::_RESPONSE_STATE_NOT_SET_TO_VALID_STATE");
+}
+
+void	Response::setState(ResponseState _state)
+{
+	m_state = _state;
+	if (m_state == ResponseState::SEND_COMPLETE || m_state == ResponseState::SEND_ERROR)
+		m_done = true;
 }
