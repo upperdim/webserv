@@ -69,6 +69,7 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 #include <map>
 
 class HTTP
@@ -101,19 +102,23 @@ public:
 	static std::string			getMimeType(const std::string& path);
 	static ContentTypeInfo_t	getContentTypeInfo(const std::string& fieldValue, bool& error);
 	static std::string			getErrorPageTemplate(const int& status_code);
+	static std::string			getPartialContentTemplate(const std::vector<std::string>& succededFiles, const std::vector<std::string>& failedFiles);
 	static bool					isValidStatusCode(int& statusCode);
 	static std::string			methodToString(const HTTP::Method& method);
 	static HTTP::Method			strToMethod(const std::string& str);
 
 private:
-	static const std::map<int, std::string>			m_status_messages;
-	static const std::map<std::string, std::string>	m_mime_types;
-	static const std::string						m_error_page_template;
+	static const std::map<int, std::string>			m_statusMessages;
+	static const std::map<std::string, std::string>	m_mimeTypes;
+	static const std::string						m_errorPageTemplate;
+	static const std::string						m_partialContentTemplate;
 	static const std::string						m_teapot;
 
 	HTTP();
 	HTTP(const HTTP& other);
 	HTTP&	operator=(const HTTP& rhs);
+
+	static bool	replaceAllPlaceholders(std::string placeHolder, std::string replacement, std::string& page);
 
 };
 

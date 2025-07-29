@@ -26,6 +26,10 @@ Request::~Request()
 	if (!bodyTempFilename.empty()) {
 		deleteTempBodyFile();
 	}
+
+	if (tmpUploadedFiles.size() > 0) {
+		deleteTmpUploadedFiles();
+	}
 }
 
 bool	Request::isCGIRequest()
@@ -52,6 +56,19 @@ bool	Request::isFileUploadRequest()
 	return contentType.has_value()
 	       && contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA;
 }
+
+bool	Request::deleteTmpUploadedFiles()
+{
+	bool succeeded = true; 
+	for (auto it = tmpUploadedFiles.begin(); it < tmpUploadedFiles.end(); ++it) {
+		if (!std::filesystem::remove(*it)) {
+			LOGT(Log::ERROR, "failed to delete tmp uploaded file: " << *it);
+			succeeded = false;
+		}
+	}
+	return succeeded;
+}
+
 
 bool	Request::createTempBodyFile()
 {
