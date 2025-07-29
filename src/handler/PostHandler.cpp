@@ -28,9 +28,15 @@ void	PostHandler::handle(Request& request, Response& response)
 	if (request.tmpUploadedFiles.size() > 0) {
 		// we should have a list of uploaded files
 
+		// logging the files we have to move
+		LOGT(Log::INFO, "moving the following " << LIGHTYELLOW << request.tmpUploadedFiles.size() << BLUE << " files to " << LIGHTYELLOW << request.resolvedPath);
+		for (auto f : request.tmpUploadedFiles)
+			LOGT(Log::INFO, "=> " << f);
+
 		std::vector<std::string> successfullyMoved;
 		successfullyMoved.reserve(request.tmpUploadedFiles.size());
 
+		size_t movedFileCount = 0;
 		for (const std::string& tmpPath : request.tmpUploadedFiles) {
 			std::filesystem::path source = tmpPath;
 			std::string filenameStr = source.filename().string();
@@ -42,12 +48,15 @@ void	PostHandler::handle(Request& request, Response& response)
 				std::filesystem::rename(source, dest);
 				successfullyMoved.emplace_back(tmpPath);
 				LOGT(Log::SUCCESS, "Moved file to: " << dest);
+				++movedFileCount;
 			} catch(const std::exception& e) {
 				LOGT(Log::ERROR, "Failed to move file \"" << filenameStr << "\" to dest: " << dest << ": " << e.what());
 				createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 				return;
 			}
 		}
+
+		LOGT(Log::INFO, "Successfully moved " << LIGHTGREEN << request.tmpUploadedFiles.size() << BLUE << " files.");
 
 		// erase succesfully moved files from Request class tmpUploadedFiles list
 		// we don't need to delete those files if error occures somewhere
