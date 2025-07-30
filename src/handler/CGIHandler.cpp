@@ -94,17 +94,24 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		envStrings.push_back("GATEWAY_INTERFACE=CGI/1.1");
 		envStrings.push_back("SERVER_PROTOCOL=HTTP/1.1");
 		envStrings.push_back("REQUEST_METHOD=" + HTTP::methodToString(request.method));
-		envStrings.push_back("QUERY_STRING=" + request.queryString);
+		envStrings.push_back("QUERY_STRING=" + request.queryString); // TODO: Will this always exist?
 		envStrings.push_back("SCRIPT_NAME=" + scriptPath);
 
 		if (request.method == HTTP::Method::POST) {
-			// To be added
-			// envStrings.push_back("CONTENT_LENGTH=" ;
-			// envStrings.push_back("CONTENT_TYPE=" ;
-		} else {
-			envStrings.push_back("CONTENT_LENGTH=0");
-			envStrings.push_back("CONTENT_TYPE=");
+			// TODO: Will this always exist?
+			if (request.contentLength.has_value()) {
+				envStrings.push_back("CONTENT_LENGTH=");
+			} else {
+				// TODO
+			}
+
+			// TODO: Will this always exist?
+			if (!request.contentType->raw.empty()) {
+				envStrings.push_back("CONTENT_TYPE=");
+			}
 		}
+
+		// TODO: add headers into env too. HTTP_<header key in uppercase>=<header value>
 
 		std::vector<char*> envp;
 		for (auto& s : envStrings)
