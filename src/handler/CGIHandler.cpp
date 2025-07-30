@@ -202,6 +202,7 @@ bool	CGIHandler::validateCgiOutput(const Request& request)
 		std::transform(lineLower.begin(), lineLower.end(), lineLower.begin(),
 			[](unsigned char c){ return std::tolower(c); });
 
+		// If "content-type:" is at index 0 (beginning)
 		if (lineLower.find("content-type:") == 0) {
 			if (contentTypeFound) {
 				return false; // Only 1 Content-Type header should exist
