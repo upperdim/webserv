@@ -23,6 +23,8 @@ public:
 
 private:
 	CGIHandler();
+
+	static void	failWithErrorResponse(Request& request, Response& response, int errorStatusCode);
 };
 
 #endif

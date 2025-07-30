@@ -12,6 +12,12 @@
 #include "Response.hpp"
 #include "CGIHandler.hpp"
 
+void	CGIHandler::failWithErrorResponse(Request& request, Response& response, int errorStatusCode)
+{
+	createErrorResponse(request, response, errorStatusCode);
+	request.cgiSession.state = Request::CgiState::FAILED;
+}
+
 void	CGIHandler::initCgi(Request& request, Response& response)
 {
 	LOGT(Log::DEBUG, "Initializing CGI");
@@ -25,8 +31,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	// No request body = no body file content = no input = empty STDIN.
 	if (request.bodyFilename.empty()) {
 		if (!request.createBodyFile()) {
-			createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-			request.cgiSession.state = Request::CgiState::FAILED;
+			failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 			return;
 		}
 	}
@@ -36,23 +41,20 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	bodyFileFd = open(request.bodyFilename.c_str(), O_RDONLY);
 	if (bodyFileFd < 0) {
 		LOGT(Log::ERROR, "Failed opening temp body file in CGI handler");
-		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.state = Request::CgiState::FAILED;
+		failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
 
 	// Create and open CGI output file
 	if (!request.createCgiOutFile()) {
 		close(bodyFileFd);
-		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.state = Request::CgiState::FAILED;
+		failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
 	int cgiOutputFileFd = open(request.cgiOutFilename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
 	if (cgiOutputFileFd < 0) {
 		close(bodyFileFd);
-		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.state = Request::CgiState::FAILED;
+		failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
 
@@ -64,8 +66,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		close(bodyFileFd);
 		close(cgiOutputFileFd);
 		LOGT(Log::ERROR, "Could not fork a CGI process");
-		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.state = Request::CgiState::FAILED;
+		failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
 
@@ -135,13 +136,42 @@ bool	CGIHandler::checkCgiCompletion(Request& request, Response& response)
 
 	int status;
 	pid_t result = waitpid(session.pid, &status, WNOHANG);
+
+	// CGI child process has finished
 	if (result == session.pid) {
-		if (validateCgiOutput(request)) {
-			session.state = Request::CgiState::PROCESS_FINISHED;
-		} else {
-			createErrorResponse(request,	response, WSSC_INTERNAL_SERVER_ERROR);
-			request.cgiSession.state = Request::CgiState::FAILED;
+		// Check if signal exit
+		if (WIFSIGNALED(status)) {
+			
+			int sig = WTERMSIG(status);
+			LOGT(Log::ERROR, "CGI script crashed with signal " << sig);
+
+			failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+			return true;
 		}
+		
+		// Check exit status
+		if (WIFEXITED(status)) {
+			int exitCode = WEXITSTATUS(status);
+
+			if (exitCode != 0) {
+				LOGT(Log::ERROR, "CGI script crashed with exit code " << exitCode);
+				failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+				return true;
+			}
+
+			// Exit success, validate
+			if (!validateCgiOutput(request)) {
+				failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+				return true;
+			}
+			
+			session.state = Request::CgiState::PROCESS_FINISHED;
+			return true;
+		}
+
+		// Invalid exit type?
+		LOGT(Log::ERROR, "Could not detect CGI script exit type");
+		failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return true;
 	} else if (result == 0) {
 		// CGI still running
@@ -149,13 +179,13 @@ bool	CGIHandler::checkCgiCompletion(Request& request, Response& response)
 			// Timeout
 			kill(session.pid, SIGKILL);
 			waitpid(session.pid, NULL, 0); // clean up process entry from OS
-			createErrorResponse(request,	response, WSSC_GATEWAY_TIMEOUT);
-			session.state = Request::CgiState::FAILED;
+			failWithErrorResponse(request, response, WSSC_GATEWAY_TIMEOUT);
 			return true;
 		}
 		return false;
 	} else {
-		session.state = Request::CgiState::FAILED;
+		LOGT(Log::ERROR, "waitpid() failed in checkCgiCompletion()");
+		failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return true;
 	}
 }
