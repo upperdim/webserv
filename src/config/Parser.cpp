@@ -1,4 +1,3 @@
-
 #include "Parser.hpp"
 #include <filesystem>
 #include <algorithm>
@@ -519,7 +518,7 @@ void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector
 	if (params[0]->value.find('.') != std::string::npos)
 		Throw::InvalidValue(*params[0]);
 
-	size_t bodySizeValue;
+	size_t bodySizeValue = std::numeric_limits<size_t>::max();
 	try {
 		bodySizeValue = std::stoul(params[0]->value);
 		if (params[0]->value.back() == 'k' || params[0]->value.back() == 'K')
@@ -531,6 +530,8 @@ void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector
 	} catch(...) {
 		Throw::InvalidValue(*params[0]);
 	}
+	if (bodySizeValue == std::numeric_limits<size_t>::max())
+		return;
 	value = bodySizeValue;
 }
 
