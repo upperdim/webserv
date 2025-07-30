@@ -4,6 +4,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <algorithm>
+#include <filesystem>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
@@ -33,6 +34,13 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 			failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 			return;
 		}
+	}
+
+	uintmax_t bodyFileSize = 0;
+	if (request.isChunkedBodyTransfer) {
+		// Content-Length wasn't given
+		// We have to measure it to pass it into CGI env
+		bodyFileSize = std::filesystem::file_size(request.bodyFilename);
 	}
 
 	// Open the body file
@@ -94,11 +102,10 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		envStrings.push_back("QUERY_STRING=" + request.queryString);
 
 		if (request.method == HTTP::Method::POST) {
-			// TODO: Will this always exist?
 			if (request.contentLength.has_value()) {
-				envStrings.push_back("CONTENT_LENGTH=");
+				envStrings.push_back("CONTENT_LENGTH="  + std::to_string(request.contentLength.value()));
 			} else {
-				// TODO
+				envStrings.push_back("CONTENT_LENGTH="  + std::to_string(bodyFileSize));
 			}
 
 			// TODO: Will this always exist?
