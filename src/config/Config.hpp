@@ -21,6 +21,7 @@ public:
 	std::string					returnRoute;
 	bool						autoIndex		= false;					//	::	autoindex
 	std::string					cgiExtension;								//	::	cgi_extension
+	std::string					cgiExecutable;								//	::	cgi_executable
 	bool						allowUpload		= false;					//	::	allow_upload
 	std::string					uploadDir;									//	::	upload_store
 

@@ -129,7 +129,7 @@ std::string	Token::tokenKeywordTypeToString(void) const
 		case KeywordType::ALLOW_METHODS:		return "ALLOW_METHODS";
 		case KeywordType::RETURN:				return "RETURN";
 		case KeywordType::AUTOINDEX:			return "AUTOINDEX";
-		case KeywordType::CGI_EXTENSION:		return "CGI_EXTENSION";
+		case KeywordType::CGI:					return "CGI";
 		case KeywordType::ALLOW_UPLOAD:			return "ALLOW_UPLOAD";
 		case KeywordType::UPLOAD_STORE:			return "UPLOAD_STORE";
 		default: return "UNKNOWN_KEYWORD_TYPE";

@@ -1,5 +1,7 @@
-#include "Validator.hpp"
 #include <unordered_set>
+#include <filesystem>
+#include <unistd.h>	// access()
+#include "Validator.hpp"
 #include "Utils.hpp"
 
 Validator::~Validator()
@@ -178,6 +180,22 @@ bool	Validator::isValidExtension(const std::string& ext)
 		if (!std::isalnum(c) && c != '-' && c != '_')
 			return false;
 	}
+	return true;
+}
+
+bool	Validator::isValidExecutable(const std::string& executable)
+{
+	if (executable.empty())
+		return false;
+
+	std::filesystem::path path(executable);
+
+	if (!std::filesystem::exists(path) || !std::filesystem::is_regular_file(path))
+		return false;
+
+	if (access(path.c_str(), X_OK) != 0)
+		return false;
+
 	return true;
 }
 

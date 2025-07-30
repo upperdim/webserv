@@ -64,7 +64,7 @@ private:
 	void			parseIndexDirective(const Token& directive, std::vector<const Token*>& params, std::string& index);
 	void			parsePath(const Token& directive, std::vector<const Token*>& params, std::string& path);
 	void			parseToggle(const Token& directive, std::vector<const Token*>& params, bool& autoIndex);
-	void			parseExtension(const Token& directive, std::vector<const Token*>& params, std::string& ext);
+	void			parseCgiExtension(const Token& directive, std::vector<const Token*>& params, LocationBlock& location);
 
 	// rules and checks
 	void			setFallbacks(Config& config);

@@ -342,8 +342,8 @@ void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives
 			parsedLocationDirectives.autoIndex = true;
 			parseToggle(directive, params, location.autoIndex);
 			break;
-		case KeywordType::CGI_EXTENSION:
-			parseExtension(directive, params, location.cgiExtension);
+		case KeywordType::CGI:
+			parseCgiExtension(directive, params, location);
 			break;
 		case KeywordType::ALLOW_UPLOAD:
 			if (parsedLocationDirectives.allowUpload)
@@ -579,17 +579,23 @@ void	Parser::parseToggle(const Token& directive, std::vector<const Token*>& para
 	toggle = validToggle;
 }
 
-void	Parser::parseExtension(const Token& directive, std::vector<const Token*>& params, std::string& ext)
+void	Parser::parseCgiExtension(const Token& directive, std::vector<const Token*>& params, LocationBlock& location)
 {
-	if (params.size() != 1)
+	if (params.size() != 2)
 		Throw::InvalidNumberOfArguments(directive);
 	if (params[0]->type != TokenType::PARAM)
 		Throw::InvalidValue(*params[0]);
+	if (params[1]->type != TokenType::PATH)
+		Throw::InvalidValue(*params[1]);
 
 	if (!Validator::isValidExtension(params[0]->value))
 		Throw::InvalidExtension(*params[0]);
+
+	if (!Validator::isValidExecutable(params[1]->value))
+		Throw::InvalidExecutable(*params[1]);
 	
-	ext = params[0]->value;
+	location.cgiExtension = params[0]->value;
+	location.cgiExecutable = params[1]->value;
 }
 
 

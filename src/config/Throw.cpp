@@ -90,6 +90,11 @@ void	Throw::InvalidExtension(const Token& token)
 	throw std::runtime_error("invalid extension \"" + token.getTokenValue() + "\"" + token.inLine());
 }
 
+void	Throw::InvalidExecutable(const Token& token)
+{
+	throw std::runtime_error("invalid executable \"" + token.getTokenValue() + "\"" + token.inLine());
+}
+
 void	Throw::FailedToConvertDomainToIP(const Token& token)
 {
 	throw std::runtime_error("Failed to convert \"" + token.getTokenValue() + "\" to IP address" + token.inLine());
