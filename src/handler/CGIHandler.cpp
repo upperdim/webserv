@@ -115,7 +115,21 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 			}
 		}
 
-		// TODO: add headers into env too. HTTP_<header key in uppercase>=<header value>
+		// Add headers to CGI env vars
+		for (const auto& [key, value] : request.headers) {
+			std::string keyLower = key;
+			std::transform(keyLower.begin(), keyLower.end(), keyLower.begin(), ::tolower);
+
+			if (keyLower == "content-length" || keyLower == "content-type") {
+				continue; // Already passed
+			}
+
+			std::string envKey = "HTTP_";
+			for (char c : key) {
+				envKey += (c == '-') ? '_' : std::toupper(static_cast<unsigned char>(c));
+			}
+			envStrings.push_back(envKey + "=" + value);
+		}
 
 		std::vector<char*> envp;
 		for (auto& s : envStrings)
