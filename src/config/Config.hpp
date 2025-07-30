@@ -16,20 +16,19 @@
 class LocationBlock
 {
 public:
-	std::string					route;										//	path after location
-	std::vector<HTTP::Method>	allowMethods	= {HTTP::Method::GET};		//	::	allow_methods
-	std::string					returnRoute;
-	bool						autoIndex		= false;					//	::	autoindex
-	std::string					cgiExtension;								//	::	cgi_extension
-	std::string					cgiExecutable;								//	::	cgi_executable
-	bool						allowUpload		= false;					//	::	allow_upload
-	std::string					uploadDir;									//	::	upload_store
+	std::string							route;										//	path after location
+	std::vector<HTTP::Method>			allowMethods	= {HTTP::Method::GET};		//	::	allow_methods
+	std::string							returnRoute;
+	bool								autoIndex		= false;					//	::	autoindex
+	std::map<std::string, std::string>	cgi;										//	::	map<ext, executable>
+	bool								allowUpload		= false;					//	::	allow_upload
+	std::string							uploadDir;									//	::	upload_store
 
 	// Multiscope options
-	size_t 						clientMaxBodySize = std::numeric_limits<size_t>::max();	//	::	client_max_body_size
-	std::string					index;				//	::	index
-	std::string					root;				//	::	root
-	std::map<int, std::string>	errorPagePaths;		//	::	error_page
+	size_t 								clientMaxBodySize = std::numeric_limits<size_t>::max();	//	::	client_max_body_size
+	std::string							index;				//	::	index
+	std::string							root;				//	::	root
+	std::map<int, std::string>			errorPagePaths;		//	::	error_page
 };
 
 class ServerBlock

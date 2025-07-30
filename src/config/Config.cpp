@@ -87,8 +87,11 @@ void	Config::printConfigs(void) const
 			printLn(GRAY";" RESET);
 
 			print(LIGHTCYAN"\t\tcgi\t\t\t" RESET);
-			if (!location.cgiExtension.empty() && !location.cgiExecutable.empty())
-				print(LIGHTMAGENTA + location.cgiExtension + " " + location.cgiExecutable);
+			// if (!location.cgiExtension.empty() && !location.cgiExecutable.empty())
+			// 	print(LIGHTMAGENTA + location.cgiExtension + " " + location.cgiExecutable);
+			for (const auto& it : location.cgi) {
+				print(LIGHTMAGENTA + it.first + " " + it.second);
+			}
 			printLn(GRAY";" RESET);
 
 			if (location.allowMethods.size() > 0) {
