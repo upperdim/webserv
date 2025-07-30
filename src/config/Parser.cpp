@@ -593,10 +593,14 @@ void	Parser::parseCgiExtension(const Token& directive, std::vector<const Token*>
 
 	if (!Validator::isValidExecutable(params[1]->value))
 		Throw::InvalidExecutable(*params[1]);
-	
-	location.cgi.at(params[0]->value) = params[1]->value;
-	// location.cgiExtension = params[0]->value;
-	// location.cgiExecutable = params[1]->value;
+
+	std::string ext(params[0]->value);
+
+	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){
+		return std::tolower(c);
+	});
+
+	location.cgi.at(ext) = params[1]->value;
 }
 
 
