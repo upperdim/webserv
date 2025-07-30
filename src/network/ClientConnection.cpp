@@ -51,13 +51,15 @@ void ClientConnection::sendResponse()
 	ssize_t bytesSent = send(fd, chunk.c_str(), chunk.length(), 0);
 	LOG(bytesSent << " bytes sent");
 
-	// TODO: Make sure whole response chunk is sent at each try
-
 	if (bytesSent > 0) {
 		if (bytesSent < SENT_CHUNK_LOG_TRESHOLD_LEN) {
 			LOG("chunk = " << LIGHTMAGENTA <<  "<<<\n" << LIGHTCYAN << chunk.c_str() << LIGHTMAGENTA << ">>>" << DEFAULT);
 		} else {
 			LOG("chunk too long to log");
+		}
+
+		if ((size_t) bytesSent < chunk.length()) {
+			// TODO: don't discard unsent data, keep for the next poll iterations
 		}
 	} else if (bytesSent < 0) {
 		connectionError = true;
