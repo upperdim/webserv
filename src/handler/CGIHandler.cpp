@@ -108,8 +108,9 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 				envStrings.push_back("CONTENT_LENGTH="  + std::to_string(bodyFileSize));
 			}
 
-			// TODO: Will this always exist?
-			if (!request.contentType->raw.empty()) {
+			if (request.contentType.has_value()) {
+				envStrings.push_back("CONTENT_TYPE=" + request.contentType->raw);
+			} else {
 				envStrings.push_back("CONTENT_TYPE=");
 			}
 		}
