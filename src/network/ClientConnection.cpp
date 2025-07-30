@@ -90,7 +90,9 @@ bool	ClientConnection::isWaitingForCgi()
 	}
 	
 	if (CGIHandler::checkCgiCompletion(request, response)) {
-		CGIHandler::createCgiResponse(request, response);
+		if (request.cgiSession.state != Request::CgiState::FAILED) {
+			CGIHandler::createCgiResponse(request, response);
+		}
 		return false;
 	}
 

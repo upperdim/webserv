@@ -18,6 +18,7 @@ class CGIHandler : RequestHandler
 public:
 	static void	initCgi(Request& request, Response& response);
 	static bool	checkCgiCompletion(Request& request, Response& response);
+	static bool	validateCgiOutput(const Request& request);
 	static void	createCgiResponse(Request& request, Response& response);
 
 private:

@@ -3,6 +3,7 @@
 #include <string>
 #include <cstring>
 #include <fcntl.h>
+#include <algorithm>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
@@ -135,7 +136,12 @@ bool	CGIHandler::checkCgiCompletion(Request& request, Response& response)
 	int status;
 	pid_t result = waitpid(session.pid, &status, WNOHANG);
 	if (result == session.pid) {
-		session.state = Request::CgiState::PROCESS_FINISHED;
+		if (validateCgiOutput(request)) {
+			session.state = Request::CgiState::PROCESS_FINISHED;
+		} else {
+			createErrorResponse(request,	response, WSSC_INTERNAL_SERVER_ERROR);
+			request.cgiSession.state = Request::CgiState::FAILED;
+		}
 		return true;
 	} else if (result == 0) {
 		// CGI still running
@@ -145,7 +151,7 @@ bool	CGIHandler::checkCgiCompletion(Request& request, Response& response)
 			waitpid(session.pid, NULL, 0); // clean up process entry from OS
 			createErrorResponse(request,	response, WSSC_GATEWAY_TIMEOUT);
 			session.state = Request::CgiState::FAILED;
-			return false;
+			return true;
 		}
 		return false;
 	} else {
@@ -154,20 +160,64 @@ bool	CGIHandler::checkCgiCompletion(Request& request, Response& response)
 	}
 }
 
-void	CGIHandler::createCgiResponse(Request& request, Response& response)
+// RFC 3875 (CGI 1.1)
+// Response type: 1 or more header files, blank line, message body (may be null)
+bool	CGIHandler::validateCgiOutput(const Request& request)
 {
-	LOGT(Log::DEBUG, "Completing CGI session");
+	LOGT(Log::DEBUG, "Verifying CGI output");
 
 	// RFC 3875 6.2.2 Verify headers
+	std::ifstream file(request.cgiOutFilename, std::ios::binary);
+	if (!file) {
+		return false;
+	}
 
+	std::ostringstream oss;
+	oss << file.rdbuf();
+	std::string content = oss.str();
 
+	// Find "\r\n\r\n" (end of headers)
+	size_t headersEnd = content.find("\r\n\r\n");
+	if (headersEnd == std::string::npos) {
+		return false; // If can't, invalid
+	}
 
-	// Find "\r\n\r\n" (end of headers). If can't, invalid.
-	// Check headers until the found "\r\n".
-	// Check for "Content-Type" with valid MIME type (RFC 3875 6.2.1). If not, invalid
+	// Check headers until the found "\r\n"
+	std::string headers = content.substr(0, headersEnd);
+	std::istringstream headersStream(headers);
 
-	// RFC 3875 CGI 1.1
-	// Response type: 1 or more header files, blank line, message body (may be null)
+	// Check for "Content-Type" (RFC 3875 6.2.1)
+	std::string line;
+	bool contentTypeFound = false;
+
+	while (std::getline(headersStream, line)) {
+		// Remove \r from \r\n
+		if (!line.empty() && line.back() == '\r')
+			line.pop_back();
+
+		if (line.empty())
+			break;
+
+		std::string lineLower = line;
+		std::transform(lineLower.begin(), lineLower.end(), lineLower.begin(),
+			[](unsigned char c){ return std::tolower(c); });
+
+		if (lineLower.find("content-type:") == 0) {
+			if (contentTypeFound) {
+				return false; // Only 1 Content-Type header should exist
+			}
+
+			contentTypeFound = true;
+		}
+	}
+
+	return contentTypeFound;
+}
+
+void	CGIHandler::createCgiResponse(Request& request, Response& response)
+{
+	LOGT(Log::DEBUG, "Creating CGI response");
+
 	response.setAsCgiResponse();
 	response.setBodyFileBufferReader(request.cgiOutFilename);
 	request.cgiSession.state = Request::CgiState::COMPLETE;
