@@ -81,10 +81,11 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		close(cgiOutputFileFd); // Duplicated copy lives in STDOUT of CGI process, we can close this
 
 		// Prepare script argv
-		std::string pythonPath = PYTHON3_PATH;
+		//	TODO:	I think we can get rid of this aditional local variable: cgiExecutable
+		std::string cgiExecutable = request.resolvedCgiExecutable;
 
 		char *argv[] = {
-			const_cast<char*>(pythonPath.c_str()),
+			const_cast<char*>(cgiExecutable.c_str()),
 			const_cast<char*>(scriptPath.c_str()),
 			NULL
 		};
@@ -119,7 +120,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		envp.push_back(NULL);
 
 		// Execute the CGI script
-		execve(pythonPath.c_str(), argv, envp.data());
+		execve(cgiExecutable.c_str(), argv, envp.data());
 		
 		// If we are here, execve() failed. We will capture and handle
 		// this error with waitpid() once the child process exits.
