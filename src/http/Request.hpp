@@ -70,7 +70,6 @@ public:
 	std::optional<size_t>							contentLength;
 	std::optional<HTTP::ContentTypeInfo_t>			contentType;
 	std::string										resolvedPath;
-	std::string										resolvedCgiExecutable;
 	std::vector<std::string>						tmpUploadedFiles;
 	std::string										queryString; // URL query string after '?'
 

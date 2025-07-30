@@ -55,42 +55,15 @@ void	Request::invalidateWithError(int errorStatusCode)
 
 bool	Request::isCGIRequest()
 {
-	if (resolvedLocationBlock == nullptr || resolvedLocationBlock->cgi.empty())
-		return false;
-
-	size_t pos = URI.find_last_of(".");
-	if (pos == std::string::npos)
-		return false;
-	
-	std::string ext = URI.substr(pos);
-
-	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){
-		return std::tolower(c);
-	});
-
-	for (const auto& it : resolvedLocationBlock->cgi) {
-		if (ext == it.first) {
-			resolvedCgiExecutable = it.second;
-			return true;
-		}
-	}
-
-	return false;
+	return resolvedLocationBlock != nullptr
+	       && !resolvedLocationBlock->cgiExtension.empty() 
+	       && Utils::strEndsWith(URI, resolvedLocationBlock->cgiExtension);
 }
 
 bool	Request::isRedirectRequest()
 {
 	return resolvedLocationBlock != nullptr 
 	       && !resolvedLocationBlock->returnRoute.empty();
-
-	////////////////////////////////////////////////////
-	//	TODO:	double check that CGI is not needed here
-	////////////////////////////////////////////////////
-
-	// OLD CONDITION AS BACKUP
-	// return resolvedLocationBlock != nullptr 
-	//        && !resolvedLocationBlock->returnRoute.empty()
-	//        && Utils::strEndsWith(URI, resolvedLocationBlock->cgiExtension);
 }
 
 bool	Request::hasBody()
