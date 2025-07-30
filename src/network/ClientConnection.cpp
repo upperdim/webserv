@@ -70,7 +70,7 @@ void ClientConnection::sendResponse()
 
 bool	ClientConnection::isWaitingForCgi()
 {
-	if (!request.isCGIRequest()) {
+	if (!request.isCgiRequest) {
 		return false;
 	}
 

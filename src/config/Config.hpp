@@ -20,7 +20,7 @@ public:
 	std::vector<HTTP::Method>			allowMethods	= {HTTP::Method::GET};		//	::	allow_methods
 	std::string							returnRoute;
 	bool								autoIndex		= false;					//	::	autoindex
-	std::map<std::string, std::string>	cgi;										//	::	map<ext, executable>
+	std::map<std::string, std::string>	cgiExtToExec;								//	::	map<ext (lowercase), executable>
 	bool								allowUpload		= false;					//	::	allow_upload
 	std::string							uploadDir;									//	::	upload_store
 

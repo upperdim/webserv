@@ -600,7 +600,11 @@ void	Parser::parseCgiExtension(const Token& directive, std::vector<const Token*>
 		return std::tolower(c);
 	});
 
-	location.cgi.at(ext) = params[1]->value;
+	if (location.cgiExtToExec.find(ext) != location.cgiExtToExec.end()) {
+		Throw::InvalidValue(*params[0]); // Extension was set before
+	}
+	
+	location.cgiExtToExec[ext] = params[1]->value;
 }
 
 

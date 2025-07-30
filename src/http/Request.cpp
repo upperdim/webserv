@@ -11,6 +11,7 @@ Request::Request(std::vector<ServerBlock>& _serverBlocks)
 		doneReceiving(false),
 		method(HTTP::Method::GET),
 		errorStatusCode(std::nullopt),
+		isCgiRequest(false),
 		bodyBytesStored(0),
 		isChunkedBodyTransfer(false),
 		currentChunkSize(0),
@@ -53,25 +54,18 @@ void	Request::invalidateWithError(int errorStatusCode)
 	parsingState = Request::ParsingState::INVALID;
 }
 
-bool	Request::isCGIRequest()
-{
-	return resolvedLocationBlock != nullptr
-	       && !resolvedLocationBlock->cgiExtension.empty() 
-	       && Utils::strEndsWith(URI, resolvedLocationBlock->cgiExtension);
-}
-
-bool	Request::isRedirectRequest()
+bool	Request::isRedirectRequest() const
 {
 	return resolvedLocationBlock != nullptr 
 	       && !resolvedLocationBlock->returnRoute.empty();
 }
 
-bool	Request::hasBody()
+bool	Request::hasBody() const
 {
 	return contentLength.has_value() || isChunkedBodyTransfer;
 }
 
-bool	Request::isFileUploadRequest()
+bool	Request::isFileUploadRequest() const
 {
 	return contentType.has_value()
 	       && contentType.value().type == HTTP::ContentType::MULTIPART_FORM_DATA;

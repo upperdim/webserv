@@ -138,6 +138,8 @@ void	RequestParser::parseHeader(Request& request)
 		return;
 	}
 
+	resolveIfCgiRequest(request);
+
 	if (request.hasBody()) {
 		if (!request.createBodyFile() || !request.openBodyFile()) {
 			request.invalidateWithError(WSSC_INTERNAL_SERVER_ERROR);
@@ -156,7 +158,7 @@ void	RequestParser::parseBody(Request& request)
 	}
 
 	// We support any kind of (content type) request body for requests which target CGI script URIs
-	if (request.isCGIRequest()) {
+	if (request.isCgiRequest) {
 		// We still need to unchunk the body before passing it to the script
 		if (request.isChunkedBodyTransfer) {
 			storeChunkedTransferBody(request);
@@ -536,6 +538,35 @@ bool	RequestParser::resolvePath(Request& request)
 	LOGT(Log::INFO, LIGHTMAGENTA << "resolvedPath: " << LIGHTGREEN << BOLD << resolvedPath);
 	request.resolvedPath = resolvedPath;
 	return true;
+}
+
+void	RequestParser::resolveIfCgiRequest(Request& request)
+{
+	if (request.resolvedLocationBlock != nullptr
+	    && request.resolvedLocationBlock->cgiExtToExec.empty()) {
+			request.isCgiRequest = false;
+			return;
+	}
+
+	size_t extBegin = request.URI.find_last_of(".");
+	if (extBegin == std::string::npos) {
+		request.isCgiRequest = false;
+		return;
+	}
+
+	std::string extLower = request.URI.substr(extBegin);
+	std::transform(extLower.begin(), extLower.end(), extLower.begin(),
+			[](unsigned char c){ return std::tolower(c); });
+
+	for (const auto& pair : request.resolvedLocationBlock->cgiExtToExec) {
+		if (pair.first == extLower) {
+			request.resolvedCgiExecPath = pair.second;
+			request.isCgiRequest = true;
+			return;
+		}
+	}
+
+	request.isCgiRequest = false;
 }
 
 void	RequestParser::storeContentLengthBody(Request& request)

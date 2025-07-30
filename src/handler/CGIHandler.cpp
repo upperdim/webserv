@@ -21,7 +21,6 @@ void	CGIHandler::failWithErrorResponse(Request& request, Response& response, int
 void	CGIHandler::initCgi(Request& request, Response& response)
 {
 	LOGT(Log::DEBUG, "Initializing CGI");
-	LOGT(Log::DEBUG, "Using python3 from " << PYTHON3_PATH); // TODO: remove me
 
 	const std::string& scriptPath  = request.resolvedPath;
 
@@ -80,11 +79,8 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		dup2(cgiOutputFileFd, STDOUT_FILENO); // CGI will write to the cgiOut file as STDOUT
 		close(cgiOutputFileFd); // Duplicated copy lives in STDOUT of CGI process, we can close this
 
-		// Prepare script argv
-		std::string pythonPath = PYTHON3_PATH;
-
 		char *argv[] = {
-			const_cast<char*>(pythonPath.c_str()),
+			const_cast<char*>(request.resolvedCgiExecPath.c_str()),
 			const_cast<char*>(scriptPath.c_str()),
 			NULL
 		};
@@ -119,7 +115,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		envp.push_back(NULL);
 
 		// Execute the CGI script
-		execve(pythonPath.c_str(), argv, envp.data());
+		execve(request.resolvedCgiExecPath.c_str(), argv, envp.data());
 		
 		// If we are here, execve() failed. We will capture and handle
 		// this error with waitpid() once the child process exits.

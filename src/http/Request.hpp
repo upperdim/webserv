@@ -48,6 +48,8 @@ public:
 	std::string										protokoll;
 	std::unordered_map<std::string, std::string>	headers;
 	// CGI Output
+	bool											isCgiRequest;
+	std::string										resolvedCgiExecPath;
 	CgiSession_t									cgiSession;
 	std::ofstream									cgiOutFile;
 	std::string										cgiOutFilename;
@@ -76,10 +78,10 @@ public:
 	void											invalidateWithError(int errorStatusCode);
 	
 	// Queries
-	bool											isCGIRequest();
-	bool											isRedirectRequest();
-	bool											hasBody();
-	bool											isFileUploadRequest();
+	bool											isCGIRequest() const;
+	bool											isRedirectRequest() const;
+	bool											hasBody() const;
+	bool											isFileUploadRequest() const;
 	
 	// Body file
 	bool											createBodyFile();

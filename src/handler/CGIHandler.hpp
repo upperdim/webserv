@@ -7,12 +7,6 @@
 #define CGI_OUTPUT_BUFFER_SIZE	4096
 #define CGI_TIMEOUT_SECONDS		5
 
-#if defined(__linux__)
-	#define PYTHON3_PATH			"/usr/bin/python3"
-#elif defined(__APPLE__) && defined(__MACH__)
-	#define PYTHON3_PATH			"/usr/local/bin/python3"
-#endif
-
 class CGIHandler : RequestHandler
 {
 public:
