@@ -131,10 +131,10 @@ void ServerEngine::updatePollFds()
 		addToPollFds(pollFdsRegisterQueue[i]);
 	}
 
-	if (pollFdsRegisterQueue.size() > 0 || pollFdsRegisterQueue.size() > 0) {
-		std::cout << "pollFds updated: ";
-		printPollFds();
-	}
+	// if (pollFdsRegisterQueue.size() > 0 || pollFdsRegisterQueue.size() > 0) {
+	// 	std::cout << "pollFds updated: ";
+	// 	printPollFds();
+	// }
 
 	pollFdsRemovalQueue.clear();
 	pollFdsRegisterQueue.clear();
