@@ -113,13 +113,9 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 
 		// Execute the CGI script
 		execve(pythonPath.c_str(), argv, envp.data());
-		// If we are here, execve() failed
-
-		// TODO: Write internal server error into the cgi out file
-		//	 it will be the response back to client
-		// createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		
-		exit(EXIT_FAILURE);
+		// If we are here, execve() failed
+		exit(EXIT_FAILURE); // We will capture this error exit code with waitpid()
 	}
 		
 	// Parent process
