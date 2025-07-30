@@ -99,7 +99,7 @@ void ServerEngine::iteratePollFds(int eventCount)
 			writeToClient(pollFds[i].fd);
 		}
 		
-		if (pollFds[i].revents & (POLLHUP | POLLERR | POLLNVAL | POLLPRI)) {
+		if (pollFds[i].revents & POLL_ERROR_EVENTS) {
 			if (pollFds[i].revents & POLLHUP) {
 				LOG("POLLHUP event, fd = " << pollFds[i].fd);
 				LOGT(Log::INFO, "ClientConnection fd = " << pollFds[i].fd << " disconnected");
@@ -145,7 +145,7 @@ void ServerEngine::updatePollFds()
 //=============================================================================
 void ServerEngine::addToPollFds(int fd)
 {
-	pollFds.push_back( pollfd{fd, POLLIN | POLLERR | POLLHUP, 0} );
+	pollFds.push_back( pollfd{fd, POLL_LISTEN_EVENTS, 0} );
 }
 
 void ServerEngine::removeFromPollFds(int fd)
@@ -246,7 +246,7 @@ void ServerEngine::readClientIncomingData(int clientFd)
 	if (client.getRequest().doneReceiving) {
 		RequestHandler::handle(client.getRequest(), client.getResponse());
 		
-		setPollFdEvents(clientFd, POLLOUT | POLLERR | POLLHUP);
+		setPollFdEvents(clientFd, POLL_SEND_EVENTS);
 		LOG("Now listening to POLLOUT event for ClientConnection fd = " << clientFd << " socket");
 	}
 }
