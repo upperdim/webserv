@@ -90,8 +90,8 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		envStrings.push_back("GATEWAY_INTERFACE=CGI/1.1");
 		envStrings.push_back("SERVER_PROTOCOL=HTTP/1.1");
 		envStrings.push_back("REQUEST_METHOD=" + HTTP::methodToString(request.method));
-		envStrings.push_back("QUERY_STRING=" + request.queryString); // TODO: Will this always exist?
 		envStrings.push_back("SCRIPT_NAME=" + scriptPath);
+		envStrings.push_back("QUERY_STRING=" + request.queryString);
 
 		if (request.method == HTTP::Method::POST) {
 			// TODO: Will this always exist?

@@ -301,10 +301,19 @@ bool	RequestParser::validDecodedRequestTargetChars(const std::string& uri)
 
 void	RequestParser::parseQueryString(const std::string& sourceURI, std::string& destQueryString)
 {
-	size_t queryStartIdx = sourceURI.find("?");
-	if (queryStartIdx == std::string::npos && sourceURI.size() >= queryStartIdx + 1) {
+	size_t queryStartIdx = sourceURI.find('?');
+	if (queryStartIdx == std::string::npos) {
+		// If no query string, we will still pass QUERY_STRING env var to CGI, as an empty string
 		destQueryString = "";
+		return;
+	}
+
+	size_t fragmentStartIdx = sourceURI.find('#', queryStartIdx + 1);
+	if (fragmentStartIdx != std::string::npos) {
+		// Extract from '?' to '#' (exclusive)
+		destQueryString = sourceURI.substr(queryStartIdx + 1, fragmentStartIdx - queryStartIdx - 1);
 	} else {
+		// Extract from '?' to end
 		destQueryString = sourceURI.substr(queryStartIdx + 1);
 	}
 }
