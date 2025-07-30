@@ -51,6 +51,7 @@ int	main(int argc, char **argv)
 	std::string configFilePath = handleArgs(argc, argv);
 	Config config = parseConfig(configFilePath, argv[0]);
 
+	signal(SIGPIPE, SIG_IGN);
 	std::signal(SIGINT,  handleAbortSignal);
 	std::signal(SIGQUIT, handleAbortSignal);
 
