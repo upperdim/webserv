@@ -114,8 +114,9 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		// Execute the CGI script
 		execve(pythonPath.c_str(), argv, envp.data());
 		
-		// If we are here, execve() failed
-		exit(EXIT_FAILURE); // We will capture this error exit code with waitpid()
+		// If we are here, execve() failed. We will capture and handle
+		// this error with waitpid() once the child process exits.
+		exit(EXIT_FAILURE);
 	}
 		
 	// Parent process
