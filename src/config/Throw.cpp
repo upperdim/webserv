@@ -95,6 +95,11 @@ void	Throw::InvalidExecutable(const Token& token)
 	throw std::runtime_error("invalid executable \"" + token.getTokenValue() + "\"" + token.inLine());
 }
 
+void	Throw::CgiRedefinition(const Token& token)
+{
+	throw std::runtime_error("duplicate cgi directive for extension \"" + token.getTokenValue() + "\"" + token.inLine());
+}
+
 void	Throw::FailedToConvertDomainToIP(const Token& token)
 {
 	throw std::runtime_error("Failed to convert \"" + token.getTokenValue() + "\" to IP address" + token.inLine());
