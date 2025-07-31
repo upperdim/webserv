@@ -55,6 +55,7 @@ private:
 		{"root", 					KeywordType::ROOT},
 		{"index", 					KeywordType::INDEX},
 
+		{"alias",					KeywordType::ALIAS },
 		{"allow_methods",			KeywordType::ALLOW_METHODS },
 		{"return",					KeywordType::RETURN },
 		{"autoindex",				KeywordType::AUTOINDEX },
