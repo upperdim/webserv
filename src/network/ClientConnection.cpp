@@ -68,7 +68,7 @@ void ClientConnection::sendResponse()
 		}
 
 		// Not all data could be sent
-		if ((size_t) bytesSent < dataToSend.length()) {
+		if (static_cast<size_t>(bytesSent) < dataToSend.length()) {
 			// Leave the data that wasn't sent
 			dataToSend = dataToSend.substr(bytesSent);
 		} else {
