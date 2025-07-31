@@ -125,6 +125,7 @@ std::string	Token::tokenKeywordTypeToString(void) const
 		case KeywordType::ERROR_PAGE:			return "ERROR_PAGE";
 		case KeywordType::CLIENT_MAX_BODY_SIZE:	return "CLIENT_MAX_BODY_SIZE";
 		case KeywordType::ROOT:					return "ROOT";
+		case KeywordType::ALIAS:				return "ALIAS";
 		case KeywordType::INDEX:				return "INDEX";
 		case KeywordType::ALLOW_METHODS:		return "ALLOW_METHODS";
 		case KeywordType::RETURN:				return "RETURN";

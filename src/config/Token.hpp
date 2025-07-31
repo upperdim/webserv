@@ -37,6 +37,7 @@ enum class KeywordType {
 	ERROR_PAGE,
 	CLIENT_MAX_BODY_SIZE,
 	ROOT,
+	ALIAS,
 	INDEX,
 	ALLOW_METHODS,
 	RETURN,
