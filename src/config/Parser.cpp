@@ -1,4 +1,3 @@
-
 #include "Parser.hpp"
 #include <filesystem>
 #include <algorithm>
@@ -342,8 +341,8 @@ void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives
 			parsedLocationDirectives.autoIndex = true;
 			parseToggle(directive, params, location.autoIndex);
 			break;
-		case KeywordType::CGI_EXTENSION:
-			parseExtension(directive, params, location.cgiExtension);
+		case KeywordType::CGI:
+			parseCgiExtension(directive, params, location);
 			break;
 		case KeywordType::ALLOW_UPLOAD:
 			if (parsedLocationDirectives.allowUpload)
@@ -519,7 +518,7 @@ void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector
 	if (params[0]->value.find('.') != std::string::npos)
 		Throw::InvalidValue(*params[0]);
 
-	size_t bodySizeValue;
+	size_t bodySizeValue = std::numeric_limits<size_t>::max();
 	try {
 		bodySizeValue = std::stoul(params[0]->value);
 		if (params[0]->value.back() == 'k' || params[0]->value.back() == 'K')
@@ -531,6 +530,8 @@ void	Parser::parseClientMaxBodySizeDirective(const Token& directive, std::vector
 	} catch(...) {
 		Throw::InvalidValue(*params[0]);
 	}
+	if (bodySizeValue == std::numeric_limits<size_t>::max())
+		return;
 	value = bodySizeValue;
 }
 
@@ -579,17 +580,32 @@ void	Parser::parseToggle(const Token& directive, std::vector<const Token*>& para
 	toggle = validToggle;
 }
 
-void	Parser::parseExtension(const Token& directive, std::vector<const Token*>& params, std::string& ext)
+void	Parser::parseCgiExtension(const Token& directive, std::vector<const Token*>& params, LocationBlock& location)
 {
-	if (params.size() != 1)
+	if (params.size() != 2)
 		Throw::InvalidNumberOfArguments(directive);
 	if (params[0]->type != TokenType::PARAM)
 		Throw::InvalidValue(*params[0]);
+	if (params[1]->type != TokenType::PATH)
+		Throw::InvalidValue(*params[1]);
 
 	if (!Validator::isValidExtension(params[0]->value))
 		Throw::InvalidExtension(*params[0]);
+
+	if (!Validator::isValidExecutable(params[1]->value))
+		Throw::InvalidExecutable(*params[1]);
+
+	std::string ext(params[0]->value);
+
+	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){
+		return std::tolower(c);
+	});
+
+	if (location.cgiExtToExec.find(ext) != location.cgiExtToExec.end()) {
+		Throw::CgiRedefinition(*params[0]); // Extension was set before
+	}
 	
-	ext = params[0]->value;
+	location.cgiExtToExec[ext] = params[1]->value;
 }
 
 

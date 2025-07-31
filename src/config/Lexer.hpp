@@ -58,7 +58,7 @@ private:
 		{"allow_methods",			KeywordType::ALLOW_METHODS },
 		{"return",					KeywordType::RETURN },
 		{"autoindex",				KeywordType::AUTOINDEX },
-		{"cgi_extension",			KeywordType::CGI_EXTENSION },
+		{"cgi",						KeywordType::CGI },
 		{"allow_upload",			KeywordType::ALLOW_UPLOAD },
 		{"upload_store",			KeywordType::UPLOAD_STORE }
 	};

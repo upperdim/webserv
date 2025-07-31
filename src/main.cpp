@@ -53,6 +53,7 @@ int	main(int argc, char **argv)
 
 	std::signal(SIGINT,  handleAbortSignal);
 	std::signal(SIGQUIT, handleAbortSignal);
+	std::signal(SIGPIPE, SIG_IGN);
 
 	try {
 		ServerEngine serverEngine(config);
@@ -64,6 +65,7 @@ int	main(int argc, char **argv)
 
 	std::signal(SIGINT,  SIG_DFL);
 	std::signal(SIGQUIT, SIG_DFL);
+	std::signal(SIGPIPE, SIG_DFL);
 
 	return 0;
 }

@@ -22,6 +22,9 @@ compile_commands.json
 *.ps1
 *.sh
 
+# 42 Tester
+YoupiBanane/
+
 # Demo folders
 local/
 error_pages/

@@ -30,6 +30,8 @@ public:
 	static void	DirectiveIsNotTerminated(const Token& token);
 	static void	InvalidReturnCode(const Token& token);
 	static void	InvalidExtension(const Token& token);
+	static void	InvalidExecutable(const Token& token);
+	static void	CgiRedefinition(const Token& token);
 	static void	FailedToConvertDomainToIP(const Token& token);
 	static void	DuplicateDirective(const Token& directive);
 	static void	DuplicateListenDirective(const Token& token, const ServerBlock& server);

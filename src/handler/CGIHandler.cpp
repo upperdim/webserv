@@ -3,6 +3,8 @@
 #include <string>
 #include <cstring>
 #include <fcntl.h>
+#include <algorithm>
+#include <filesystem>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
@@ -11,10 +13,15 @@
 #include "Response.hpp"
 #include "CGIHandler.hpp"
 
+void	CGIHandler::failWithErrorResponse(Request& request, Response& response, int errorStatusCode)
+{
+	createErrorResponse(request, response, errorStatusCode);
+	request.cgiSession.state = Request::CgiState::FAILED;
+}
+
 void	CGIHandler::initCgi(Request& request, Response& response)
 {
 	LOGT(Log::DEBUG, "Initializing CGI");
-	LOGT(Log::DEBUG, "Using python3 from " << PYTHON3_PATH); // TODO: remove me
 
 	const std::string& scriptPath  = request.resolvedPath;
 
@@ -24,10 +31,16 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	// No request body = no body file content = no input = empty STDIN.
 	if (request.bodyFilename.empty()) {
 		if (!request.createBodyFile()) {
-			createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-			request.cgiSession.state = Request::CgiState::FAILED;
+			failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 			return;
 		}
+	}
+
+	uintmax_t bodyFileSize = 0;
+	if (request.isChunkedBodyTransfer) {
+		// Content-Length wasn't given
+		// We have to measure it to pass it into CGI env
+		bodyFileSize = std::filesystem::file_size(request.bodyFilename);
 	}
 
 	// Open the body file
@@ -35,23 +48,20 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 	bodyFileFd = open(request.bodyFilename.c_str(), O_RDONLY);
 	if (bodyFileFd < 0) {
 		LOGT(Log::ERROR, "Failed opening temp body file in CGI handler");
-		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.state = Request::CgiState::FAILED;
+		failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
 
 	// Create and open CGI output file
 	if (!request.createCgiOutFile()) {
 		close(bodyFileFd);
-		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.state = Request::CgiState::FAILED;
+		failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
 	int cgiOutputFileFd = open(request.cgiOutFilename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
 	if (cgiOutputFileFd < 0) {
 		close(bodyFileFd);
-		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.state = Request::CgiState::FAILED;
+		failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
 
@@ -63,8 +73,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		close(bodyFileFd);
 		close(cgiOutputFileFd);
 		LOGT(Log::ERROR, "Could not fork a CGI process");
-		createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
-		request.cgiSession.state = Request::CgiState::FAILED;
+		failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return;
 	}
 
@@ -78,11 +87,8 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		dup2(cgiOutputFileFd, STDOUT_FILENO); // CGI will write to the cgiOut file as STDOUT
 		close(cgiOutputFileFd); // Duplicated copy lives in STDOUT of CGI process, we can close this
 
-		// Prepare script argv
-		std::string pythonPath = PYTHON3_PATH;
-
 		char *argv[] = {
-			const_cast<char*>(pythonPath.c_str()),
+			const_cast<char*>(request.resolvedCgiExecPath.c_str()),
 			const_cast<char*>(scriptPath.c_str()),
 			NULL
 		};
@@ -92,16 +98,37 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		envStrings.push_back("GATEWAY_INTERFACE=CGI/1.1");
 		envStrings.push_back("SERVER_PROTOCOL=HTTP/1.1");
 		envStrings.push_back("REQUEST_METHOD=" + HTTP::methodToString(request.method));
-		envStrings.push_back("QUERY_STRING=" + request.queryString);
 		envStrings.push_back("SCRIPT_NAME=" + scriptPath);
+		envStrings.push_back("QUERY_STRING=" + request.queryString);
 
 		if (request.method == HTTP::Method::POST) {
-			// To be added
-			// envStrings.push_back("CONTENT_LENGTH=" ;
-			// envStrings.push_back("CONTENT_TYPE=" ;
-		} else {
-			envStrings.push_back("CONTENT_LENGTH=0");
-			envStrings.push_back("CONTENT_TYPE=");
+			if (request.contentLength.has_value()) {
+				envStrings.push_back("CONTENT_LENGTH="  + std::to_string(request.contentLength.value()));
+			} else {
+				envStrings.push_back("CONTENT_LENGTH="  + std::to_string(bodyFileSize));
+			}
+
+			if (request.contentType.has_value()) {
+				envStrings.push_back("CONTENT_TYPE=" + request.contentType->raw);
+			} else {
+				envStrings.push_back("CONTENT_TYPE=");
+			}
+		}
+
+		// Add headers to CGI env vars
+		for (const auto& [key, value] : request.headers) {
+			std::string keyLower = key;
+			std::transform(keyLower.begin(), keyLower.end(), keyLower.begin(), ::tolower);
+
+			if (keyLower == "content-length" || keyLower == "content-type") {
+				continue; // Already passed
+			}
+
+			std::string envKey = "HTTP_";
+			for (char c : key) {
+				envKey += (c == '-') ? '_' : std::toupper(static_cast<unsigned char>(c));
+			}
+			envStrings.push_back(envKey + "=" + value);
 		}
 
 		std::vector<char*> envp;
@@ -110,13 +137,10 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		envp.push_back(NULL);
 
 		// Execute the CGI script
-		execve(pythonPath.c_str(), argv, envp.data());
-		// If we are here, execve() failed
-
-		// TODO: Write internal server error into the cgi out file
-		//	 it will be the response back to client
-		// createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+		execve(request.resolvedCgiExecPath.c_str(), argv, envp.data());
 		
+		// If we are here, execve() failed. We will capture and handle
+		// this error with waitpid() once the child process exits.
 		exit(EXIT_FAILURE);
 	}
 		
@@ -134,8 +158,42 @@ bool	CGIHandler::checkCgiCompletion(Request& request, Response& response)
 
 	int status;
 	pid_t result = waitpid(session.pid, &status, WNOHANG);
+
+	// CGI child process has finished
 	if (result == session.pid) {
-		session.state = Request::CgiState::PROCESS_FINISHED;
+		// Check if signal exit
+		if (WIFSIGNALED(status)) {
+			
+			int sig = WTERMSIG(status);
+			LOGT(Log::ERROR, "CGI script crashed with signal " << sig);
+
+			failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+			return true;
+		}
+		
+		// Check exit status
+		if (WIFEXITED(status)) {
+			int exitCode = WEXITSTATUS(status);
+
+			if (exitCode != 0) {
+				LOGT(Log::ERROR, "CGI script crashed with exit code " << exitCode);
+				failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+				return true;
+			}
+
+			// Exit success, validate
+			if (!validateCgiOutput(request)) {
+				failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+				return true;
+			}
+			
+			session.state = Request::CgiState::PROCESS_FINISHED;
+			return true;
+		}
+
+		// Invalid exit type?
+		LOGT(Log::ERROR, "Could not detect CGI script exit type");
+		failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return true;
 	} else if (result == 0) {
 		// CGI still running
@@ -143,31 +201,76 @@ bool	CGIHandler::checkCgiCompletion(Request& request, Response& response)
 			// Timeout
 			kill(session.pid, SIGKILL);
 			waitpid(session.pid, NULL, 0); // clean up process entry from OS
-			createErrorResponse(request,	response, WSSC_GATEWAY_TIMEOUT);
-			session.state = Request::CgiState::FAILED;
-			return false;
+			failWithErrorResponse(request, response, WSSC_GATEWAY_TIMEOUT);
+			return true;
 		}
 		return false;
 	} else {
-		session.state = Request::CgiState::FAILED;
+		LOGT(Log::ERROR, "waitpid() failed in checkCgiCompletion()");
+		failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 		return true;
 	}
 }
 
-void	CGIHandler::createCgiResponse(Request& request, Response& response)
+// RFC 3875 (CGI 1.1)
+// Response type: 1 or more header files, blank line, message body (may be null)
+bool	CGIHandler::validateCgiOutput(const Request& request)
 {
-	LOGT(Log::DEBUG, "Completing CGI session");
+	LOGT(Log::DEBUG, "Verifying CGI output");
 
 	// RFC 3875 6.2.2 Verify headers
+	std::ifstream file(request.cgiOutFilename, std::ios::binary);
+	if (!file) {
+		return false;
+	}
 
+	std::ostringstream oss;
+	oss << file.rdbuf();
+	std::string content = oss.str();
 
+	// Find "\r\n\r\n" (end of headers)
+	size_t headersEnd = content.find("\r\n\r\n");
+	if (headersEnd == std::string::npos) {
+		return false; // If can't, invalid
+	}
 
-	// Find "\r\n\r\n" (end of headers). If can't, invalid.
-	// Check headers until the found "\r\n".
-	// Check for "Content-Type" with valid MIME type (RFC 3875 6.2.1). If not, invalid
+	// Check headers until the found "\r\n"
+	std::string headers = content.substr(0, headersEnd);
+	std::istringstream headersStream(headers);
 
-	// RFC 3875 CGI 1.1
-	// Response type: 1 or more header files, blank line, message body (may be null)
+	// Check for "Content-Type" (RFC 3875 6.2.1)
+	std::string line;
+	bool contentTypeFound = false;
+
+	while (std::getline(headersStream, line)) {
+		// Remove \r from \r\n
+		if (!line.empty() && line.back() == '\r')
+			line.pop_back();
+
+		if (line.empty())
+			break;
+
+		std::string lineLower = line;
+		std::transform(lineLower.begin(), lineLower.end(), lineLower.begin(),
+			[](unsigned char c){ return std::tolower(c); });
+
+		// If "content-type:" is at index 0 (beginning)
+		if (lineLower.find("content-type:") == 0) {
+			if (contentTypeFound) {
+				return false; // Only 1 Content-Type header should exist
+			}
+
+			contentTypeFound = true;
+		}
+	}
+
+	return contentTypeFound;
+}
+
+void	CGIHandler::createCgiResponse(Request& request, Response& response)
+{
+	LOGT(Log::DEBUG, "Creating CGI response");
+
 	response.setAsCgiResponse();
 	response.setBodyFileBufferReader(request.cgiOutFilename);
 	request.cgiSession.state = Request::CgiState::COMPLETE;

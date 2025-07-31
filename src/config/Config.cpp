@@ -86,8 +86,12 @@ void	Config::printConfigs(void) const
 			print(LIGHTMAGENTA + location.uploadDir);
 			printLn(GRAY";" RESET);
 
-			print(LIGHTCYAN"\t\tcgi_extension\t\t" RESET);
-			print(LIGHTMAGENTA + location.cgiExtension);
+			print(LIGHTCYAN"\t\tcgi\t\t\t" RESET);
+			// if (!location.cgiExtension.empty() && !location.cgiExecutable.empty())
+			// 	print(LIGHTMAGENTA + location.cgiExtension + " " + location.cgiExecutable);
+			for (const auto& it : location.cgiExtToExec) {
+				print(LIGHTMAGENTA + it.first + " " + it.second);
+			}
 			printLn(GRAY";" RESET);
 
 			if (location.allowMethods.size() > 0) {
