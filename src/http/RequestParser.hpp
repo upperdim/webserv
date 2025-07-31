@@ -40,7 +40,7 @@ private:
 	static bool					resolveServerBlock(Request& request);
 	static bool					resolveLocationBlock(Request& request);
 	static bool					resolvePath(Request& request);
-	static void					resolveIfCgiRequest(Request& request);
+	static void					resolveCgiExtensionAndExecutableIfCgi(Request& request);
 
 	// Body helpers
 	static void					storeContentLengthBody(Request& request);

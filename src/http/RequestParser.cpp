@@ -138,7 +138,7 @@ void	RequestParser::parseHeader(Request& request)
 		return;
 	}
 
-	resolveIfCgiRequest(request);
+	resolveCgiExtensionAndExecutableIfCgi(request);
 
 	if (request.hasBody()) {
 		if (!request.createBodyFile() || !request.openBodyFile()) {
@@ -549,7 +549,7 @@ bool	RequestParser::resolvePath(Request& request)
 	return true;
 }
 
-void	RequestParser::resolveIfCgiRequest(Request& request)
+void	RequestParser::resolveCgiExtensionAndExecutableIfCgi(Request& request)
 {
 	if (request.resolvedLocationBlock != nullptr
 	    && request.resolvedLocationBlock->cgiExtToExec.empty()) {
