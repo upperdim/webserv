@@ -4,7 +4,6 @@
 #include "RequestHandler.hpp"
 #include "Response.hpp"
 
-#define CGI_OUTPUT_BUFFER_SIZE	4096
 #define CGI_TIMEOUT_SECONDS		5
 
 class CGIHandler : RequestHandler
