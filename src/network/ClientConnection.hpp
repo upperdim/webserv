@@ -22,6 +22,7 @@ int					fd;
 
 public:
 	ClientConnection(int fd, ServerSocket& connectedServerSocket);
+	~ClientConnection();
 
 	void			receiveRequest();
 	void			sendResponse();

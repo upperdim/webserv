@@ -27,6 +27,8 @@ Request::Request(std::vector<ServerBlock>& _serverBlocks)
 
 Request::~Request()
 {
+	LOGT(Log::DEBUG, "Request destructor");
+
 	if (bodyFile.is_open()) {
 		bodyFile.close();
 	}

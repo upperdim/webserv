@@ -14,6 +14,11 @@ ClientConnection::ClientConnection(int fd, ServerSocket& _connectedServerSocket)
 {
 }
 
+ClientConnection::~ClientConnection()
+{
+	LOGT(Log::DEBUG, "ClientConnection destructor");
+}
+
 void ClientConnection::receiveRequest()
 {
 	LOG("Reading from ClientConnection fd = " << fd);
