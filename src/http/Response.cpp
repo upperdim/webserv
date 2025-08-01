@@ -1,3 +1,4 @@
+#include <random>
 #include "Response.hpp"
 
 Response::Response()
@@ -28,6 +29,31 @@ void	Response::setStatusCode(const int& _statusCode)
 void	Response::addHeader(const std::string& key, const std::string& value)
 {
 	m_headers[key] = value;
+}
+
+void	Response::createSessionCookie()
+{
+	static const char charset[] =
+		"0123456789"
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		"abcdefghijklmnopqrstuvwxyz";
+
+	std::string sessionToken;
+	sessionToken.reserve(SESSION_TOKEN_LEN);
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dist(0, sizeof(charset) - 2);
+
+	for (size_t i = 0; i < SESSION_TOKEN_LEN; ++i)
+		sessionToken += charset[dist(gen)];
+
+	std::ostringstream cookieVal;
+	cookieVal << "sessionId=" << sessionToken
+			<< "; HttpOnly"
+			<< "; SameSite=Strict";
+	
+	addHeader("Set-Cookie", cookieVal.str());
 }
 
 void	Response::setBodyString(const std::string& _body)

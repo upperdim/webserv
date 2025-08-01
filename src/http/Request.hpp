@@ -74,6 +74,7 @@ public:
 	std::string										resolvedPath;
 	std::vector<std::string>						tmpUploadedFiles;
 	std::string										queryString; // URL query string after '?'
+	bool											hasCookie;
 
 	void											invalidateWithError(int errorStatusCode);
 	

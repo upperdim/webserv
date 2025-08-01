@@ -259,6 +259,10 @@ void ServerEngine::writeToClient(int clientFd)
 		return;
 	}
 
+	if (!client.getRequest().hasCookie) {
+		client.getResponse().createSessionCookie();
+	}
+
 	LOG("POLLOUT event, fd = " << clientFd);
 	client.sendResponse();
 
