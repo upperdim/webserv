@@ -19,7 +19,8 @@ Request::Request(std::vector<ServerBlock>& _serverBlocks)
 		awaitingChunkSize(true),
 		serverBlocks(_serverBlocks),
 		resolvedServerBlock(nullptr),
-		resolvedLocationBlock(nullptr)
+		resolvedLocationBlock(nullptr),
+		hasCookie(false)
 {
 	cgiSession.pid = -1;
 	cgiSession.state = CgiState::INIT;

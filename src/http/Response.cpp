@@ -1,3 +1,4 @@
+#include <random>
 #include "Response.hpp"
 
 Response::Response()
@@ -28,6 +29,31 @@ void	Response::setStatusCode(const int& _statusCode)
 void	Response::addHeader(const std::string& key, const std::string& value)
 {
 	m_headers[key] = value;
+}
+
+void	Response::createSessionCookie()
+{
+	static const char charset[] =
+		"0123456789"
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		"abcdefghijklmnopqrstuvwxyz";
+
+	std::string sessionToken;
+	sessionToken.reserve(SESSION_TOKEN_LEN);
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dist(0, sizeof(charset) - 2);
+
+	for (size_t i = 0; i < SESSION_TOKEN_LEN; ++i)
+		sessionToken += charset[dist(gen)];
+
+	std::ostringstream cookieVal;
+	cookieVal << "sessionId=" << sessionToken
+			<< "; HttpOnly"
+			<< "; SameSite=Strict";
+	
+	addHeader("Set-Cookie", cookieVal.str());
 }
 
 void	Response::setBodyString(const std::string& _body)
@@ -66,10 +92,7 @@ std::string	Response::getNextChunk(void)
 			setComplete();
 			break ;
 		case (ResponseState::SEND_CGI):
-			buff = getResponseLine();
-			if (m_bodyType != BodyType::BODY_FILE_BUFFER) {
-				LOGT(Log::ERROR, "CGI response body type is different than BODY_FILE_BUFFER");
-			}
+			buff = getCgiOutput();
 			setState(ResponseState::SEND_BODY);
 			break;
 		default:
@@ -150,6 +173,24 @@ std::string	Response::getNextBodyChunk(void)
 	}
 
 	return ( ss.str() );
+}
+
+std::string Response::getCgiOutput(void)
+{
+	std::string buff = getResponseLine();
+
+	// Append session cookie header
+	// CGI is responsible for all headers, including creating a sesion cookie
+	// auto itSetCookie = m_headers.find("Set-Cookie");
+	// if (itSetCookie != m_headers.end()) {
+	// 	buff += itSetCookie->first + ": " + itSetCookie->second;
+	// }
+
+	// if (m_bodyType != BodyType::BODY_FILE_BUFFER) {
+	// 	LOGT(Log::ERROR, "CGI response body type is different than BODY_FILE_BUFFER");
+	// }
+
+	return buff;
 }
 
 void	Response::checkBodyState()

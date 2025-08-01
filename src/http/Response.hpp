@@ -10,6 +10,7 @@
 
 // A good default RESPONSE_BUFFER_SIZE seams to be 64kb - 128kb
 #define RESPONSE_BUFFER_SIZE (64 * 1024)
+#define SESSION_TOKEN_LEN   24
 
 typedef std::unordered_map<std::string, std::string> HeaderMap;
 
@@ -22,6 +23,7 @@ public:
 	void				setProtocol(const std::string& _protocol);
 	void				setStatusCode(const int& _statusCode);
 	void				addHeader(const std::string& key, const std::string& value);
+	void				createSessionCookie();
 	void				setBodyString(const std::string& _body);
 	void				setBodyFileBufferReader(std::string path);
 	void				setAsCgiResponse(void);
@@ -68,6 +70,7 @@ private:
 	std::string			getResponseLine(void) const;
 	std::string			getHeaders(void) const;
 	std::string			getNextBodyChunk(void);
+	std::string			getCgiOutput(void);	
 	void				checkBodyState();
 	void				setState(ResponseState _state);
 };

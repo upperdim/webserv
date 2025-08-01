@@ -132,6 +132,11 @@ void	RequestParser::parseHeader(Request& request)
 	if (!validateOptionalHeaderFields(request))
 		return;
 
+	auto itCookie = request.headers.find("cookie");
+	if (itCookie != request.headers.end()) {
+		request.hasCookie = true;
+	}
+
 	if (!resolvePath(request)) {
 		// This should not happen
 		request.invalidateWithError(WSSC_BAD_REQUEST);
