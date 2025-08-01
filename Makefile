@@ -1,6 +1,6 @@
 # Makeflags
-JOBS ?= $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
-MAKEFLAGS += -j$(JOBS)
+# JOBS ?= $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+# MAKEFLAGS += -j$(JOBS)
 
 # Sources
 SRC_FOLDERS	=	src \
