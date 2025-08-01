@@ -29,10 +29,6 @@ void	Lexer::tokenize(std::vector<Token>& tokens)
 {
 	while (m_pos < m_input.length()) {
 		Token token = nextToken();
-
-		//	TODO:	decide if we process INVALID tokens or if we just leave them out
-		//			currently I decided to add INVALID tokens to the list… lets see…
-		// if (token.type != TokenType::INVALID)
 		tokens.emplace_back(token);
 	}
 
@@ -88,7 +84,6 @@ Token	Lexer::nextToken(bool _precededByComment)
 	}
 
 	//	Handle keywords and general parameters
-	//	TODO:	I added '.' '-' and '_' is this ok
 	if (std::isalpha(c) || c == '/' || c == '.' || c == '-' || c == '_') {
 		return readAndClassify();
 	}

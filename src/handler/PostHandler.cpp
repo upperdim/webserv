@@ -121,6 +121,4 @@ void	PostHandler::handle(Request& request, Response& response)
 	}
 
 	createErrorResponse(request, response, WSSC_FORBIDDEN);
-
-	//	TODO:	we need to clean the Request class when we support KEEP-ALIVE
 }

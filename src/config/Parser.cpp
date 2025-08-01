@@ -27,8 +27,6 @@ Config	Parser::parse(void)
 	setFallbacks(config);
 
 	if (m_tokens.size() == 0 || isAtEnd()) {
-		//	TODO:	return a valid default config
-		//			set default value for allow_methods					
 		return config;
 	}
 
@@ -555,8 +553,6 @@ void	Parser::parseIndexDirective(const Token& directive, std::vector<const Token
 		  params[0]->type == TokenType::NUMBER))
 		Throw::InvalidValue(*params[0]);
 
-	//	TODO:	we currently accept only one parameter
-	//			and we accept any PARAM, URI or NUMBER
 	index = params[0]->value;
 }
 
@@ -568,10 +564,7 @@ void	Parser::parsePath(const Token& directive, std::vector<const Token*>& params
 	if (params[0]->type != TokenType::PATH)
 		Throw::InvalidValue(*params[0]);
 
-	//	TODO:	we currently accept any absolute path // IS this good enough for use ??
-	//			(A path like /images/logo.png in your config does not mean an absolute filesystem path (like /home/user/project/images/logo.png) unless your server interprets it that way.)
-	//			- should we accept relative path as well?
-	//			- do we have to remove Dot Segments
+	//	TODO:	we currently accept any absolute path
 	path = params[0]->value;
 }
 
