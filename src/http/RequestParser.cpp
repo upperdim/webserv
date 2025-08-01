@@ -536,7 +536,7 @@ bool	RequestParser::resolvePath(Request& request)
 	
 	if (!request.resolvedLocationBlock->alias.empty()) {
 		// ALIAS resolution
-		if (!Utils::strStartsWith(uri, request.resolvedLocationBlock->route)) {
+		if (!Utils::strStartsWith(request.URI, request.resolvedLocationBlock->route)) {
 			LOGT(Log::ERROR, "ALIAS: URI doesn't match loaction route");
 			return false;
 		}
@@ -556,7 +556,7 @@ bool	RequestParser::resolvePath(Request& request)
 		if (!cleanRoot.empty() && cleanRoot.back() == '/')
 			cleanRoot.pop_back();
 
-		request.resolvedPath = cleanRoot + '/' + uri;
+		request.resolvedPath = cleanRoot + '/' + request.URI;
 	}
 
 	// We do not sanitize or remove dot segments (e.g., "..") from ROOT or ALIAS paths.
