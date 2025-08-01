@@ -547,14 +547,15 @@ bool	RequestParser::resolvePath(Request& request)
 		}
 
 		std::string uriSuffix = request.URI.substr(request.resolvedLocationBlock->route.length());
-		if (!uriSuffix.empty() && uriSuffix.front() == '/')
-			uriSuffix.erase(0, 1);
+		// if (!uriSuffix.empty() && uriSuffix.front() == '/')
+		// 	uriSuffix.erase(0, 1);
 		
 		std::string cleanAlias = request.resolvedLocationBlock->alias;
-		if (!cleanAlias.empty() && cleanAlias.back() == '/')
-			cleanAlias.pop_back();
+		// if (!cleanAlias.empty() && cleanAlias.back() == '/')
+		// 	cleanAlias.pop_back();
 		
-		request.resolvedPath = cleanAlias + '/' + uriSuffix;
+		request.resolvedPath = cleanAlias + uriSuffix;
+		// request.resolvedPath = cleanAlias + '/' + uriSuffix;
 	} else {
 		// ROOT resolution
 		std::string cleanRoot = request.resolvedLocationBlock->root;
