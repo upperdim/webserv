@@ -529,23 +529,40 @@ bool	RequestParser::resolveLocationBlock(Request& request)
 
 bool	RequestParser::resolvePath(Request& request)
 {
-	// ensure root path has not a '/'
-	std::string root = request.resolvedLocationBlock->root;
-	if (root.back() == '/')
-		root.pop_back();
-
-	// ensure we have a leading '/' doube check should we eliminate this check?
-	if (request.URI.front() != '/')
+	if (request.URI.empty() ||
+	    request.URI.front() != '/' ||
+	    request.resolvedLocationBlock == nullptr)
 		return false;
+	
+	if (!request.resolvedLocationBlock->alias.empty()) {
+		// ALIAS resolution
+		if (!Utils::strStartsWith(uri, request.resolvedLocationBlock->route)) {
+			LOGT(Log::ERROR, "ALIAS: URI doesn't match loaction route");
+			return false;
+		}
 
-	//	TODO:	if we dont sanatize the resolvedPath for /../ or /./ or /////
-	//			we can set it directly to request.resolvedPath
-	std::string resolvedPath = root + request.URI;
+		std::string uriSuffix = request.URI.substr(request.resolvedLocationBlock->route.length());
+		if (!uriSuffix.empty() && uriSuffix.front() == '/')
+			uriSuffix.erase(0, 1);
+		
+		std::string cleanAlias = request.resolvedLocationBlock->alias;
+		if (!cleanAlias.empty() && cleanAlias.back() == '/')
+			cleanAlias.pop_back();
+		
+		request.resolvedPath = cleanAlias + '/' + uriSuffix;
+	} else {
+		// ROOT resolution
+		std::string cleanRoot = request.resolvedLocationBlock->root;
+		if (!cleanRoot.empty() && cleanRoot.back() == '/')
+			cleanRoot.pop_back();
 
-	//	TODO:	do we want to sanatize and clean the root and resolvedPath??
+		request.resolvedPath = cleanRoot + '/' + uri;
+	}
 
-	LOGT(Log::INFO, LIGHTMAGENTA << "resolvedPath: " << LIGHTGREEN << BOLD << resolvedPath);
-	request.resolvedPath = resolvedPath;
+	// We do not sanitize or remove dot segments (e.g., "..") from ROOT or ALIAS paths.
+	// These values come from the server configuration, not user input,
+	// so we assume the administrator knows what they’re doing.
+	LOGT(Log::INFO, LIGHTMAGENTA << "resolvedPath: " << LIGHTGREEN << BOLD << request.resolvedPath);
 	return true;
 }
 
