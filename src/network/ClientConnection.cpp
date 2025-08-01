@@ -52,19 +52,27 @@ void ClientConnection::sendResponse()
 {
 	LOG("Writing to ClientConnection fd = " << fd);
 	
-	std::string	chunk = response.getNextChunk();
-	ssize_t bytesSent = send(fd, chunk.c_str(), chunk.length(), 0);
+	// We have no pending bytes to send
+	if (dataToSend.empty()) {
+		dataToSend = response.getNextChunk();
+	}
+
+	ssize_t bytesSent = send(fd, dataToSend.c_str(), dataToSend.length(), 0);
 	LOG(bytesSent << " bytes sent");
 
 	if (bytesSent > 0) {
 		if (bytesSent < SENT_CHUNK_LOG_TRESHOLD_LEN) {
-			LOG("chunk = " << LIGHTMAGENTA <<  "<<<\n" << LIGHTCYAN << chunk.c_str() << LIGHTMAGENTA << ">>>" << DEFAULT);
+			LOG("chunk = " << LIGHTMAGENTA <<  "<<<\n" << LIGHTCYAN << dataToSend.c_str() << LIGHTMAGENTA << ">>>" << DEFAULT);
 		} else {
 			LOG("chunk too long to log");
 		}
 
-		if ((size_t) bytesSent < chunk.length()) {
-			// TODO: don't discard unsent data, keep for the next poll iterations
+		// Not all data could be sent
+		if (static_cast<size_t>(bytesSent) < dataToSend.length()) {
+			// Leave the data that wasn't sent
+			dataToSend = dataToSend.substr(bytesSent);
+		} else {
+			dataToSend.clear();
 		}
 	} else if (bytesSent < 0) {
 		connectionError = true;

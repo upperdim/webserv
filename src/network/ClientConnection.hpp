@@ -4,6 +4,7 @@
 #include "ServerSocket.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
+#include <string>
 
 #define MAX_NUM_OF_TRIES_FOR_ZERO_BYTES_READ 5
 #define SENT_CHUNK_LOG_TRESHOLD_LEN          1000
@@ -19,6 +20,7 @@ int					fd;
 	Request			request;
 	Response		response;
 	int				zeroBytesReadCounter;
+	std::string		dataToSend;
 
 public:
 	ClientConnection(int fd, ServerSocket& connectedServerSocket);
