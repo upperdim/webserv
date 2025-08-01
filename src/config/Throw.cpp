@@ -120,7 +120,7 @@ void	Throw::DuplicateLocationDirective(const Token& token, std::string& route)
 	throw std::runtime_error("duplicate location \"" + route + "\"" + token.inLine());
 }
 
-void	Throw::DuplicateRootAliasDirective(const Token& token, std::string first, std::string second)
+void	Throw::DuplicateRootAliasDirective(const Token& token, const std::string& first, const std::string& second)
 {
 	throw std::runtime_error("\"" + first + "\" directive is duplicate, \"" + second + "\" directive was specified earlier" + token.inLine());
 }

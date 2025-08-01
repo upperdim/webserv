@@ -36,7 +36,7 @@ public:
 	static void	DuplicateDirective(const Token& directive);
 	static void	DuplicateListenDirective(const Token& token, const ServerBlock& server);
 	static void	DuplicateLocationDirective(const Token& token, std::string& route);
-	static void	DuplicateRootAliasDirective(const Token& token, std::string first, std::string second);
+	static void	DuplicateRootAliasDirective(const Token& token, const std::string& first, const std::string& second);
 
 private:
 	Throw();
