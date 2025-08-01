@@ -320,8 +320,17 @@ void	Parser::parseLocationDirectives(LocationBlock& location, t_parsedDirectives
 		case KeywordType::ROOT:
 			if (parsedLocationDirectives.root)
 				Throw::DuplicateDirective(directive);
+			if (!location.alias.empty())
+				Throw::DuplicateRootAliasDirective(directive, "root", "alias");
 			parsedLocationDirectives.root = true;
 			parsePath(directive, params, location.root);
+			break;
+		case KeywordType::ALIAS:
+			if (!location.alias.empty())
+				Throw::DuplicateDirective(directive);
+			if (!location.root.empty())
+				Throw::DuplicateRootAliasDirective(directive, "alias", "root");
+			parsePath(directive, params, location.alias);
 			break;
 		case KeywordType::INDEX:
 			parseIndexDirective(directive, params, location.index);

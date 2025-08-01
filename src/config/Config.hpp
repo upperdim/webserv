@@ -17,6 +17,7 @@ class LocationBlock
 {
 public:
 	std::string							route;										//	path after location
+	std::string							alias;										//	::	alias
 	std::vector<HTTP::Method>			allowMethods	= {HTTP::Method::GET};		//	::	allow_methods
 	std::string							returnRoute;
 	bool								autoIndex		= false;					//	::	autoindex

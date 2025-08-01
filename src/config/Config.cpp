@@ -68,6 +68,10 @@ void	Config::printConfigs(void) const
 		for (LocationBlock location : server.locationBlocks) {
 			printLn(LIGHTCYAN"\n\tlocation " LIGHTMAGENTA + location.route +  LIGHTYELLOW " {" RESET);
 
+			print(LIGHTCYAN"\t\talias\t\t\t" RESET);
+			print(LIGHTMAGENTA + location.alias);
+			printLn(GRAY";" RESET);
+
 			if (!location.returnRoute.empty()) {
 				print(LIGHTCYAN"\t\treturn\t\t\t" RESET);
 				print(MAGENTA " " + location.returnRoute);
