@@ -556,7 +556,7 @@ bool	RequestParser::resolvePath(Request& request)
 		if (!cleanRoot.empty() && cleanRoot.back() == '/')
 			cleanRoot.pop_back();
 
-		request.resolvedPath = cleanRoot + '/' + request.URI;
+		request.resolvedPath = cleanRoot + request.URI;
 	}
 
 	// We do not sanitize or remove dot segments (e.g., "..") from ROOT or ALIAS paths.
