@@ -92,10 +92,7 @@ std::string	Response::getNextChunk(void)
 			setComplete();
 			break ;
 		case (ResponseState::SEND_CGI):
-			buff = getResponseLine();
-			if (m_bodyType != BodyType::BODY_FILE_BUFFER) {
-				LOGT(Log::ERROR, "CGI response body type is different than BODY_FILE_BUFFER");
-			}
+			buff = getCgiOutput();
 			setState(ResponseState::SEND_BODY);
 			break;
 		default:
@@ -176,6 +173,24 @@ std::string	Response::getNextBodyChunk(void)
 	}
 
 	return ( ss.str() );
+}
+
+std::string Response::getCgiOutput(void)
+{
+	std::string buff = getResponseLine();
+
+	// Append session cookie header
+	// CGI is responsible for all headers, including creating a sesion cookie
+	// auto itSetCookie = m_headers.find("Set-Cookie");
+	// if (itSetCookie != m_headers.end()) {
+	// 	buff += itSetCookie->first + ": " + itSetCookie->second;
+	// }
+
+	// if (m_bodyType != BodyType::BODY_FILE_BUFFER) {
+	// 	LOGT(Log::ERROR, "CGI response body type is different than BODY_FILE_BUFFER");
+	// }
+
+	return buff;
 }
 
 void	Response::checkBodyState()

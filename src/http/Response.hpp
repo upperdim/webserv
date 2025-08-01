@@ -70,6 +70,7 @@ private:
 	std::string			getResponseLine(void) const;
 	std::string			getHeaders(void) const;
 	std::string			getNextBodyChunk(void);
+	std::string			getCgiOutput(void);	
 	void				checkBodyState();
 	void				setState(ResponseState _state);
 };

@@ -7,7 +7,7 @@
 #include <string>
 
 #define MAX_NUM_OF_TRIES_FOR_ZERO_BYTES_READ 5
-#define SENT_CHUNK_LOG_TRESHOLD_LEN          1000
+#define SENT_CHUNK_LOG_TRESHOLD_LEN          2000
 #define RECV_BUFFER_SIZE                     (1 * 1024 * 1024)
 
 class ClientConnection
