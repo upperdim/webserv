@@ -23,7 +23,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 {
 	LOGT(Log::DEBUG, "Initializing CGI");
 
-	const std::string& scriptPath  = request.resolvedPath;
+	const std::string& scriptAbsPath  = request.resolvedPath;
 
 	// If there was no body in this request, create an empty one.
 	// Empty file will be redirected as STDIN to the CGI script.
@@ -89,7 +89,7 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 
 		char *argv[] = {
 			const_cast<char*>(request.resolvedCgiExecPath.c_str()),
-			const_cast<char*>(scriptPath.c_str()),
+			const_cast<char*>(scriptAbsPath.c_str()),
 			NULL
 		};
 
@@ -136,6 +136,10 @@ void	CGIHandler::initCgi(Request& request, Response& response)
 		for (auto& s : envStrings)
 			envp.push_back(const_cast<char*>(s.c_str()));
 		envp.push_back(NULL);
+
+		// Change working directory to where the script is
+		std::filesystem::path p_scriptAbsPath = scriptAbsPath;
+		std::filesystem::current_path(p_scriptAbsPath.parent_path());
 
 		// Execute the CGI script
 		execve(request.resolvedCgiExecPath.c_str(), argv, envp.data());
