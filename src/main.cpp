@@ -21,7 +21,7 @@ Config parseConfig(std::string configFilePath, char *programName)
 	try {
 		Parser	parser(configFilePath, programName);
 		config = parser.parse();
-		config.printConfigs();
+		// config.printConfigs();
 	} catch (std::exception& e) {
 		LOGT(Log::ERROR, e.what());
 		exit(EXIT_FAILURE);
