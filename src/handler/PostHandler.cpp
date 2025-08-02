@@ -77,6 +77,7 @@ void	PostHandler::handle(Request& request, Response& response)
 					std::filesystem::copy_file(source, dest, std::filesystem::copy_options::overwrite_existing);
 					successfullyMoved.emplace_back(tmpPath);
 					std::filesystem::remove(source);
+					LOGT(Log::SUCCESS, "Moved file to: " << dest);
 				} catch (const std::exception& e) {
 					LOGT(Log::ERROR, "Failed to move file \"" << filenameStr << "\" to dest: " << dest << ": " << e.what());
 					createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
