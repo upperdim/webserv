@@ -71,6 +71,23 @@ void	PostHandler::handle(Request& request, Response& response)
 			successfullyMoved.emplace_back(tmpPath);
 			LOGT(Log::SUCCESS, "Moved file to: " << dest);
 			++movedFileCount;
+		} catch (const std::filesystem::filesystem_error& e) {
+			if (e.code() == std::errc::cross_device_link) {
+				try	{
+					std::filesystem::copy_file(source, dest, std::filesystem::copy_options::overwrite_existing);
+					successfullyMoved.emplace_back(tmpPath);
+					std::filesystem::remove(source);
+					LOGT(Log::SUCCESS, "Moved file to: " << dest);
+				} catch (const std::exception& e) {
+					LOGT(Log::ERROR, "Failed to move file \"" << filenameStr << "\" to dest: " << dest << ": " << e.what());
+					createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+					return;
+				}
+			} else {
+				LOGT(Log::ERROR, "Failed to move file \"" << filenameStr << "\" to dest: " << dest << ": " << e.what());
+				createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
+				return;
+			}
 		} catch(const std::exception& e) {
 			LOGT(Log::ERROR, "Failed to move file \"" << filenameStr << "\" to dest: " << dest << ": " << e.what());
 			createErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);

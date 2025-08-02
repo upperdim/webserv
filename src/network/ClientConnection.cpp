@@ -28,7 +28,7 @@ void ClientConnection::receiveRequest()
 
 	if (bytesRead > 0) {
 		buffer[bytesRead] = '\0';
-		LOG("buffer = " << LIGHTMAGENTA <<  "<<<\n" << LIGHTCYAN << buffer << LIGHTMAGENTA << ">>>" << DEFAULT);
+		// LOG("buffer = " << LIGHTMAGENTA <<  "<<<\n" << LIGHTCYAN << buffer << LIGHTMAGENTA << ">>>" << DEFAULT);
 		
 		request.rawRequest.append(buffer, bytesRead);
 		LOG("rawRequest.length() = " << request.rawRequest.length());
@@ -61,11 +61,11 @@ void ClientConnection::sendResponse()
 	LOG(bytesSent << " bytes sent");
 
 	if (bytesSent > 0) {
-		if (bytesSent < SENT_CHUNK_LOG_TRESHOLD_LEN) {
-			LOG("chunk = " << LIGHTMAGENTA <<  "<<<\n" << LIGHTCYAN << dataToSend.c_str() << LIGHTMAGENTA << ">>>" << DEFAULT);
-		} else {
-			LOG("chunk too long to log");
-		}
+		// if (bytesSent < SENT_CHUNK_LOG_TRESHOLD_LEN) {
+		// 	LOG("chunk = " << LIGHTMAGENTA <<  "<<<\n" << LIGHTCYAN << dataToSend.c_str() << LIGHTMAGENTA << ">>>" << DEFAULT);
+		// } else {
+		// 	LOG("chunk too long to log");
+		// }
 
 		// Not all data could be sent
 		if (static_cast<size_t>(bytesSent) < dataToSend.length()) {
