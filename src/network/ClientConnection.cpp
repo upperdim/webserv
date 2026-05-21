@@ -22,8 +22,9 @@ ClientConnection::~ClientConnection()
 void ClientConnection::receiveRequest()
 {
 	LOG("Reading from ClientConnection fd = " << fd);
-	char buffer[RECV_BUFFER_SIZE] = {0};
+	char buffer[RECV_BUFFER_SIZE];
 	ssize_t bytesRead = recv(fd, &buffer, RECV_BUFFER_SIZE - 1, 0);
+	buffer[bytesRead] = '\0';
 	LOG(bytesRead << " bytes read");
 
 	if (bytesRead > 0) {
