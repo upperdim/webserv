@@ -44,18 +44,18 @@ void	FileBufferReader::getNextChunk(std::string& chunk)
 		return;
 	}
 
-    chunk.resize(m_buff_size);
+	chunk.resize(m_buff_size);
 
-    m_fs.read(chunk.data(), m_buff_size);
+	m_fs.read(chunk.data(), m_buff_size);
 
-    std::streamsize n = m_fs.gcount();
+	std::streamsize n = m_fs.gcount();
 
-    if (m_fs.bad())
-        m_state = FileBuffer::State::ERROR;
-    else if (m_fs.eof())
-        m_state = FileBuffer::State::COMPLETE;
+	if (m_fs.bad())
+		m_state = FileBuffer::State::ERROR;
+	else if (m_fs.eof())
+		m_state = FileBuffer::State::COMPLETE;
 
-    chunk.resize(n);
+	chunk.resize(n);
 }
 
 FileBuffer::State	FileBufferReader::getState(void) const

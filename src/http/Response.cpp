@@ -158,9 +158,9 @@ void	Response::getNextBodyChunk(std::string& chunk)
 			break;
 		case (BodyType::BODY_FILE_BUFFER):
 		{
-            m_file_buffer_reader.getNextChunk(chunk);
-            if (m_file_buffer_reader.error())
-                setState(ResponseState::SEND_ERROR);
+			m_file_buffer_reader.getNextChunk(chunk);
+			if (m_file_buffer_reader.error())
+				setState(ResponseState::SEND_ERROR);
 		}
 			break;
 		default:
