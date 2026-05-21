@@ -18,13 +18,13 @@ public:
 	static void			unquote(std::string& str, char quote);
 	static bool			removeDotSegments(std::string& uri);
 	static bool			collapseDuplicateSlashes(std::string& oBuf);
-	static bool			splitHeaderLine(std::string& line, std::pair<std::string, std::string>& headerField);
+	static bool			splitHeaderLine(std::string_view line, std::pair<std::string, std::string>& headerField);
 
 private:
 	Utils();
 
 	static void			popLastSegment(std::string& oBuf);
-	static bool			splitHeaderField(std::string& line, std::pair<std::string, std::string>& headerField);
+	static bool			splitHeaderField(std::string_view line, std::pair<std::string, std::string>& headerField);
 	static void			trimWhitespaces(std::string& str);
 	static bool			isValidFieldNameChar(const char c);
 	static bool			isValidFieldValueChar(const char c);
