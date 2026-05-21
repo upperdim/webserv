@@ -50,10 +50,14 @@ void	PostHandler::handle(Request& request, Response& response)
 		return;
 	}
 
+#if ENABLE_LOG
+# if PRINT_INFO
 	// logging the files we have to move
 	LOGT(Log::INFO, "moving the following " << LIGHTYELLOW << request.tmpUploadedFiles.size() << BLUE << " files to " << LIGHTYELLOW << request.resolvedPath);
 	for (const auto& path : request.tmpUploadedFiles)
 		LOGT(Log::INFO, "=> " << path);
+# endif
+#endif
 
 	std::vector<std::string> successfullyMoved;
 	successfullyMoved.reserve(request.tmpUploadedFiles.size());

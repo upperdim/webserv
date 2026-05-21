@@ -4,14 +4,14 @@
 #include <string>
 #include <sstream>
 
-# define ENABLE_LOG		true
-# define PRINT_DEBUG	true
-# define PRINT_INFO		true
+# define ENABLE_LOG		false
+# define PRINT_DEBUG	false
+# define PRINT_INFO		false
 # define PRINT_WARNING	true
 # define PRINT_ERROR	true
-# define PRINT_SUCCESS 	true
-# define PRINT_MSG		true
-# define PRINT_RAW		true
+# define PRINT_SUCCESS 	false
+# define PRINT_MSG		false
+# define PRINT_RAW		false
 
 # if ENABLE_LOG
 

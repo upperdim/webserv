@@ -169,8 +169,12 @@ bool	CGIHandler::checkCgiCompletion(Request& request, Response& response)
 		// Check if signal exit
 		if (WIFSIGNALED(status)) {
 			
+#if ENABLE_LOG
+# if PRINT_ERROR
 			int sig = WTERMSIG(status);
 			LOGT(Log::ERROR, "CGI script crashed with signal " << sig);
+# endif
+#endif
 
 			failWithErrorResponse(request, response, WSSC_INTERNAL_SERVER_ERROR);
 			return true;
