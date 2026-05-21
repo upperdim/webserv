@@ -22,6 +22,9 @@ compile_commands.json
 *.ps1
 *.sh
 
+# Profiling
+perf.data
+
 # 42 Tester
 YoupiBanane/
 
