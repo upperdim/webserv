@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <utility>
+#include <random>
 #include "Request.hpp"
 #include "FileBufferReader.hpp"
 #include "HTTP.hpp"
@@ -63,6 +64,8 @@ private:
 	FileBufferReader	m_file_buffer_reader;
 	BodyType			m_bodyType;
 	bool				m_done;
+
+	static std::mt19937 rng;
 
 
 	Response(const Response& other); // copy constructor =delete

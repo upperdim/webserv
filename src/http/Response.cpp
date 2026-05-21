@@ -1,4 +1,3 @@
-#include <random>
 #include "Response.hpp"
 
 Response::Response()
@@ -14,6 +13,8 @@ Response::Response()
 Response::~Response()
 {
 }
+
+std::mt19937 Response::rng(std::random_device{}());
 
 void	Response::setProtocol(const std::string& _protocol)
 {
@@ -41,12 +42,10 @@ void	Response::createSessionCookie()
 	std::string sessionToken;
 	sessionToken.reserve(SESSION_TOKEN_LEN);
 
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dist(0, sizeof(charset) - 2);
+	std::uniform_int_distribution<int> dist(0, sizeof(charset) - 2);
 
 	for (size_t i = 0; i < SESSION_TOKEN_LEN; ++i)
-		sessionToken += charset[dist(gen)];
+		sessionToken += charset[dist(rng)];
 
 	std::ostringstream cookieVal;
 	cookieVal << "sessionId=" << sessionToken
