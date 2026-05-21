@@ -24,6 +24,7 @@ compile_commands.json
 
 # Profiling
 perf.data
+perf.data.old
 
 # 42 Tester
 YoupiBanane/
