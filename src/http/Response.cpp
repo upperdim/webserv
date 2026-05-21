@@ -1,4 +1,5 @@
 #include "Response.hpp"
+#include "HTTP.hpp"
 
 Response::Response()
 	:	m_state(ResponseState::SEND_HEADER),

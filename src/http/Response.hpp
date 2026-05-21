@@ -2,12 +2,9 @@
 #define RESPONSE_HPP
 
 #include <string>
-#include <fstream>
-#include <utility>
 #include <random>
-#include "Request.hpp"
+#include <unordered_map>
 #include "FileBufferReader.hpp"
-#include "HTTP.hpp"
 
 // A good default RESPONSE_BUFFER_SIZE seams to be 64kb - 128kb
 #define RESPONSE_BUFFER_SIZE (64 * 1024)

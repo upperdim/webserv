@@ -1,7 +1,6 @@
 #include "ClientConnection.hpp"
 #include "RequestParser.hpp"
 #include "CGIHandler.hpp"
-#include "colors.hpp"
 #include "Log.hpp"
 
 ClientConnection::ClientConnection(int fd, ServerSocket& _connectedServerSocket) 
