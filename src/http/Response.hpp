@@ -27,7 +27,7 @@ public:
 	void				setBodyString(const std::string& _body);
 	void				setBodyFileBufferReader(std::string path);
 	void				setAsCgiResponse(void);
-	std::string			getNextChunk(void);
+	void				getNextChunk(std::string& chunk);
 
 	bool				complete(void) const;
 	void				setComplete(void);
@@ -67,10 +67,10 @@ private:
 
 	Response(const Response& other); // copy constructor =delete
 
-	std::string			getResponseLine(void) const;
-	std::string			getHeaders(void) const;
-	std::string			getNextBodyChunk(void);
-	std::string			getCgiOutput(void);	
+	void				getResponseLine(std::string& chunk) const;
+	void				getHeaders(std::string& chunk) const;
+	void				getNextBodyChunk(std::string& chunk);
+	void				getCgiOutput(std::string& chunk);	
 	void				checkBodyState();
 	void				setState(ResponseState _state);
 };

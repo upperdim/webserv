@@ -55,7 +55,7 @@ void ClientConnection::sendResponse()
 	
 	// We have no pending bytes to send
 	if (dataToSend.empty()) {
-		dataToSend = response.getNextChunk();
+		response.getNextChunk(dataToSend);
 	}
 
 	ssize_t bytesSent = send(fd, dataToSend.c_str(), dataToSend.length(), 0);

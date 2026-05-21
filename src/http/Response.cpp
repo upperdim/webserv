@@ -75,31 +75,27 @@ void	Response::setAsCgiResponse(void)
 	setState(ResponseState::SEND_CGI);
 }
 
-std::string	Response::getNextChunk(void)
+void	Response::getNextChunk(std::string& chunk)
 {
-	std::string	buff;
-
 	switch (m_state) {
 		case (ResponseState::SEND_HEADER):
-			buff = getHeaders();
+			getHeaders(chunk);
 			setState(m_bodyType == BodyType::BODY_NONE ? ResponseState::SEND_COMPLETE : ResponseState::SEND_BODY);
 			break ;
 		case (ResponseState::SEND_BODY):
-			buff = getNextBodyChunk();
+			getNextBodyChunk(chunk);
 			checkBodyState();
 			break ;
 		case (ResponseState::SEND_COMPLETE):
 			setComplete();
 			break ;
 		case (ResponseState::SEND_CGI):
-			buff = getCgiOutput();
+			getCgiOutput(chunk);
 			setState(ResponseState::SEND_BODY);
 			break;
 		default:
 			break ;
 	}
-
-	return (buff);
 }
 
 bool	Response::complete(void) const
@@ -117,7 +113,7 @@ bool	Response::error(void) const
 	return (m_state == ResponseState::SEND_ERROR);
 }
 
-std::string			Response::getResponseStateString()
+std::string		Response::getResponseStateString()
 {
 	switch (m_state)
 	{
@@ -135,62 +131,58 @@ std::string			Response::getResponseStateString()
 	return ("CRITICAL_ERROR_::_RESPONSE_STATE_NOT_SET_TO_VALID_STATE");
 }
 
-std::string Response::getResponseLine(void) const
+void	Response::getResponseLine(std::string& chunk) const
 {
-	std::string	buff;
-	buff	+= m_protocol + " "
+	chunk	+= m_protocol + " "
 			+ std::to_string(m_status_code) + " "
 			+ m_status_msg + "\r\n";
-	return (buff);
 }
 
-std::string	Response::getHeaders(void) const
+void	Response::getHeaders(std::string& chunk) const
 {
-	std::string buff = getResponseLine();
+	getResponseLine(chunk);
 	for (const auto& header : m_headers)
-		buff += header.first + ": " + header.second + "\r\n";
-	buff += "\r\n";
-	return (buff);
+		chunk += header.first + ": " + header.second + "\r\n";
+	chunk += "\r\n";
 }
 
-std::string	Response::getNextBodyChunk(void)
+void	Response::getNextBodyChunk(std::string& chunk)
 {
-	std::stringstream	ss;
-
 	switch (m_bodyType)
 	{
 		case (BodyType::BODY_STRING):
-			ss << m_body.substr(0, RESPONSE_BUFFER_SIZE);
-			m_body.erase(0, RESPONSE_BUFFER_SIZE);
-			break ;
+		{
+			size_t len = std::min((size_t) RESPONSE_BUFFER_SIZE, m_body.size());
+			chunk = m_body.substr(0, len);
+			m_body.erase(0, len);
+		}
+			break;
 		case (BodyType::BODY_FILE_BUFFER):
-			ss << m_file_buffer_reader.getNextChunk();
-			if (m_file_buffer_reader.error())
-				setState(ResponseState::SEND_ERROR);
-			break ;
+		{
+            m_file_buffer_reader.getNextChunk(chunk);
+            if (m_file_buffer_reader.error())
+                setState(ResponseState::SEND_ERROR);
+		}
+			break;
 		default:
-			break ;
+			break;
 	}
-
-	return ( ss.str() );
 }
 
-std::string Response::getCgiOutput(void)
+void Response::getCgiOutput(std::string& chunk)
 {
-	std::string buff = getResponseLine();
+	getResponseLine(chunk);
 
 	// Append session cookie header
 	// CGI is responsible for all headers, including creating a sesion cookie
 	// auto itSetCookie = m_headers.find("Set-Cookie");
 	// if (itSetCookie != m_headers.end()) {
-	// 	buff += itSetCookie->first + ": " + itSetCookie->second;
+	// 	chunk += itSetCookie->first + ": " + itSetCookie->second;
 	// }
 
 	// if (m_bodyType != BodyType::BODY_FILE_BUFFER) {
 	// 	LOGT(Log::ERROR, "CGI response body type is different than BODY_FILE_BUFFER");
 	// }
-
-	return buff;
 }
 
 void	Response::checkBodyState()
