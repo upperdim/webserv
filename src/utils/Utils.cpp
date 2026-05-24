@@ -198,14 +198,14 @@ bool	Utils::collapseDuplicateSlashes(std::string& oBuf)
 	return true;
 }
 
-bool	Utils::splitHeaderLine(std::string& line, std::pair<std::string, std::string>& headerField)
+bool	Utils::splitHeaderLine(std::string_view line, std::pair<std::string, std::string>& headerField)
 {
 	if (line.empty()) 
 		return false;
 
 	// clean trailing '\r' character
-	if (!line.empty() && line.back() == '\r') 
-		line.pop_back();
+	if (line.back() == '\r') 
+		line.remove_suffix(1);
 
 	if (!splitHeaderField(line, headerField)) {
 		LOGT(Log::WARNING, "failed to split Header-Field: " << line);
@@ -234,10 +234,10 @@ void	Utils::popLastSegment(std::string& oBuf)
 	}
 }
 
-bool	Utils::splitHeaderField(std::string& line, std::pair<std::string, std::string>& headerField)
+bool	Utils::splitHeaderField(std::string_view line, std::pair<std::string, std::string>& headerField)
 {
 	// no whitespace allowed before the field-name
-	if (line.size() > 0 && std::isspace(line[0]))
+	if (std::isspace(line[0]))
 		return false;
 
 	// has valid ':'
@@ -280,11 +280,18 @@ void	Utils::trimWhitespaces(std::string& str)
 
 bool	Utils::isValidFieldNameChar(const char c)
 {
+
 	static const std::unordered_set<char> tChars = {
-		'!', '#' , '$', '%', '&', '\'', '*', '+',
-		'-', '.' , '^', '_', '`', '|',  '~'
+		
 	};
-	return std::isalnum(static_cast<unsigned char>(c)) || tChars.count(c);
+	if (std::isalnum(static_cast<unsigned char>(c)))
+		return true;
+
+	if (c == '!' || c== '#' || c== '$' || c == '%' || c == '&' || c == '\'' || c == '*' || 
+		c == '+' || c == '-' || c == '.' || c == '^' || c == '_' || c == '`' || c == '|' || c == '~')
+		return true;
+
+	return false;
 }
 
 bool	Utils::isValidFieldValueChar(const char c)

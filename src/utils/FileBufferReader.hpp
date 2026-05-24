@@ -31,7 +31,7 @@ public:
 	// move assignemnt operator overlaod
 	FileBufferReader&	operator=(FileBufferReader&& rhs);
 
-	std::string			getNextChunk(void);
+	void				getNextChunk(std::string& chunk);
 	FileBuffer::State	getState(void) const;
 	size_t				getSize(void) const;
 	bool				complete(void) const;

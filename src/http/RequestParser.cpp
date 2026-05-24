@@ -90,14 +90,14 @@ void	RequestParser::parseHeader(Request& request)
 
 	size_t	start = 0;
 	while (start < headerEnd) {
-		size_t	pos = request.rawRequest.find_first_of('\n', start);
+		size_t	nlPos = request.rawRequest.find_first_of('\n', start);
 
-		if (pos == std::string::npos) {
+		if (nlPos == std::string::npos) {
 			request.invalidateWithError(WSSC_BAD_REQUEST);
 			return;
 		}
 
-		std::string line = request.rawRequest.substr(start, pos - start);
+		std::string_view line(request.rawRequest.data() + start, nlPos - start);
 
 		std::pair<std::string, std::string> headerField;
 		if (!Utils::splitHeaderLine(line, headerField)) {
@@ -107,7 +107,7 @@ void	RequestParser::parseHeader(Request& request)
 
 		request.headers[headerField.first] = headerField.second;
 
-		start = pos + 1;
+		start = nlPos + 1;
 	}
 	// delete the read header Bytes from rawRequest
 	request.rawRequest.erase(0, headerEnd + 4);

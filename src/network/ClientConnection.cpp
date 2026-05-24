@@ -1,7 +1,6 @@
 #include "ClientConnection.hpp"
 #include "RequestParser.hpp"
 #include "CGIHandler.hpp"
-#include "colors.hpp"
 #include "Log.hpp"
 
 ClientConnection::ClientConnection(int fd, ServerSocket& _connectedServerSocket) 
@@ -22,8 +21,9 @@ ClientConnection::~ClientConnection()
 void ClientConnection::receiveRequest()
 {
 	LOG("Reading from ClientConnection fd = " << fd);
-	char buffer[RECV_BUFFER_SIZE] = {0};
+	char buffer[RECV_BUFFER_SIZE];
 	ssize_t bytesRead = recv(fd, &buffer, RECV_BUFFER_SIZE - 1, 0);
+	buffer[bytesRead] = '\0';
 	LOG(bytesRead << " bytes read");
 
 	if (bytesRead > 0) {
@@ -54,7 +54,7 @@ void ClientConnection::sendResponse()
 	
 	// We have no pending bytes to send
 	if (dataToSend.empty()) {
-		dataToSend = response.getNextChunk();
+		response.getNextChunk(dataToSend);
 	}
 
 	ssize_t bytesSent = send(fd, dataToSend.c_str(), dataToSend.length(), 0);

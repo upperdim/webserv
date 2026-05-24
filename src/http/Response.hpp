@@ -2,11 +2,9 @@
 #define RESPONSE_HPP
 
 #include <string>
-#include <fstream>
-#include <utility>
-#include "Request.hpp"
+#include <random>
+#include <unordered_map>
 #include "FileBufferReader.hpp"
-#include "HTTP.hpp"
 
 // A good default RESPONSE_BUFFER_SIZE seams to be 64kb - 128kb
 #define RESPONSE_BUFFER_SIZE (64 * 1024)
@@ -27,7 +25,7 @@ public:
 	void				setBodyString(const std::string& _body);
 	void				setBodyFileBufferReader(std::string path);
 	void				setAsCgiResponse(void);
-	std::string			getNextChunk(void);
+	void				getNextChunk(std::string& chunk);
 
 	bool				complete(void) const;
 	void				setComplete(void);
@@ -64,13 +62,15 @@ private:
 	BodyType			m_bodyType;
 	bool				m_done;
 
+	static std::mt19937 rng;
+
 
 	Response(const Response& other); // copy constructor =delete
 
-	std::string			getResponseLine(void) const;
-	std::string			getHeaders(void) const;
-	std::string			getNextBodyChunk(void);
-	std::string			getCgiOutput(void);	
+	void				getResponseLine(std::string& chunk) const;
+	void				getHeaders(std::string& chunk) const;
+	void				getNextBodyChunk(std::string& chunk);
+	void				getCgiOutput(std::string& chunk);	
 	void				checkBodyState();
 	void				setState(ResponseState _state);
 };
