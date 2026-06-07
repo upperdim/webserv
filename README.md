@@ -20,10 +20,6 @@ HTTP server from scratch for static file serving.
 - Directory autoindexing
 - CGI support
 
-## Instructions
-
-## Configuration
-
 ## Modules
 
 | Module  | Description |
