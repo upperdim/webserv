@@ -40,6 +40,7 @@ www/
 *.png
 *.jpg
 *.md
+!README.md
 *.ico
 
 # Config
