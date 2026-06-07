@@ -46,7 +46,7 @@ Transfer/sec:     14.78MB
 
 ## Limitations & Improvement Potentials
 
-Here are the list of improvement that are not implemented due to time cost and diminishing returns in learning:
+Here are the list of improvements that are not implemented due to time cost and diminishing returns:
     
 1. **O(n) poll()**
 
