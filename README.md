@@ -20,14 +20,18 @@ HTTP server from scratch for static file serving.
 - Directory autoindexing
 - CGI support
 
+## Instructions
+
+## Configuration
+
 ## Modules
 
 | Module  | Description |
 |---------|-------------|
-| Handler | Performs operations requested via HTTP |
-| HTTP    | Parses transmitted data into HTTP |
+| Config  | Parses the configuration file for initialization of the server(s) |
 | Network | Handles server creation, management, clients, data transmission |
-| Config  | Parses the configuration file |
+| HTTP    | Parses transmitted data into HTTP |
+| Handler | Performs operations requested via HTTP |
 
 ## Measurements
 
